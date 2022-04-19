@@ -23,6 +23,8 @@ show-version:
 
 DOCKER_IMAGE := linkacloud/d2vm
 
+docker: docker-build docker-push
+
 docker-push:
 	@docker image push -a $(DOCKER_IMAGE)
 
