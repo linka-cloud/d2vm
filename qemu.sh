@@ -21,7 +21,7 @@ ARGS=""
 if [[ $OSTYPE == 'darwin'* ]]; then
   ARGS="-M accel=hvf"
 else
-  ARGS="-use-kvm"
+  ARGS="-enable-kvm"
 fi
 
 qemu-system-x86_64 -drive file=$IMG,index=0,media=disk,format=qcow2 -m 4096 -cpu host -nographic ${ARGS} ${@: 2}

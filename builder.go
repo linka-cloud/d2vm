@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	exec2 "os/exec"
 	"path/filepath"
 	"strings"
 
@@ -63,6 +64,7 @@ ff02::3 ip6-allhosts
   KERNEL /boot/vmlinuz
   APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 
 `
+	mbrBin = "/usr/lib/EXTLINUX/mbr.bin"
 )
 
 var (
@@ -84,6 +86,9 @@ type builder struct {
 }
 
 func NewBuilder(workdir, src, disk string, size int64, osRelease OSRelease) (*builder, error) {
+	if err := checkDependencies(); err != nil {
+		return nil, err
+	}
 	if size == 0 {
 		size = 1
 	}
@@ -291,7 +296,7 @@ func (b *builder) installKernel(ctx context.Context) error {
 
 func (b *builder) setupMBR(ctx context.Context) error {
 	logrus.Infof("writing MBR")
-	if err := exec.Run(ctx, "dd", "if=/usr/lib/EXTLINUX/mbr.bin", fmt.Sprintf("of=%s", b.diskRaw), "bs=440", "count=1", "conv=notrunc"); err != nil {
+	if err := exec.Run(ctx, "dd", fmt.Sprintf("if=%s", mbrBin), fmt.Sprintf("of=%s", b.diskRaw), "bs=440", "count=1", "conv=notrunc"); err != nil {
 		return err
 	}
 	return nil
@@ -317,4 +322,17 @@ func block(path string, size int64) error {
 	}
 	defer f.Close()
 	return f.Truncate(size)
+}
+
+func checkDependencies() error {
+	var merr error
+	for _, v := range []string{"mount", "blkid", "tar", "kpartx", "losetup", "qemu-img", "extlinux", "dd", "mkfs", "fdisk"} {
+		if _, err := exec2.LookPath(v); err != nil {
+			merr = multierr.Append(merr, err)
+		}
+	}
+	if _, err := os.Stat(mbrBin); err != nil {
+		merr = multierr.Append(merr, err)
+	}
+	return merr
 }
