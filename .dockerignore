@@ -1,0 +1,5 @@
+.idea
+tests
+disk*
+qemu.sh
+*.qcow2
