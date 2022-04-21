@@ -2,7 +2,7 @@ FROM ubuntu
 
 # Install netplan sudo ssh-server and dns utils
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
-      ameu-guest-agent \
+      qemu-guest-agent \
       netplan.io \
       dnsutils \
       sudo \
