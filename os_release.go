@@ -46,8 +46,10 @@ func (r Release) Supported() bool {
 		return true
 	case ReleaseAlpine:
 		return true
-	case ReleaseCentOS, ReleaseRHEL:
+	case ReleaseCentOS:
 		return true
+	case ReleaseRHEL:
+		return false
 	default:
 		return false
 	}

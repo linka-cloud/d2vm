@@ -63,7 +63,7 @@ func NewDockerfile(release OSRelease, img, password string) (Dockerfile, error) 
 		d.tmpl = ubuntuDockerfileTemplate
 	case ReleaseAlpine:
 		d.tmpl = alpineDockerfileTemplate
-	case ReleaseCentOS, ReleaseRHEL:
+	case ReleaseCentOS:
 		d.tmpl = centOSDockerfileTemplate
 	default:
 		return Dockerfile{}, fmt.Errorf("unsupported distribution: %s", release.ID)

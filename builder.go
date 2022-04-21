@@ -333,7 +333,7 @@ func (b *builder) installKernel(ctx context.Context) error {
 		sysconfig = syslinuxCfgDebian
 	case ReleaseAlpine:
 		sysconfig = syslinuxCfgAlpine
-	case ReleaseCentOS, ReleaseRHEL:
+	case ReleaseCentOS:
 		sysconfig = syslinuxCfgCentOS
 	default:
 		return fmt.Errorf("%s: distribution not supported", b.osRelease.ID)
