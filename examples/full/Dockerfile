@@ -20,6 +20,7 @@ ARG SSH_KEY=https://github.com/${USER}.keys
 
 # Setup user environment
 RUN DEBIAN_FRONTEND=noninteractive apt install -y \
+      bash-completion \
       curl \
       zsh \
       git \

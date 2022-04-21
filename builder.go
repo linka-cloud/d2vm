@@ -66,13 +66,23 @@ ff02::3 ip6-allhosts
   KERNEL /boot/vmlinuz
   APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 
 `
-	mbrBin = "/usr/lib/EXTLINUX/mbr.bin"
 )
 
 var (
 	fdiskCmds = []string{"n", "p", "1", "", "", "a", "w"}
 
 	formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vmdk"}
+
+	mbrPaths = []string{
+		// debian path
+		"/usr/lib/syslinux/mbr/mbr.bin",
+		// ubuntu path
+		"/usr/lib/EXTLINUX/mbr.bin",
+		// alpine path
+		"/usr/share/syslinux/mbr.bin",
+		// centos path
+		"/usr/share/syslinux/mbr.bin",
+	}
 )
 
 type builder struct {
@@ -85,6 +95,8 @@ type builder struct {
 
 	size     int64
 	mntPoint string
+
+	mbrPath string
 
 	loDevice string
 	loPart   string
@@ -104,6 +116,17 @@ func NewBuilder(workdir, src, disk string, size int64, osRelease OSRelease, form
 	}
 	if !valid {
 		return nil, fmt.Errorf("invalid format: %s valid formats are: %s", f, strings.Join(formats, " "))
+	}
+
+	mbrBin := ""
+	for _, v := range mbrPaths {
+		if _, err := os.Stat(v); err == nil {
+			mbrBin = v
+			break
+		}
+	}
+	if mbrBin == "" {
+		return nil, fmt.Errorf("unable to find syslinux's mbr.bin path")
 	}
 	if size == 0 {
 		size = 10 * int64(datasize.GB)
@@ -127,6 +150,7 @@ func NewBuilder(workdir, src, disk string, size int64, osRelease OSRelease, form
 		diskOut:   filepath.Join(workdir, disk+".qcow2"),
 		format:    f,
 		size:      size,
+		mbrPath:   mbrBin,
 		mntPoint:  filepath.Join(workdir, "/mnt"),
 	}
 	if err := os.MkdirAll(b.mntPoint, os.ModePerm); err != nil {
@@ -322,7 +346,7 @@ func (b *builder) installKernel(ctx context.Context) error {
 
 func (b *builder) setupMBR(ctx context.Context) error {
 	logrus.Infof("writing MBR")
-	if err := exec.Run(ctx, "dd", fmt.Sprintf("if=%s", mbrBin), fmt.Sprintf("of=%s", b.diskRaw), "bs=440", "count=1", "conv=notrunc"); err != nil {
+	if err := exec.Run(ctx, "dd", fmt.Sprintf("if=%s", b.mbrPath), fmt.Sprintf("of=%s", b.diskRaw), "bs=440", "count=1", "conv=notrunc"); err != nil {
 		return err
 	}
 	return nil
@@ -356,9 +380,6 @@ func checkDependencies() error {
 		if _, err := exec2.LookPath(v); err != nil {
 			merr = multierr.Append(merr, err)
 		}
-	}
-	if _, err := os.Stat(mbrBin); err != nil {
-		merr = multierr.Append(merr, err)
 	}
 	return merr
 }

@@ -18,6 +18,8 @@ import (
 	"context"
 
 	"github.com/spf13/cobra"
+
+	"go.linka.cloud/d2vm"
 )
 
 var (
@@ -31,6 +33,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:          "d2vm",
 		SilenceUsage: true,
+		Version:      d2vm.Version,
 	}
 )
 

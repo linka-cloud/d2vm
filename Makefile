@@ -38,3 +38,6 @@ docker-run:
 		-v $(PWD):/build \
 		-w /build \
 		$(DOCKER_IMAGE) bash
+
+build:
+	@go build -o d2vm -ldflags "-s -w -X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./cmd/d2vm

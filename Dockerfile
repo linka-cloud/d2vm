@@ -9,7 +9,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o d2vm ./cmd/d2vm
+RUN make build
 
 FROM ubuntu
 
