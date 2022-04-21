@@ -26,9 +26,11 @@ var (
 	password = "root"
 	force    = false
 	debug    = false
+	format   = "qcow2"
 
 	rootCmd = &cobra.Command{
-		Use: "d2vm",
+		Use:          "d2vm",
+		SilenceUsage: true,
 	}
 )
 

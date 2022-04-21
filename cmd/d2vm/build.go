@@ -15,6 +15,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -25,11 +27,12 @@ import (
 )
 
 var (
-	file     = "Dockerfile"
-	tag      = uuid.New().String()
-	buildCmd = &cobra.Command{
+	file      = "Dockerfile"
+	tag       = uuid.New().String()
+	buildArgs []string
+	buildCmd  = &cobra.Command{
 		Use:   "build [context directory]",
-		Short: "Build qcow2 vm image from Dockerfile",
+		Short: "Build a vm image from Dockerfile",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			size, err := parseSize(size)
@@ -40,10 +43,14 @@ var (
 				exec.Run = exec.RunStdout
 			}
 			logrus.Infof("building docker image from %s", file)
-			if err := docker.Cmd(cmd.Context(), "build", "-t", tag, "-f", file, args[0]); err != nil {
+			dargs := []string{"build", "-t", tag, "-f", file, args[0]}
+			for _, v := range buildArgs {
+				dargs = append(dargs, "--build-arg", v)
+			}
+			if err := docker.Cmd(cmd.Context(), dargs...); err != nil {
 				return err
 			}
-			return docker2vm.Convert(cmd.Context(), tag, size, password, output)
+			return d2vm.Convert(cmd.Context(), tag, size, password, output, format)
 		},
 	}
 )
@@ -52,11 +59,12 @@ func init() {
 	rootCmd.AddCommand(buildCmd)
 
 	buildCmd.Flags().StringVarP(&file, "file", "f", "Dockerfile", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
-	buildCmd.Flags().StringVarP(&tag, "tag", "t", tag, "Name and optionally a tag in the 'name:tag' format")
+	buildCmd.Flags().StringArrayVar(&buildArgs, "build-arg", nil, "Set build-time variables")
 
-	buildCmd.Flags().StringVarP(&output, "output", "o", output, "The output qcow2 image")
+	buildCmd.Flags().StringVarP(&format, "output-format", "O", format, "The output image format, supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
+	buildCmd.Flags().StringVarP(&output, "output", "o", output, "The output image")
 	buildCmd.Flags().StringVarP(&password, "password", "p", "root", "Root user password")
-	buildCmd.Flags().StringVarP(&size, "size", "s", "1G", "The output image size")
+	buildCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	buildCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
-	buildCmd.Flags().BoolVar(&force, "force", false, "Override output qcow2 image")
+	buildCmd.Flags().BoolVar(&force, "force", false, "Override output image")
 }

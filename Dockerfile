@@ -15,7 +15,6 @@ FROM ubuntu
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
-        linux-image-virtual \
         util-linux \
         kpartx \
         e2fsprogs \
@@ -29,3 +28,5 @@ RUN apt-get update && \
 COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin/
 
 COPY --from=builder /d2vm/d2vm /usr/local/bin/
+
+ENTRYPOINT ["/usr/local/bin/d2vm"]

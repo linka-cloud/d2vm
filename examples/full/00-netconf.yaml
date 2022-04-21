@@ -1,0 +1,10 @@
+network:
+    version: 2
+    renderer: networkd
+    ethernets:
+        eth0:
+            dhcp4: true
+            nameservers:
+                addresses:
+                - 8.8.8.8
+                - 8.8.4.4

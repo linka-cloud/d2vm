@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker2vm
+package d2vm
 
 import (
 	"bytes"
 	"context"
 	"fmt"
+	"math"
 	"os"
 	exec2 "os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/c2h5oh/datasize"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/multierr"
 
@@ -69,37 +71,61 @@ ff02::3 ip6-allhosts
 
 var (
 	fdiskCmds = []string{"n", "p", "1", "", "", "a", "w"}
+
+	formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vmdk"}
 )
 
 type builder struct {
 	osRelease OSRelease
 
-	src       string
-	diskRaw   string
-	diskQcow2 string
-	size      int64
-	mntPoint  string
+	src     string
+	diskRaw string
+	diskOut string
+	format  string
+
+	size     int64
+	mntPoint string
 
 	loDevice string
 	loPart   string
 	diskUUD  string
 }
 
-func NewBuilder(workdir, src, disk string, size int64, osRelease OSRelease) (*builder, error) {
+func NewBuilder(workdir, src, disk string, size int64, osRelease OSRelease, format string) (*builder, error) {
 	if err := checkDependencies(); err != nil {
 		return nil, err
 	}
+	f := strings.ToLower(format)
+	valid := false
+	for _, v := range formats {
+		if valid = v == f; valid {
+			break
+		}
+	}
+	if !valid {
+		return nil, fmt.Errorf("invalid format: %s valid formats are: %s", f, strings.Join(formats, " "))
+	}
 	if size == 0 {
-		size = 1
+		size = 10 * int64(datasize.GB)
 	}
 	if disk == "" {
 		disk = "disk0"
+	}
+	i, err := os.Stat(src)
+	if err != nil {
+		return nil, err
+	}
+	if i.Size() > size {
+		s := datasize.ByteSize(math.Ceil(datasize.ByteSize(i.Size()).GBytes())) * datasize.GB
+		logrus.Warnf("%s is smaller than rootfs size, using %s", datasize.ByteSize(size), s)
+		size = int64(s)
 	}
 	b := &builder{
 		osRelease: osRelease,
 		src:       src,
 		diskRaw:   filepath.Join(workdir, disk+".raw"),
-		diskQcow2: filepath.Join(workdir, disk+".qcow2"),
+		diskOut:   filepath.Join(workdir, disk+".qcow2"),
+		format:    f,
 		size:      size,
 		mntPoint:  filepath.Join(workdir, "/mnt"),
 	}
@@ -146,7 +172,7 @@ func (b *builder) Build(ctx context.Context) (err error) {
 	if err = b.setupMBR(ctx); err != nil {
 		return err
 	}
-	if err = b.convert2Qcow2(ctx); err != nil {
+	if err = b.convert2Img(ctx); err != nil {
 		return err
 	}
 	if err = b.cleanUp(ctx); err != nil {
@@ -283,7 +309,7 @@ func (b *builder) installKernel(ctx context.Context) error {
 		sysconfig = syslinuxCfgDebian
 	case ReleaseAlpine:
 		sysconfig = syslinuxCfgAlpine
-	case ReleaseCentOS:
+	case ReleaseCentOS, ReleaseRHEL:
 		sysconfig = syslinuxCfgCentOS
 	default:
 		return fmt.Errorf("%s: distribution not supported", b.osRelease.ID)
@@ -302,9 +328,9 @@ func (b *builder) setupMBR(ctx context.Context) error {
 	return nil
 }
 
-func (b *builder) convert2Qcow2(ctx context.Context) error {
-	logrus.Infof("converting to QCOW2")
-	return exec.Run(ctx, "qemu-img", "convert", b.diskRaw, "-O", "qcow2", b.diskQcow2)
+func (b *builder) convert2Img(ctx context.Context) error {
+	logrus.Infof("converting to %s", b.format)
+	return exec.Run(ctx, "qemu-img", "convert", b.diskRaw, "-O", b.format, b.diskOut)
 }
 
 func (b *builder) chWriteFile(path string, content string, perm os.FileMode) error {
@@ -335,4 +361,8 @@ func checkDependencies() error {
 		merr = multierr.Append(merr, err)
 	}
 	return merr
+}
+
+func OutputFormats() []string {
+	return formats[:]
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker2vm
+package d2vm
 
 import (
 	_ "embed"
@@ -63,7 +63,7 @@ func NewDockerfile(release OSRelease, img, password string) (Dockerfile, error) 
 		d.tmpl = ubuntuDockerfileTemplate
 	case ReleaseAlpine:
 		d.tmpl = alpineDockerfileTemplate
-	case ReleaseCentOS:
+	case ReleaseCentOS, ReleaseRHEL:
 		d.tmpl = centOSDockerfileTemplate
 	default:
 		return Dockerfile{}, fmt.Errorf("unsupported distribution: %s", release.ID)

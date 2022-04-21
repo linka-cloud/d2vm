@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/c2h5oh/datasize"
 	"github.com/sirupsen/logrus"
@@ -28,13 +29,19 @@ import (
 )
 
 var (
+	pull = false
+
 	convertCmd = &cobra.Command{
 		Use:          "convert [docker image]",
-		Short:        "Convert Docker image to qcow2 vm image",
+		Short:        "Convert Docker image to vm image",
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			img := args[0]
+			tag := "latest"
+			if parts := strings.Split(img, ":"); len(parts) > 1 {
+				img, tag = parts[0], parts[1]
+			}
 			size, err := parseSize(size)
 			if err != nil {
 				return err
@@ -52,11 +59,24 @@ var (
 					return fmt.Errorf("%s already exists", output)
 				}
 			}
-			logrus.Infof("pulling image %s", img)
-			if err := docker.Cmd(cmd.Context(), "image", "pull", img); err != nil {
-				return err
+			found := false
+			if !pull {
+				o, _, err := docker.CmdOut(cmd.Context(), "image", "ls", "--format={{ .Repository }}:{{ .Tag }}", img)
+				if err != nil {
+					return err
+				}
+				found = strings.TrimSuffix(o, "\n") == fmt.Sprintf("%s:%s", img, tag)
+				if found {
+					logrus.Infof("using local image %s:%s", img, tag)
+				}
 			}
-			return docker2vm.Convert(cmd.Context(), img, size, password, output)
+			if pull || !found {
+				logrus.Infof("pulling image %s", img)
+				if err := docker.Cmd(cmd.Context(), "image", "pull", img); err != nil {
+					return err
+				}
+			}
+			return d2vm.Convert(cmd.Context(), img, size, password, output, format)
 		},
 	}
 )
@@ -70,9 +90,11 @@ func parseSize(s string) (int64, error) {
 }
 
 func init() {
-	convertCmd.Flags().StringVarP(&output, "output", "o", output, "The output qcow2 image")
+	convertCmd.Flags().BoolVar(&pull, "pull", false, "Always pull docker image")
+	convertCmd.Flags().StringVarP(&format, "output-format", "O", format, "The output image format, supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
+	convertCmd.Flags().StringVarP(&output, "output", "o", output, "The output image")
 	convertCmd.Flags().StringVarP(&password, "password", "p", "root", "The Root user password")
-	convertCmd.Flags().StringVarP(&size, "size", "s", "1G", "The output image size")
+	convertCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	convertCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
 	convertCmd.Flags().BoolVarP(&force, "force", "f", false, "Override output qcow2 image")
 	rootCmd.AddCommand(convertCmd)

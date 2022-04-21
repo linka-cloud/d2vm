@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+
+IMG=${1:-disk0.qcow2}
+
+virt-install --disk $IMG --import --memory 4096 --vcpus 4 --nographics --cpu host --channel unix,target.type=virtio,target.name='org.qemu.guest_agent.0'

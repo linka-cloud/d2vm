@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker2vm
+package d2vm
 
 import (
 	"context"
@@ -33,6 +33,7 @@ const (
 	ReleaseDebian Release = "debian"
 	ReleaseAlpine Release = "alpine"
 	ReleaseCentOS Release = "centos"
+	ReleaseRHEL   Release = "rhel"
 )
 
 type Release string
@@ -45,7 +46,7 @@ func (r Release) Supported() bool {
 		return true
 	case ReleaseAlpine:
 		return true
-	case ReleaseCentOS:
+	case ReleaseCentOS, ReleaseRHEL:
 		return true
 	default:
 		return false

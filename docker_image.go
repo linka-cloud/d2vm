@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker2vm
+package d2vm
 
 import (
 	"io"

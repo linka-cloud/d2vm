@@ -2,4 +2,4 @@
 tests
 disk*
 qemu.sh
-*.qcow2
+**/*.qcow2

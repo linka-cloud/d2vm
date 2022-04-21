@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker2vm
+package d2vm
 
 import (
 	"context"
@@ -27,7 +27,7 @@ import (
 	"go.linka.cloud/d2vm/pkg/docker"
 )
 
-func Convert(ctx context.Context, img string, size int64, password string, output string) error {
+func Convert(ctx context.Context, img string, size int64, password string, output string, format string) error {
 	imgUUID := uuid.New().String()
 	tmpPath := filepath.Join(os.TempDir(), "d2vm", imgUUID)
 	if err := os.MkdirAll(tmpPath, os.ModePerm); err != nil {
@@ -74,7 +74,7 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 	}
 	logrus.Infof("creating vm image")
 
-	b, err := NewBuilder(tmpPath, archivePath, "", size, r)
+	b, err := NewBuilder(tmpPath, archivePath, "", size, r, format)
 	if err != nil {
 		return err
 	}
