@@ -6,10 +6,11 @@ This example demonstrate the setup of a ZSH workstation.
 ```dockerfile
 FROM ubuntu
 
-# Install netplan sudo ssh-server and dns utils
-RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y \
+# Install some system packages
+RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
       qemu-guest-agent \
       netplan.io \
+      ca-certificates \
       dnsutils \
       sudo \
       openssh-server
@@ -25,7 +26,8 @@ ARG PASSWORD=d2vm
 ARG SSH_KEY=https://github.com/${USER}.keys
 
 # Setup user environment
-RUN DEBIAN_FRONTEND=noninteractive apt install -y \
+RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
+      bash-completion \
       curl \
       zsh \
       git \
@@ -50,6 +52,8 @@ USER ${USER}
 RUN bash -c "$(curl -fsSL https://gist.githubusercontent.com/Adphi/f3ce3cc4b2551c437eb667f3a5873a16/raw/be05553da87f6e9d8b0d290af5aa036d07de2e25/env.setup)"
 # Setup tmux environment
 RUN bash -c "$(curl -fsSL https://gist.githubusercontent.com/Adphi/765e9382dd5e547633be567e2eb72476/raw/a3fe4b3f35e598dca90e2dd45d30dc1753447a48/tmux-setup)"
+# Setup auto login serial console
+RUN sudo sed -i "s|ExecStart=.*|ExecStart=-/sbin/agetty --autologin ${USER} --keep-baud 115200,38400,9600 \%I \$TERM|" /usr/lib/systemd/system/serial-getty@.service
 ```
 
 *00-netconf.yaml*
@@ -82,6 +86,7 @@ Run it using *libvirt's virt-install*:
 ```bash
 virt-install --name workstation --disk $OUTPUT --import --memory 4096 --vcpus 4 --nographics --cpu host --channel unix,target.type=virtio,target.name='org.qemu.guest_agent.0'
 ```
+... you should be automatically logged in with a **oh-my-zsh** shell
 
 From an other terminal you should be able to find the VM ip address using:
 ```bash
