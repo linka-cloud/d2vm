@@ -2,6 +2,10 @@
 
 *Build virtual machine image from Docker images*
 
+The project is heavily inspired by the [article](https://iximiuz.com/en/posts/from-docker-container-to-bootable-linux-disk-image/) and the work done by [iximiuz](https://github.com/iximiuz) on [docker-to-linux](https://github.com/iximiuz/docker-to-linux).
+
+Many thanks to him.
+
 **Status**: *alpha*
 
 ## Supported Environments:
