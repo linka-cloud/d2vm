@@ -30,7 +30,7 @@ Need fix:
 
 - [ ] CentOS / RHEL
 
-The program use the `/etc/os-release` file to discovery the Linux Distribution and install the Kernel,
+The program use the `/etc/os-release` file to discover the Linux distribution and install the Kernel,
 if the file is missing, the build cannot succeed.
 
 Obviously, **Distroless** images are not supported. 
