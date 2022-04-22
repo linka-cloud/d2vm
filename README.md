@@ -1,4 +1,9 @@
+
 # d2vm (Docker to Virtual Machine)
+
+[![Language: Go](https://img.shields.io/badge/lang-Go-6ad7e5.svg?style=flat-square&logo=go)](https://golang.org/)
+[![Go Reference](https://pkg.go.dev/badge/go.linka.cloud/d2vm.svg)](https://pkg.go.dev/go.linka.cloud/d2vm)
+[![Chat](https://img.shields.io/badge/chat-matrix-blue.svg?style=flat-square&logo=matrix)](https://matrix.to/#/#d2vm:linka.cloud)
 
 *Build virtual machine image from Docker images*
 
