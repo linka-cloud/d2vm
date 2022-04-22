@@ -8,6 +8,8 @@ Many thanks to him.
 
 **Status**: *alpha*
 
+[![asciicast](https://asciinema.org/a/4WFKxaSNWTMPMeYbZWcSNm2nm.svg)](https://asciinema.org/a/4WFKxaSNWTMPMeYbZWcSNm2nm)
+
 ## Supported Environments:
 
 **Only Linux is supported.**
@@ -15,7 +17,7 @@ Many thanks to him.
 If you want to run it on **OSX** or **Windows** (the last one is totally untested) you can do it using Docker:
 
 ```bash
-alias d2vm="docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v \$PWD:/build -w /build linkacloud/d2vm" 
+alias d2vm='docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/build -w /build linkacloud/d2vm' 
 ```
 
 ## Supported VM Linux distributions:
@@ -61,7 +63,7 @@ which d2vm
 Or use an alias to the **docker** image:
 
 ```bash
-alias d2vm="docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v \$PWD:/build -w /build linkacloud/d2vm"
+alias d2vm='docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/build -w /build linkacloud/d2vm'
 which d2vm
 ```
 ```
