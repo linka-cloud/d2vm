@@ -16,6 +16,7 @@ FROM ubuntu
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
         util-linux \
+        udev \
         parted \
         e2fsprogs \
         mount \
