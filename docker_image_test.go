@@ -132,7 +132,7 @@ COPY hostname /etc/
 RUN rm -rf /etc/apk
 `
 	)
-	exec.Run = exec.RunStdout
+	exec.SetDebug(true)
 	tmp := filepath.Join(os.TempDir(), "d2vm-tests", "image-flatten")
 	require.NoError(t, os.MkdirAll(tmp, perm))
 	defer os.RemoveAll(tmp)
@@ -140,12 +140,9 @@ RUN rm -rf /etc/apk
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "hostname"), []byte("d2vm-flatten-test"), perm))
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "resolv.conf"), []byte("nameserver 8.8.8.8"), perm))
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "Dockerfile"), []byte(dockerfile), perm))
-	require.NoError(t, docker.Cmd(ctx, "image", "build", "-t", img, tmp))
-	defer docker.Cmd(ctx, "image", "rm", img)
+	require.NoError(t, docker.Build(ctx, img, "", tmp))
+	defer docker.Remove(ctx, img)
 
-	// imgTar := filepath.Join(tmp, img+".tar")
-	// require.NoError(t, docker.Cmd(ctx, "image", "save", img, "-o", imgTar))
-	//
 	imgTmp := filepath.Join(tmp, "image")
 
 	i, err := NewImage(ctx, img, imgTmp)

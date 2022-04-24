@@ -15,8 +15,10 @@
 package docker
 
 import (
+	"bufio"
 	"context"
 	_ "embed"
+	"path/filepath"
 	"strings"
 
 	"go.linka.cloud/d2vm/pkg/exec"
@@ -34,4 +36,37 @@ func Cmd(ctx context.Context, args ...string) error {
 
 func CmdOut(ctx context.Context, args ...string) (string, string, error) {
 	return exec.RunOut(ctx, "docker", args...)
+}
+
+func Build(ctx context.Context, tag, dockerfile, dir string, buildArgs ...string) error {
+	if dockerfile == "" {
+		dockerfile = filepath.Join(dir, "Dockerfile")
+	}
+	args := []string{"image", "build", "-t", tag, "-f", dockerfile}
+	for _, v := range buildArgs {
+		args = append(args, "--build-arg", v)
+	}
+	args = append(args, dir)
+	return Cmd(ctx, args...)
+}
+
+func Remove(ctx context.Context, tag string) error {
+	return Cmd(ctx, "image", "rm", tag)
+}
+
+func ImageList(ctx context.Context, tag string) ([]string, error) {
+	o, _, err := CmdOut(ctx, "image", "ls", "--format={{ .Repository }}:{{ .Tag }}", tag)
+	if err != nil {
+		return nil, err
+	}
+	s := bufio.NewScanner(strings.NewReader(o))
+	var imgs []string
+	for s.Scan() {
+		imgs = append(imgs, s.Text())
+	}
+	return imgs, s.Err()
+}
+
+func Pull(ctx context.Context, tag string) error {
+	return Cmd(ctx, "image", "pull", tag)
 }

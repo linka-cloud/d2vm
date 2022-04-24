@@ -29,6 +29,14 @@ var (
 	CommandContext = exec.CommandContext
 )
 
+func SetDebug(debug bool) {
+	if debug {
+		Run = RunStdout
+	} else {
+		Run = RunNoOut
+	}
+}
+
 func RunStdout(ctx context.Context, c string, args ...string) error {
 	cmd := exec.CommandContext(ctx, c, args...)
 	cmd.Stdout = os.Stdout

@@ -56,10 +56,10 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 		return err
 	}
 	logrus.Infof("building kernel enabled image")
-	if err := docker.Cmd(ctx, "image", "build", "-t", imgUUID, "-f", p, dir); err != nil {
+	if err := docker.Build(ctx, imgUUID, p, dir); err != nil {
 		return err
 	}
-	defer docker.Cmd(ctx, "image", "rm", imgUUID)
+	defer docker.Remove(ctx, imgUUID)
 
 	logrus.Infof("creating vm image")
 	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", size, r, format)

@@ -39,15 +39,9 @@ var (
 			if err != nil {
 				return err
 			}
-			if debug {
-				exec.Run = exec.RunStdout
-			}
+			exec.SetDebug(debug)
 			logrus.Infof("building docker image from %s", file)
-			dargs := []string{"build", "-t", tag, "-f", file, args[0]}
-			for _, v := range buildArgs {
-				dargs = append(dargs, "--build-arg", v)
-			}
-			if err := docker.Cmd(cmd.Context(), dargs...); err != nil {
+			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
 				return err
 			}
 			return d2vm.Convert(cmd.Context(), tag, size, password, output, format)

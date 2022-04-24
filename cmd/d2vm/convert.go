@@ -51,9 +51,7 @@ var (
 					return fmt.Errorf("%s already exists", output)
 				}
 			}
-			if debug {
-				exec.Run = exec.RunStdout
-			}
+			exec.SetDebug(debug)
 			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
 				if !force {
 					return fmt.Errorf("%s already exists", output)
@@ -61,18 +59,18 @@ var (
 			}
 			found := false
 			if !pull {
-				o, _, err := docker.CmdOut(cmd.Context(), "image", "ls", "--format={{ .Repository }}:{{ .Tag }}", img)
+				imgs, err := docker.ImageList(cmd.Context(), img)
 				if err != nil {
 					return err
 				}
-				found = strings.TrimSuffix(o, "\n") == fmt.Sprintf("%s:%s", img, tag)
+				found = len(imgs) == 1 && imgs[0] == fmt.Sprintf("%s:%s", img, tag)
 				if found {
 					logrus.Infof("using local image %s:%s", img, tag)
 				}
 			}
 			if pull || !found {
 				logrus.Infof("pulling image %s", img)
-				if err := docker.Cmd(cmd.Context(), "image", "pull", img); err != nil {
+				if err := docker.Pull(cmd.Context(), img); err != nil {
 					return err
 				}
 			}
