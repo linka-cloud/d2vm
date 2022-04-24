@@ -15,7 +15,6 @@
 package d2vm
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -68,8 +67,6 @@ ff02::3 ip6-allhosts
 )
 
 var (
-	fdiskCmds = []string{"n", "p", "1", "", "", "a", "w"}
-
 	formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vmdk"}
 
 	mbrPaths = []string{
@@ -225,18 +222,9 @@ func (b *builder) makeImg(ctx context.Context) error {
 	if err := block(b.diskRaw, b.size); err != nil {
 		return err
 	}
-	c := exec.CommandContext(ctx, "fdisk", b.diskRaw)
-	var i bytes.Buffer
-	for _, v := range fdiskCmds {
-		if _, err := i.Write([]byte(v + "\n")); err != nil {
-			return err
-		}
-	}
-	var e bytes.Buffer
-	c.Stdin = &i
-	c.Stderr = &e
-	if err := c.Run(); err != nil {
-		return fmt.Errorf("%w: %s", err, e.String())
+
+	if err := exec.Run(ctx, "parted", "-s", b.diskRaw, "mklabel", "msdos", "mkpart", "primary", "1Mib", "100%", "set", "1", "boot", "on"); err != nil {
+		return err
 	}
 	return nil
 }
@@ -248,10 +236,10 @@ func (b *builder) mountImg(ctx context.Context) error {
 		return err
 	}
 	b.loDevice = strings.TrimSuffix(o, "\n")
-	if err := exec.Run(ctx, "kpartx", "-a", b.loDevice); err != nil {
+	if err := exec.Run(ctx, "partprobe", b.loDevice); err != nil {
 		return err
 	}
-	b.loPart = fmt.Sprintf("/dev/mapper/%sp1", filepath.Base(b.loDevice))
+	b.loPart = fmt.Sprintf("%sp1", b.loDevice)
 	logrus.Infof("creating raw image file system")
 	if err := exec.Run(ctx, "mkfs.ext4", b.loPart); err != nil {
 		return err
@@ -266,9 +254,6 @@ func (b *builder) unmountImg(ctx context.Context) error {
 	logrus.Infof("unmounting raw image")
 	var merr error
 	if err := exec.Run(ctx, "umount", b.mntPoint); err != nil {
-		merr = multierr.Append(merr, err)
-	}
-	if err := exec.Run(ctx, "kpartx", "-d", b.loDevice); err != nil {
 		merr = multierr.Append(merr, err)
 	}
 	if err := exec.Run(ctx, "losetup", "-d", b.loDevice); err != nil {
@@ -396,7 +381,7 @@ func block(path string, size int64) error {
 
 func checkDependencies() error {
 	var merr error
-	for _, v := range []string{"mount", "blkid", "tar", "kpartx", "losetup", "qemu-img", "extlinux", "dd", "mkfs", "fdisk"} {
+	for _, v := range []string{"mount", "blkid", "tar", "losetup", "parted", "partprobe", "qemu-img", "extlinux", "dd", "mkfs"} {
 		if _, err := exec2.LookPath(v); err != nil {
 			merr = multierr.Append(merr, err)
 		}

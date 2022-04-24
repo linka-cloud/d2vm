@@ -16,13 +16,11 @@ FROM ubuntu
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
         util-linux \
-        kpartx \
+        parted \
         e2fsprogs \
-        xfsprogs \
         mount \
         tar \
         extlinux \
-        uuid-runtime \
         qemu-utils
 
 COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin/
