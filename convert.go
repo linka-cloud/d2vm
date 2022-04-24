@@ -60,24 +60,13 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 		return err
 	}
 	defer docker.Cmd(ctx, "image", "rm", imgUUID)
-	archive := imgUUID + ".tar"
-	archivePath := filepath.Join(tmpPath, archive)
-	logrus.Infof("creating root file system archive")
-	if err := docker.Cmd(ctx, "run", "-d", "--name", imgUUID, imgUUID); err != nil {
-		return err
-	}
-	if err := docker.Cmd(ctx, "export", "--output", archivePath, imgUUID); err != nil {
-		return err
-	}
-	if err := docker.Cmd(ctx, "rm", "-f", imgUUID); err != nil {
-		return err
-	}
-	logrus.Infof("creating vm image")
 
-	b, err := NewBuilder(tmpPath, archivePath, "", size, r, format)
+	logrus.Infof("creating vm image")
+	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", size, r, format)
 	if err != nil {
 		return err
 	}
+	defer b.Close()
 	if err := b.Build(ctx); err != nil {
 		return err
 	}

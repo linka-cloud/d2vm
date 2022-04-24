@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"math"
 	"os"
 	exec2 "os/exec"
 	"path/filepath"
@@ -85,10 +84,15 @@ var (
 	}
 )
 
+const (
+	perm os.FileMode = 0644
+)
+
 type builder struct {
 	osRelease OSRelease
 
 	src     string
+	img     *image
 	diskRaw string
 	diskOut string
 	format  string
@@ -103,7 +107,7 @@ type builder struct {
 	diskUUD  string
 }
 
-func NewBuilder(workdir, src, disk string, size int64, osRelease OSRelease, format string) (*builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, osRelease OSRelease, format string) (*builder, error) {
 	if err := checkDependencies(); err != nil {
 		return nil, err
 	}
@@ -134,18 +138,22 @@ func NewBuilder(workdir, src, disk string, size int64, osRelease OSRelease, form
 	if disk == "" {
 		disk = "disk0"
 	}
-	i, err := os.Stat(src)
+	img, err := NewImage(ctx, imgTag, workdir)
 	if err != nil {
 		return nil, err
 	}
-	if i.Size() > size {
-		s := datasize.ByteSize(math.Ceil(datasize.ByteSize(i.Size()).GBytes())) * datasize.GB
-		logrus.Warnf("%s is smaller than rootfs size, using %s", datasize.ByteSize(size), s)
-		size = int64(s)
-	}
+	// i, err := os.Stat(imgTar)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if i.Size() > size {
+	// 	s := datasize.ByteSize(math.Ceil(datasize.ByteSize(i.Size()).GBytes())) * datasize.GB
+	// 	logrus.Warnf("%s is smaller than rootfs size, using %s", datasize.ByteSize(size), s)
+	// 	size = int64(s)
+	// }
 	b := &builder{
 		osRelease: osRelease,
-		src:       src,
+		img:       img,
 		diskRaw:   filepath.Join(workdir, disk+".raw"),
 		diskOut:   filepath.Join(workdir, disk+".qcow2"),
 		format:    f,
@@ -271,7 +279,7 @@ func (b *builder) unmountImg(ctx context.Context) error {
 
 func (b *builder) copyRootFS(ctx context.Context) error {
 	logrus.Infof("copying rootfs to raw image")
-	if err := exec.Run(ctx, "tar", "-xvf", b.src, "-C", b.mntPoint); err != nil {
+	if err := b.img.Flatten(ctx, b.mntPoint); err != nil {
 		return err
 	}
 	return nil
@@ -285,18 +293,19 @@ func (b *builder) setupRootFS(ctx context.Context) error {
 	}
 	b.diskUUD = strings.TrimSuffix(o, "\n")
 	fstab := fmt.Sprintf("UUID=%s / ext4 errors=remount-ro 0 1\n", b.diskUUD)
-	if err := b.chWriteFile("/etc/fstab", fstab, 0644); err != nil {
+	if err := b.chWriteFile("/etc/fstab", fstab, perm); err != nil {
 		return err
 	}
-	if err := b.chWriteFile("/etc/resolv.conf", "nameserver 8.8.8.8", 0644); err != nil {
+	if err := b.chWriteFileIfNotExist("/etc/resolv.conf", "nameserver 8.8.8.8", 0644); err != nil {
 		return err
 	}
-	if err := b.chWriteFile("/etc/hostname", "localhost", 0644); err != nil {
+	if err := b.chWriteFileIfNotExist("/etc/hostname", "localhost", perm); err != nil {
 		return err
 	}
-	if err := b.chWriteFile("/etc/hosts", hosts, 0644); err != nil {
+	if err := b.chWriteFileIfNotExist("/etc/hosts", hosts, perm); err != nil {
 		return err
 	}
+	// TODO(adphi): is it the righ fix ?
 	if err := os.RemoveAll("/ur/sbin/policy-rc.d"); err != nil {
 		return err
 	}
@@ -311,10 +320,10 @@ func (b *builder) setupRootFS(ctx context.Context) error {
 		return err
 	}
 	by = append(by, []byte("\n"+"ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100\n")...)
-	if err := b.chWriteFile("/etc/inittab", string(by), 0644); err != nil {
+	if err := b.chWriteFile("/etc/inittab", string(by), perm); err != nil {
 		return err
 	}
-	if err := b.chWriteFile("/etc/network/interfaces", "", 0644); err != nil {
+	if err := b.chWriteFileIfNotExist("/etc/network/interfaces", "", perm); err != nil {
 		return err
 	}
 	return nil
@@ -338,7 +347,7 @@ func (b *builder) installKernel(ctx context.Context) error {
 	default:
 		return fmt.Errorf("%s: distribution not supported", b.osRelease.ID)
 	}
-	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.diskUUD), 0644); err != nil {
+	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.diskUUD), perm); err != nil {
 		return err
 	}
 	return nil
@@ -361,8 +370,19 @@ func (b *builder) chWriteFile(path string, content string, perm os.FileMode) err
 	return os.WriteFile(b.chPath(path), []byte(content), perm)
 }
 
+func (b *builder) chWriteFileIfNotExist(path string, content string, perm os.FileMode) error {
+	if i, err := os.Stat(b.chPath(path)); err == nil && i.Size() != 0 {
+		return nil
+	}
+	return os.WriteFile(b.chPath(path), []byte(content), perm)
+}
+
 func (b *builder) chPath(path string) string {
 	return fmt.Sprintf("%s%s", b.mntPoint, path)
+}
+
+func (b *builder) Close() error {
+	return b.img.Close()
 }
 
 func block(path string, size int64) error {

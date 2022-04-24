@@ -15,58 +15,127 @@
 package d2vm
 
 import (
+	"context"
+	"fmt"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
+
+	"github.com/google/go-containerregistry/cmd/crane/cmd"
+	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/google/go-containerregistry/pkg/v1/daemon"
+	"github.com/google/go-containerregistry/pkg/v1/mutate"
+
+	"go.linka.cloud/d2vm/pkg/exec"
 )
 
 const (
 	dockerImageRun = `
 #!/bin/sh
 
-{{- range .Config.Env }}
+{{- range .DockerImageConfig.Env }}
 export {{ . }}
 {{- end }}
 
-cd {{- if .Config.WorkingDir }}{{ .Config.WorkingDir }}{{- else }}/{{- end }}
+{{ if .DockerImageConfig.WorkingDir }}cd {{ .DockerImageConfig.WorkingDir }}{{ end }}
 
-{{ .Config.Entrypoint }} {{ .Config.Args }}
+{{ if .DockerImageConfig.User }}su {{ .DockerImageConfig.User }} -p -s /bin/sh -c '{{ end }}{{ if .DockerImageConfig.Entrypoint}}{{ format .DockerImageConfig.Entrypoint }} {{ end}}{{ if .DockerImageConfig.Cmd }}{{ format .DockerImageConfig.Cmd }}{{ end }}{{ if .DockerImageConfig.User }}'{{- end }}
 `
 )
 
 var (
-	dockerImageRunTemplate = template.Must(template.New("docker-run.sh").Parse(dockerImageRun))
+	dockerImageRunTemplate = template.Must(template.New("docker-run.sh").Funcs(map[string]interface{}{"format": func(a []string) string {
+		var o []string
+		for _, v := range a {
+			o = append(o, fmt.Sprintf("\"%s\"", v))
+		}
+		return strings.Join(o, " ")
+	}}).Parse(dockerImageRun))
+
+	_ = cmd.NewCmdFlatten
 )
 
 type DockerImage struct {
-	Config struct {
-		Hostname     string `json:"Hostname"`
-		Domainname   string `json:"Domainname"`
-		User         string `json:"User"`
-		AttachStdin  bool   `json:"AttachStdin"`
-		AttachStdout bool   `json:"AttachStdout"`
-		AttachStderr bool   `json:"AttachStderr"`
-		ExposedPorts struct {
-			Tcp struct {
-			} `json:"3000/tcp"`
-		} `json:"ExposedPorts"`
-		Tty        bool        `json:"Tty"`
-		OpenStdin  bool        `json:"OpenStdin"`
-		StdinOnce  bool        `json:"StdinOnce"`
-		Env        []string    `json:"Env"`
-		Cmd        []string    `json:"Cmd"`
-		Image      string      `json:"Image"`
-		Volumes    interface{} `json:"Volumes"`
-		WorkingDir string      `json:"WorkingDir"`
-		Entrypoint []string    `json:"Entrypoint"`
-		OnBuild    interface{} `json:"OnBuild"`
-		Labels     interface{} `json:"Labels"`
-	} `json:"Config"`
-	Architecture string `json:"Architecture"`
-	Os           string `json:"Os"`
-	Size         int    `json:"Size"`
-	VirtualSize  int    `json:"VirtualSize"`
+	DockerImageConfig `json:"Config"`
+	Architecture      string `json:"Architecture"`
+	Os                string `json:"Os"`
+	Size              int    `json:"Size"`
+}
+
+type DockerImageConfig struct {
+	Image      string   `json:"Image"`
+	Hostname   string   `json:"Hostname"`
+	Domainname string   `json:"Domainname"`
+	User       string   `json:"User"`
+	Env        []string `json:"Env"`
+	Cmd        []string `json:"Cmd"`
+	WorkingDir string   `json:"WorkingDir"`
+	Entrypoint []string `json:"Entrypoint"`
 }
 
 func (i DockerImage) AsRunScript(w io.Writer) error {
 	return dockerImageRunTemplate.Execute(w, i)
+}
+
+const (
+	whiteoutPrefix = ".wh."
+	manifest       = "manifest.json"
+)
+
+func NewImage(ctx context.Context, tag string, imageTmpPath string) (*image, error) {
+	ref, err := name.ParseReference(tag)
+	if err != nil {
+		return nil, err
+	}
+	img, err := daemon.Image(ref)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(imageTmpPath, perm); err != nil {
+		return nil, err
+	}
+	i := &image{
+		img: img,
+		dir: imageTmpPath,
+	}
+	return i, nil
+}
+
+type image struct {
+	tag      string
+	img      v1.Image
+	dir      string
+	Config   string   `json:"Config"`
+	RepoTags []string `json:"RepoTags"`
+	Layers   []string `json:"Layers"`
+}
+
+func (i image) Flatten(ctx context.Context, out string) error {
+	if err := os.MkdirAll(out, perm); err != nil {
+		return err
+	}
+
+	tar := filepath.Join(i.dir, "img.tar")
+	f, err := os.Create(tar)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if _, err := io.Copy(f, mutate.Extract(i.img)); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	if err := exec.Run(ctx, "tar", "xvf", tar, "-C", out); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (i image) Close() error {
+	return os.RemoveAll(i.dir)
 }
