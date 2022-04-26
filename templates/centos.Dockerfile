@@ -7,7 +7,10 @@ RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
 
 RUN yum update -y
 
-RUN yum install -y kernel systemd sudo
+RUN yum install -y kernel systemd NetworkManager e2fsprogs sudo && \
+    systemctl enable NetworkManager && \
+    systemctl unmask systemd-remount-fs.service && \
+    systemctl unmask getty.target
 
 RUN dracut --no-hostonly --regenerate-all --force && \
     cd /boot && \

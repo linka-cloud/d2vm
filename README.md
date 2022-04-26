@@ -32,16 +32,13 @@ Working and tested:
 - [x] Ubuntu
 - [x] Debian
 - [x] Alpine
-
-Need fix:
-
-- [ ] CentOS
+- [x] CentOS
 
 Unsupported:
 
 - [ ] RHEL
 
-The program use the `/etc/os-release` file to discover the Linux distribution and install the Kernel,
+The program uses the `/etc/os-release` file to discover the Linux distribution and install the Kernel,
 if the file is missing, the build cannot succeed.
 
 Obviously, **Distroless** images are not supported. 
