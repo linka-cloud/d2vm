@@ -1,6 +1,7 @@
 site_name: ""
 docs_dir: content
 site_dir: build
+edit_uri: edit/docs/docs/content/
 theme:
   name: linka-cloud
   logo: assets/d2vm-light-tr.png
@@ -13,7 +14,7 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/linka-cloud
-    - icon: fontawesome/brands/docker 
+    - icon: fontawesome/brands/docker
       link: https://hub.docker.com/r/linkacloud
 
 markdown_extensions:
