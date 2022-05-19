@@ -1,0 +1,22 @@
+name: Docs
+on:
+  push:
+    branches:
+    - docs
+    - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    - name: Build and deploy mkdocs site
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        make build-docs
+        sudo chown -R ${UID}:${UID} docs
+        make deploy-docs
+
