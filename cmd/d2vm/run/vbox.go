@@ -25,26 +25,26 @@ var (
 		Run:  Vbox,
 	}
 
-	vboxmanageFlag *string
-	vmName         *string
+	vboxmanageFlag string
+	vmName         string
 	networks       VBNetworks
 )
 
 func init() {
 	flags := VboxCmd.Flags()
 	// Display flags
-	enableGUI = flags.Bool("gui", false, "Show the VM GUI")
+	flags.Bool("gui", false, "Show the VM GUI")
 
 	// vbox options
-	vboxmanageFlag = flags.String("vboxmanage", "VBoxManage", "VBoxManage binary to use")
-	vmName = flags.String("name", "", "Name of the Virtualbox VM")
+	flags.StringVar(&vboxmanageFlag, "vboxmanage", "VBoxManage", "VBoxManage binary to use")
+	flags.StringVar(&vmName, "name", "", "Name of the Virtualbox VM")
 
 	// Paths and settings for disks
 	flags.Var(&disks, "disk", "Disk config, may be repeated. [file=]path[,size=1G][,format=raw]")
 
 	// VM configuration
-	cpus = flags.Uint("cpus", 1, "Number of CPUs")
-	mem = flags.Uint("mem", 1024, "Amount of memory in MB")
+	flags.Uint("cpus", 1, "Number of CPUs")
+	flags.Uint("mem", 1024, "Amount of memory in MB")
 
 	// networking
 	flags.Var(&networks, "networking", "Network config, may be repeated. [type=](null|nat|bridged|intnet|hostonly|generic|natnetwork[<devicename>])[,[bridge|host]adapter=<interface>]")
@@ -57,12 +57,12 @@ func init() {
 func Vbox(cmd *cobra.Command, args []string) {
 	path := args[0]
 
-	vboxmanage, err := exec.LookPath(*vboxmanageFlag)
+	vboxmanage, err := exec.LookPath(vboxmanageFlag)
 	if err != nil {
-		log.Fatalf("Cannot find management binary %s: %v", *vboxmanageFlag, err)
+		log.Fatalf("Cannot find management binary %s: %v", vboxmanageFlag, err)
 	}
 
-	name := *vmName
+	name := vmName
 	if name == "" {
 		name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	}
@@ -80,12 +80,12 @@ func Vbox(cmd *cobra.Command, args []string) {
 		log.Fatalf("modifyvm --acpi error: %v\n%s", err, out)
 	}
 
-	_, out, err = manage(vboxmanage, "modifyvm", name, "--memory", fmt.Sprintf("%d", *mem))
+	_, out, err = manage(vboxmanage, "modifyvm", name, "--memory", fmt.Sprintf("%d", mem))
 	if err != nil {
 		log.Fatalf("modifyvm --memory error: %v\n%s", err, out)
 	}
 
-	_, out, err = manage(vboxmanage, "modifyvm", name, "--cpus", fmt.Sprintf("%d", *cpus))
+	_, out, err = manage(vboxmanage, "modifyvm", name, "--cpus", fmt.Sprintf("%d", cpus))
 	if err != nil {
 		log.Fatalf("modifyvm --cpus error: %v\n%s", err, out)
 	}
@@ -200,7 +200,7 @@ func Vbox(cmd *cobra.Command, args []string) {
 	}
 
 	var vmType string
-	if *enableGUI {
+	if enableGUI {
 		vmType = "gui"
 	} else {
 		vmType = "headless"

@@ -26,19 +26,19 @@ const (
 var (
 	defaultArch  string
 	defaultAccel string
-	enableGUI    *bool
+	enableGUI    bool
 	disks        Disks
-	data         *string
-	accel        *string
-	arch         *string
-	cpus         *uint
-	mem          *uint
-	qemuCmd      *string
-	qemuDetached *bool
-	networking   *string
+	data         string
+	accel        string
+	arch         string
+	cpus         uint
+	mem          uint
+	qemuCmd      string
+	qemuDetached bool
+	networking   string
 	publishFlags MultipleFlag
 	deviceFlags  MultipleFlag
-	usbEnabled   *bool
+	usbEnabled   bool
 
 	QemuCmd = &cobra.Command{
 		Use:  "qemu [options] [image-path]",
@@ -65,37 +65,30 @@ func init() {
 		defaultAccel = "hvf:tcg"
 	}
 	flags := QemuCmd.Flags()
-	// flags.Usage = func() {
-	// 	fmt.Printf("Options:")
-	// 	flags.PrintDefaults()
-	// 	fmt.Printf("")
-	// 	fmt.Printf("If not running as root note that '--networking bridge,br0' requires a")
-	// 	fmt.Printf("setuid network helper and appropriate host configuration, see")
-	// 	fmt.Printf("https://wiki.qemu.org/Features/HelperNetworking")
-	// }
-	enableGUI = flags.Bool("gui", false, "Set qemu to use video output instead of stdio")
+
+	flags.BoolVar(&enableGUI, "gui", false, "Set qemu to use video output instead of stdio")
 
 	// Paths and settings for disks
 	flags.Var(&disks, "disk", "Disk config, may be repeated. [file=]path[,size=1G][,format=qcow2]")
-	data = flags.String("data", "", "String of metadata to pass to VM; error to specify both -data and -data-file")
+	flags.StringVar(&data, "data", "", "String of metadata to pass to VM; error to specify both -data and -data-file")
 
 	// VM configuration
-	accel = flags.String("accel", defaultAccel, "Choose acceleration mode. Use 'tcg' to disable it.")
-	arch = flags.String("arch", defaultArch, "Type of architecture to use, e.g. x86_64, aarch64, s390x")
-	cpus = flags.Uint("cpus", 1, "Number of CPUs")
-	mem = flags.Uint("mem", 1024, "Amount of memory in MB")
+	flags.StringVar(&accel, "accel", defaultAccel, "Choose acceleration mode. Use 'tcg' to disable it.")
+	flags.StringVar(&arch, "arch", defaultArch, "Type of architecture to use, e.g. x86_64, aarch64, s390x")
+	flags.UintVar(&cpus, "cpus", 1, "Number of CPUs")
+	flags.UintVar(&mem, "mem", 1024, "Amount of memory in MB")
 
 	// Backend configuration
-	qemuCmd = flags.String("qemu", "", "Path to the qemu binary (otherwise look in $PATH)")
-	qemuDetached = flags.Bool("detached", false, "Set qemu container to run in the background")
+	flags.StringVar(&qemuCmd, "qemu", "", "Path to the qemu binary (otherwise look in $PATH)")
+	flags.BoolVar(&qemuDetached, "detached", false, "Set qemu container to run in the background")
 
 	// Networking
-	networking = flags.String("networking", qemuNetworkingDefault, "Networking mode. Valid options are 'default', 'user', 'bridge[,name]', tap[,name] and 'none'. 'user' uses QEMUs userspace networking. 'bridge' connects to a preexisting bridge. 'tap' uses a prexisting tap device. 'none' disables networking.`")
+	flags.StringVar(&networking, "networking", qemuNetworkingDefault, "Networking mode. Valid options are 'default', 'user', 'bridge[,name]', tap[,name] and 'none'. 'user' uses QEMUs userspace networking. 'bridge' connects to a preexisting bridge. 'tap' uses a prexisting tap device. 'none' disables networking.`")
 
 	flags.Var(&publishFlags, "publish", "Publish a vm's port(s) to the host (default [])")
 
 	// USB devices
-	usbEnabled = flags.Bool("usb", false, "Enable USB controller")
+	flags.BoolVar(&usbEnabled, "usb", false, "Enable USB controller")
 
 	flags.Var(&deviceFlags, "device", "Add USB host device(s). Format driver[,prop=value][,...] -- add device, like -device on the qemu command line.")
 
@@ -107,7 +100,7 @@ func Qemu(cmd *cobra.Command, args []string) {
 	vmUUID := uuid.New()
 	// These envvars override the corresponding command line
 	// options. So this must remain after the `flags.Parse` above.
-	*accel = GetStringValue("LINUXKIT_QEMU_ACCEL", *accel, "")
+	accel = GetStringValue("LINUXKIT_QEMU_ACCEL", accel, "")
 
 	path := args[0]
 
@@ -134,11 +127,11 @@ func Qemu(cmd *cobra.Command, args []string) {
 
 	disks = append(Disks{DiskConfig{Path: path}}, disks...)
 
-	if *networking == "" || *networking == "default" {
+	if networking == "" || networking == "default" {
 		dflt := qemuNetworkingDefault
-		networking = &dflt
+		networking = dflt
 	}
-	netMode := strings.SplitN(*networking, ",", 2)
+	netMode := strings.SplitN(networking, ",", 2)
 
 	var netdevConfig string
 	switch netMode[0] {
@@ -171,18 +164,18 @@ func Qemu(cmd *cobra.Command, args []string) {
 
 	config := QemuConfig{
 		Path:           path,
-		GUI:            *enableGUI,
+		GUI:            enableGUI,
 		Disks:          disks,
-		Arch:           *arch,
-		CPUs:           *cpus,
-		Memory:         *mem,
-		Accel:          *accel,
-		Detached:       *qemuDetached,
-		QemuBinPath:    *qemuCmd,
+		Arch:           arch,
+		CPUs:           cpus,
+		Memory:         mem,
+		Accel:          accel,
+		Detached:       qemuDetached,
+		QemuBinPath:    qemuCmd,
 		PublishedPorts: publishFlags,
 		NetdevConfig:   netdevConfig,
 		UUID:           vmUUID,
-		USB:            *usbEnabled,
+		USB:            usbEnabled,
 		Devices:        deviceFlags,
 	}
 
