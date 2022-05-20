@@ -25,6 +25,8 @@ If you want to run it on **OSX** or **Windows** (the last one is totally unteste
 alias d2vm='docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/build -w /build linkacloud/d2vm' 
 ```
 
+**Starting from v0.1.0, d2vm automatically run build and convert commands inside Docker when not running on linux**.
+
 ## Supported VM Linux distributions:
 
 Working and tested:
@@ -75,7 +77,7 @@ d2vm: aliased to docker run --rm -i -t --privileged -v /var/run/docker.sock:/var
 ### Converting an existing Docker Image to VM image:
 
 ```bash
-b2vm convert --help
+d2vm convert --help
 ```
 ```
 Convert Docker image to vm image
@@ -84,14 +86,13 @@ Usage:
   d2vm convert [docker image] [flags]
 
 Flags:
-  -d, --debug                  Enable Debug output
-  -f, --force                  Override output qcow2 image
-  -h, --help                   help for convert
-  -o, --output string          The output image (default "disk0.qcow2")
-  -O, --output-format string   The output image format, supported formats: qcow2 qed raw vdi vhd vmdk (default "qcow2")
-  -p, --password string        The Root user password (default "root")
-      --pull                   Always pull docker image
-  -s, --size string            The output image size (default "10G")
+  -d, --debug             Enable Debug output
+  -f, --force             Override output qcow2 image
+  -h, --help              help for convert
+  -o, --output string     The output image, the extension determine the image format. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
+  -p, --password string   The Root user password (default "root")
+      --pull              Always pull docker image
+  -s, --size string       The output image size (default "10G")
 
 ```
 
@@ -232,11 +233,10 @@ Usage:
 Flags:
       --build-arg stringArray   Set build-time variables
   -d, --debug                   Enable Debug output
-  -f, --file string             Name of the Dockerfile (Default is 'PATH/Dockerfile') (default "Dockerfile")
+  -f, --file string             Name of the Dockerfile
       --force                   Override output image
   -h, --help                    help for build
-  -o, --output string           The output image (default "disk0.qcow2")
-  -O, --output-format string    The output image format, supported formats: qcow2 qed raw vdi vhd vmdk (default "qcow2")
+  -o, --output string           The output image, the extension determine the image format. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
   -p, --password string         Root user password (default "root")
   -s, --size string             The output image size (default "10G")
 
@@ -249,7 +249,7 @@ sudo d2vm build -p MyP4Ssw0rd -f ubuntu.Dockerfile -o ubuntu.qcow2 .
 Or if you want to create a VirtualBox image:
 
 ```bash
-sudo d2vm build -p MyP4Ssw0rd -f ubuntu.Dockerfile -O vdi -o ubuntu.vdi .
+sudo d2vm build -p MyP4Ssw0rd -f ubuntu.Dockerfile -o ubuntu.vdi .
 ```
 
 ### Complete example
@@ -265,4 +265,8 @@ You can find the Dockerfiles used to install the Kernel in the [templates](templ
 
 - [ ] Create service from `ENTRYPOINT` `CMD` `WORKDIR` and `ENV` instructions ?
 - [ ] Inject Image `ENV` variables into `.bashrc` or other service environment file ?
-- [ ] Use image layers to create *rootfs* instead of container ?
+- [x] Use image layers to create *rootfs* instead of container ?
+
+### Acknowledgments
+
+The *run* commands are adapted from [linuxkit](https://github.com/docker/linuxkit).

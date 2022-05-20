@@ -18,11 +18,23 @@ import (
 	"bufio"
 	"context"
 	_ "embed"
+	"fmt"
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 
 	"go.linka.cloud/d2vm/pkg/exec"
 )
+
+func dockerSocket() string {
+	if runtime.GOOS == "windows" {
+		return "//var/run/docker.sock"
+	}
+	return "/var/run/docker.sock"
+}
 
 func FormatImgName(name string) string {
 	s := strings.Replace(name, ":", "-", -1)
@@ -69,4 +81,35 @@ func ImageList(ctx context.Context, tag string) ([]string, error) {
 
 func Pull(ctx context.Context, tag string) error {
 	return Cmd(ctx, "image", "pull", tag)
+}
+
+func RunInteractiveAndRemove(ctx context.Context, args ...string) error {
+	logrus.Tracef("running 'docker run --rm -i -t %s'", strings.Join(args, " "))
+	cmd := exec.CommandContext(ctx, "docker", append([]string{"run", "--rm", "-it"}, args...)...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func RunD2VM(ctx context.Context, image, version, cmd string, args ...string) error {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	if version == "" {
+		version = "latest"
+	}
+	a := []string{
+		"--privileged",
+		"-v",
+		fmt.Sprintf("%s:/var/run/docker.sock", dockerSocket()),
+		"-v",
+		fmt.Sprintf("%s:/d2vm", pwd),
+		"-w",
+		"/d2vm",
+		fmt.Sprintf("%s:%s", image, version),
+		cmd,
+	}
+	return RunInteractiveAndRemove(ctx, append(a, args...)...)
 }

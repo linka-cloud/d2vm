@@ -154,7 +154,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, o
 		osRelease: osRelease,
 		img:       img,
 		diskRaw:   filepath.Join(workdir, disk+".raw"),
-		diskOut:   filepath.Join(workdir, disk+".qcow2"),
+		diskOut:   filepath.Join(workdir, disk+"."+format),
 		format:    f,
 		size:      size,
 		mbrPath:   mbrBin,

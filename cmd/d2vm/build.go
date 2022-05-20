@@ -15,6 +15,9 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/google/uuid"
@@ -35,16 +38,23 @@ var (
 		Short: "Build a vm image from Dockerfile",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// TODO(adphi): resolve context path
+			if runtime.GOOS != "linux" {
+				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, cmd.Name(), os.Args[2:]...)
+			}
 			size, err := parseSize(size)
 			if err != nil {
 				return err
 			}
 			exec.SetDebug(debug)
 			logrus.Infof("building docker image from %s", file)
+			if file == "" {
+				file = filepath.Join(args[0], "Dockerfile")
+			}
 			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
 				return err
 			}
-			return d2vm.Convert(cmd.Context(), tag, size, password, output, format)
+			return d2vm.Convert(cmd.Context(), tag, size, password, output)
 		},
 	}
 )
@@ -52,11 +62,10 @@ var (
 func init() {
 	rootCmd.AddCommand(buildCmd)
 
-	buildCmd.Flags().StringVarP(&file, "file", "f", "Dockerfile", "Name of the Dockerfile (Default is 'PATH/Dockerfile')")
+	buildCmd.Flags().StringVarP(&file, "file", "f", "", "Name of the Dockerfile")
 	buildCmd.Flags().StringArrayVar(&buildArgs, "build-arg", nil, "Set build-time variables")
 
-	buildCmd.Flags().StringVarP(&format, "output-format", "O", format, "The output image format, supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
-	buildCmd.Flags().StringVarP(&output, "output", "o", output, "The output image")
+	buildCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
 	buildCmd.Flags().StringVarP(&password, "password", "p", "root", "Root user password")
 	buildCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	buildCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
