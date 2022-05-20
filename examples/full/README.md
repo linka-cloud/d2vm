@@ -59,15 +59,15 @@ RUN sudo sed -i "s|ExecStart=.*|ExecStart=-/sbin/agetty --autologin ${USER} --ke
 *00-netconf.yaml*
 ```yaml
 network:
-    version: 2
-    renderer: networkd
-    ethernets:
-        eth0:
-            dhcp4: true
-            nameservers:
-                addresses:
-                - 8.8.8.8
-                - 8.8.4.4
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: true
+      nameservers:
+        addresses:
+        - 8.8.8.8
+        - 8.8.4.4
 
 ```
 

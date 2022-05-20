@@ -1,6 +1,10 @@
 .idea
 tests
+scratch
 *.qcow2
+*.vmdk
+*.vdi
 
 dist/
+/d2vm
 .goreleaser.yaml

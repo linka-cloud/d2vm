@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -27,7 +28,7 @@ import (
 	"go.linka.cloud/d2vm/pkg/docker"
 )
 
-func Convert(ctx context.Context, img string, size int64, password string, output string, format string) error {
+func Convert(ctx context.Context, img string, size int64, password string, output string) error {
 	imgUUID := uuid.New().String()
 	tmpPath := filepath.Join(os.TempDir(), "d2vm", imgUUID)
 	if err := os.MkdirAll(tmpPath, os.ModePerm); err != nil {
@@ -62,6 +63,7 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 	defer docker.Remove(ctx, imgUUID)
 
 	logrus.Infof("creating vm image")
+	format := strings.TrimPrefix(filepath.Ext(output), ".")
 	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", size, r, format)
 	if err != nil {
 		return err
@@ -73,7 +75,7 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 	if err := os.RemoveAll(output); err != nil {
 		return err
 	}
-	if err := MoveFile(filepath.Join(tmpPath, "disk0.qcow2"), output); err != nil {
+	if err := MoveFile(filepath.Join(tmpPath, "disk0."+format), output); err != nil {
 		return err
 	}
 	return nil

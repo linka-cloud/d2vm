@@ -29,7 +29,8 @@ docker-push:
 	@docker image push -a $(DOCKER_IMAGE)
 
 docker-build:
-	@docker image build -t $(DOCKER_IMAGE):$(VERSION) -t $(DOCKER_IMAGE):latest .
+	@docker image build -t $(DOCKER_IMAGE):$(VERSION) .
+	@echo $(VERSION)|grep -q '-' || docker image tag $(DOCKER_IMAGE):latest $(DOCKER_IMAGE):$(VERSION)
 
 docker-run:
 	@docker run --rm -i -t \
@@ -40,4 +41,4 @@ docker-run:
 		$(DOCKER_IMAGE) bash
 
 build:
-	@go build -o d2vm -ldflags "-s -w -X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./cmd/d2vm
+	@go build -o d2vm -ldflags "-s -w -X '$(MODULE).Image=$(DOCKER_IMAGE)' -X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./cmd/d2vm

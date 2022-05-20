@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/c2h5oh/datasize"
@@ -37,6 +38,9 @@ var (
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if runtime.GOOS != "linux" {
+				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, cmd.Name(), os.Args[2:]...)
+			}
 			img := args[0]
 			tag := "latest"
 			if parts := strings.Split(img, ":"); len(parts) > 1 {
@@ -74,7 +78,7 @@ var (
 					return err
 				}
 			}
-			return d2vm.Convert(cmd.Context(), img, size, password, output, format)
+			return d2vm.Convert(cmd.Context(), img, size, password, output)
 		},
 	}
 )
@@ -89,8 +93,7 @@ func parseSize(s string) (int64, error) {
 
 func init() {
 	convertCmd.Flags().BoolVar(&pull, "pull", false, "Always pull docker image")
-	convertCmd.Flags().StringVarP(&format, "output-format", "O", format, "The output image format, supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
-	convertCmd.Flags().StringVarP(&output, "output", "o", output, "The output image")
+	convertCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
 	convertCmd.Flags().StringVarP(&password, "password", "p", "root", "The Root user password")
 	convertCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	convertCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
