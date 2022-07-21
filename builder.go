@@ -56,13 +56,13 @@ ff02::3 ip6-allhosts
   SAY Now booting the kernel from SYSLINUX...
  LABEL linux
   KERNEL /boot/vmlinuz-virt
-  APPEND ro root=UUID=%s rootfstype=ext4 initrd=/boot/initramfs-virt console=ttyS0,115200 
+  APPEND ro root=UUID=%s rootfstype=ext4 initrd=/boot/initramfs-virt console=ttyS0,115200
 `
 	syslinuxCfgCentOS = `DEFAULT linux
   SAY Now booting the kernel from SYSLINUX...
  LABEL linux
   KERNEL /boot/vmlinuz
-  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 
+  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8
 `
 )
 
@@ -78,6 +78,8 @@ var (
 		"/usr/share/syslinux/mbr.bin",
 		// centos path
 		"/usr/share/syslinux/mbr.bin",
+		// archlinux path
+		"/usr/lib/syslinux/bios/mbr.bin",
 	}
 )
 
