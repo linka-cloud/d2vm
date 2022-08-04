@@ -65,7 +65,7 @@ func init() {
 	buildCmd.Flags().StringVarP(&file, "file", "f", "", "Name of the Dockerfile")
 	buildCmd.Flags().StringArrayVar(&buildArgs, "build-arg", nil, "Set build-time variables")
 
-	buildCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
+	buildCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format, raw will be used if none. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
 	buildCmd.Flags().StringVarP(&password, "password", "p", "root", "Root user password")
 	buildCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	buildCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")

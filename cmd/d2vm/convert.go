@@ -93,7 +93,7 @@ func parseSize(s string) (int64, error) {
 
 func init() {
 	convertCmd.Flags().BoolVar(&pull, "pull", false, "Always pull docker image")
-	convertCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
+	convertCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format, raw will be used if none. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
 	convertCmd.Flags().StringVarP(&password, "password", "p", "root", "The Root user password")
 	convertCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	convertCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
