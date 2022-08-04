@@ -324,7 +324,11 @@ func (b *builder) installKernel(ctx context.Context) error {
 	var sysconfig string
 	switch b.osRelease.ID {
 	case ReleaseUbuntu:
-		sysconfig = syslinuxCfgUbuntu
+		if b.osRelease.VersionID < "20.04" {
+			sysconfig = syslinuxCfgDebian
+		} else {
+			sysconfig = syslinuxCfgUbuntu
+		}
 	case ReleaseDebian:
 		sysconfig = syslinuxCfgDebian
 	case ReleaseAlpine:
