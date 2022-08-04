@@ -27,7 +27,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
       git \
       vim \
       tmux \
-      htop
+      htop \
+      cloud-init \
+      cloud-guest-utils
 
 # Create user with sudo privileged and passwordless sudo
 RUN useradd ${USER} -m -s /bin/zsh -G sudo && \
