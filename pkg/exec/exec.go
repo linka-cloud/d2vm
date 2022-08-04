@@ -38,6 +38,7 @@ func SetDebug(debug bool) {
 }
 
 func RunStdout(ctx context.Context, c string, args ...string) error {
+	fmt.Printf("\n$ %s %s\n", c, strings.Join(args, " "))
 	cmd := exec.CommandContext(ctx, c, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

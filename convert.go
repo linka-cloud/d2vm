@@ -17,13 +17,13 @@ package d2vm
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/svenwiltink/sparsecat"
 
 	"go.linka.cloud/d2vm/pkg/docker"
 )
@@ -64,6 +64,9 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 
 	logrus.Infof("creating vm image")
 	format := strings.TrimPrefix(filepath.Ext(output), ".")
+	if format == "" {
+		format = "raw"
+	}
 	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", size, r, format)
 	if err != nil {
 		return err
@@ -92,7 +95,7 @@ func MoveFile(sourcePath, destPath string) error {
 		return fmt.Errorf("failed to open dest file: %s", err)
 	}
 	defer outputFile.Close()
-	_, err = io.Copy(outputFile, inputFile)
+	_, err = sparsecat.NewDecoder(sparsecat.NewEncoder(inputFile)).WriteTo(outputFile)
 	inputFile.Close()
 	if err != nil {
 		return fmt.Errorf("failed to write to output file: %s", err)

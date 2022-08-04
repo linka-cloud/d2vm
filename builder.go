@@ -153,7 +153,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, o
 	b := &builder{
 		osRelease: osRelease,
 		img:       img,
-		diskRaw:   filepath.Join(workdir, disk+".raw"),
+		diskRaw:   filepath.Join(workdir, disk+".d2vm.raw"),
 		diskOut:   filepath.Join(workdir, disk+"."+format),
 		format:    f,
 		size:      size,
