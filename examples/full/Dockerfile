@@ -28,6 +28,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
       vim \
       tmux \
       htop \
+      lsb-core \
       cloud-init \
       cloud-guest-utils
 

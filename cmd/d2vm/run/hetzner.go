@@ -19,7 +19,9 @@ import (
 )
 
 const (
-	serverImg = "ubuntu-20.04"
+	serverImg     = "ubuntu-20.04"
+	vmBlockPath   = "/dev/sda"
+	sparsecatPath = "/usr/local/bin/sparsecat"
 )
 
 var (
@@ -140,11 +142,11 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	if err != nil {
 		return err
 	}
-	f, err := sftpc.Create("/usr/local/bin/sparsecat")
+	f, err := sftpc.Create(sparsecatPath)
 	if err != nil {
 		return err
 	}
-	if err := sftpc.Chmod("/usr/local/bin/sparsecat", 0755); err != nil {
+	if err := sftpc.Chmod(sparsecatPath, 0755); err != nil {
 		return err
 	}
 	defer f.Close()
@@ -154,35 +156,83 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	if err := f.Close(); err != nil {
 		return err
 	}
-	wses, err := sc.NewSession()
+	serrs := make(chan error, 2)
+	go func() {
+		serrs <- func() error {
+			s, err := sc.NewSession()
+			if err != nil {
+				return err
+			}
+			defer s.Close()
+			logrus.Infof("installing cloud-guest-utils on rescue server")
+			if b, err := s.CombinedOutput("apt update && apt install -y cloud-guest-utils"); err != nil {
+				return fmt.Errorf("%v: %s", err, string(b))
+			}
+			return nil
+		}()
+	}()
+	go func() {
+		serrs <- func() error {
+			wses, err := sc.NewSession()
+			if err != nil {
+				return err
+			}
+			defer wses.Close()
+			logrus.Infof("writing image to %s", vmBlockPath)
+			done := make(chan struct{})
+			defer close(done)
+			pr := newProgressReader(sparsecat.NewEncoder(src))
+			wses.Stdin = pr
+			go func() {
+				tk := time.NewTicker(time.Second)
+				last := 0
+				for {
+					select {
+					case <-tk.C:
+						b := pr.Progress()
+						logrus.Infof("%s / %d%% transfered ( %s/s)", humanize.Bytes(uint64(b)), int(float64(b)/float64(i.VirtualSize)*100), humanize.Bytes(uint64(b-last)))
+						last = b
+					case <-ctx.Done():
+						return
+					case <-done:
+						return
+					}
+				}
+			}()
+			if b, err := wses.CombinedOutput(fmt.Sprintf("%s -r -disable-sparse-target -of %s", sparsecatPath, vmBlockPath)); err != nil {
+				return fmt.Errorf("%v: %s", err, string(b))
+			}
+			return nil
+		}()
+	}()
+	for i := 0; i < 2; i++ {
+		select {
+		case err := <-serrs:
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	gses, err := sc.NewSession()
 	if err != nil {
 		return err
 	}
-	defer wses.Close()
-	logrus.Infof("writing image to /dev/sda")
-	done := make(chan struct{})
-	pr := newProgressReader(sparsecat.NewEncoder(src))
-	wses.Stdin = pr
-	go func() {
-		tk := time.NewTicker(time.Second)
-		last := 0
-		for {
-			select {
-			case <-tk.C:
-				b := pr.Progress()
-				logrus.Infof("%s / %d%% transfered ( %s/s)", humanize.Bytes(uint64(b)), int(float64(b)/float64(i.ActualSize)*100), humanize.Bytes(uint64(b-last)))
-				last = b
-			case <-ctx.Done():
-				return
-			case <-done:
-				return
-			}
-		}
-	}()
-	if b, err := wses.CombinedOutput("/usr/local/bin/sparsecat -r -disable-sparse-target -of /dev/sda"); err != nil {
-		logrus.Fatalf("%v: %s", err, string(b))
+	defer gses.Close()
+	logrus.Infof("resizing disk partition")
+	if b, err := gses.CombinedOutput(fmt.Sprintf("growpart %s 1", vmBlockPath)); err != nil {
+		return fmt.Errorf("%v: %s", err, string(b))
 	}
-	close(done)
+	eses, err := sc.NewSession()
+	if err != nil {
+		return err
+	}
+	defer eses.Close()
+	logrus.Infof("extending partition file system")
+	if b, err := eses.CombinedOutput(fmt.Sprintf("resize2fs %s1", vmBlockPath)); err != nil {
+		return fmt.Errorf("%v: %s", err, string(b))
+	}
 	logrus.Infof("rebooting server")
 	rbres, _, err := c.Server.Reboot(ctx, sres.Server)
 	if err != nil {
