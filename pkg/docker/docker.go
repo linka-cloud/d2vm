@@ -92,6 +92,11 @@ func RunInteractiveAndRemove(ctx context.Context, args ...string) error {
 	return cmd.Run()
 }
 
+func RunAndRemove(ctx context.Context, args ...string) error {
+	logrus.Tracef("running 'docker run --rm %s'", strings.Join(args, " "))
+	return Cmd(ctx, append([]string{"run", "--rm"}, args...)...)
+}
+
 func RunD2VM(ctx context.Context, image, version, cmd string, args ...string) error {
 	pwd, err := os.Getwd()
 	if err != nil {

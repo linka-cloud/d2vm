@@ -1,3 +1,5 @@
+//go:generate env GOOS=linux GOARCH=amd64 go build -o sparsecat-linux-amd64 github.com/svenwiltink/sparsecat/cmd/sparsecat
+
 // Copyright 2022 Linka Cloud  All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +18,23 @@ package run
 
 import (
 	"bufio"
+	"context"
+	_ "embed"
+	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
+
+	"golang.org/x/crypto/ssh"
 )
+
+//go:embed sparsecat-linux-amd64
+var sparsecatBinary []byte
 
 // Handle flags with multiple occurrences
 type MultipleFlag []string
@@ -273,4 +287,76 @@ func NewPublishedPort(publish string) (PublishedPort, error) {
 	p.Host = uint16(hostPort)
 	p.Protocol = protocol
 	return p, nil
+}
+
+func dialSSH(server, user, password string) (*ssh.Client, error) {
+	c, err := ssh.Dial("tcp", server+":22", &ssh.ClientConfig{
+		User:            user,
+		Auth:            []ssh.AuthMethod{ssh.Password(password)},
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func dialSSHWithTimeout(server, user, password string, timeout time.Duration) (*ssh.Client, error) {
+	t := time.NewTimer(timeout)
+	for {
+		select {
+		case <-t.C:
+			return nil, fmt.Errorf("timeout while trying to connect to the server")
+		default:
+			c, err := dialSSH(server, user, password)
+			if err == nil {
+				return c, nil
+			}
+			time.Sleep(time.Second)
+		}
+	}
+}
+
+func newProgressReader(r io.Reader) *pw {
+	return &pw{r: r}
+}
+
+type pw struct {
+	r     io.Reader
+	total int
+	size  int
+	mu    sync.RWMutex
+}
+
+func (p *pw) Read(buf []byte) (int, error) {
+	p.mu.Lock()
+	p.total += len(buf)
+	p.mu.Unlock()
+	return p.r.Read(buf)
+}
+
+func (p *pw) Progress() int {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	return p.total
+}
+
+type QemuInfo struct {
+	VirtualSize int    `json:"virtual-size"`
+	Filename    string `json:"filename"`
+	Format      string `json:"format"`
+	ActualSize  int    `json:"actual-size"`
+	DirtyFlag   bool   `json:"dirty-flag"`
+}
+
+func ImgInfo(ctx context.Context, path string) (*QemuInfo, error) {
+	o, err := exec.CommandContext(ctx, "qemu-img", "info", path, "--output", "json").CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("%v: %s", err, string(o))
+	}
+	var i QemuInfo
+	if err := json.Unmarshal(o, &i); err != nil {
+		return nil, err
+	}
+	return &i, nil
 }

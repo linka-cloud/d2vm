@@ -87,6 +87,24 @@ const (
 	perm os.FileMode = 0644
 )
 
+func sysconfig(osRelease OSRelease) (string, error) {
+	switch osRelease.ID {
+	case ReleaseUbuntu:
+		if osRelease.VersionID < "20.04" {
+			return syslinuxCfgDebian, nil
+		}
+		return syslinuxCfgUbuntu, nil
+	case ReleaseDebian:
+		return syslinuxCfgDebian, nil
+	case ReleaseAlpine:
+		return syslinuxCfgAlpine, nil
+	case ReleaseCentOS:
+		return syslinuxCfgCentOS, nil
+	default:
+		return "", fmt.Errorf("%s: distribution not supported", osRelease.ID)
+	}
+}
+
 type builder struct {
 	osRelease OSRelease
 
@@ -321,22 +339,9 @@ func (b *builder) installKernel(ctx context.Context) error {
 	if err := exec.Run(ctx, "extlinux", "--install", b.chPath("/boot")); err != nil {
 		return err
 	}
-	var sysconfig string
-	switch b.osRelease.ID {
-	case ReleaseUbuntu:
-		if b.osRelease.VersionID < "20.04" {
-			sysconfig = syslinuxCfgDebian
-		} else {
-			sysconfig = syslinuxCfgUbuntu
-		}
-	case ReleaseDebian:
-		sysconfig = syslinuxCfgDebian
-	case ReleaseAlpine:
-		sysconfig = syslinuxCfgAlpine
-	case ReleaseCentOS:
-		sysconfig = syslinuxCfgCentOS
-	default:
-		return fmt.Errorf("%s: distribution not supported", b.osRelease.ID)
+	sysconfig, err := sysconfig(b.osRelease)
+	if err != nil {
+		return err
 	}
 	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.diskUUD), perm); err != nil {
 		return err

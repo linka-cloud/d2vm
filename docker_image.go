@@ -80,11 +80,6 @@ func (i DockerImage) AsRunScript(w io.Writer) error {
 	return dockerImageRunTemplate.Execute(w, i)
 }
 
-const (
-	whiteoutPrefix = ".wh."
-	manifest       = "manifest.json"
-)
-
 func NewImage(ctx context.Context, tag string, imageTmpPath string) (*image, error) {
 	ref, err := name.ParseReference(tag)
 	if err != nil {
