@@ -38,5 +38,6 @@ func init() {
 
 	runCmd.AddCommand(run.VboxCmd)
 	runCmd.AddCommand(run.QemuCmd)
+	runCmd.AddCommand(run.HetznerCmd)
 	runCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
 }

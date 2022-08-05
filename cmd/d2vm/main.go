@@ -16,6 +16,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"os/signal"
 
 	"github.com/spf13/cobra"
 
@@ -41,5 +44,12 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, os.Kill)
+	go func() {
+		<-sigs
+		fmt.Println()
+		cancel()
+	}()
 	rootCmd.ExecuteContext(ctx)
 }
