@@ -42,6 +42,7 @@ changelog:
     exclude:
     - '^docs:'
     - '^test:'
+    - '^tests:'
     - '^actions:'
     - '^Makefile:'
     - '^chore:'
