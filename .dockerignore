@@ -3,3 +3,6 @@ tests
 disk*
 qemu.sh
 **/*.qcow2
+bin
+dist
+images

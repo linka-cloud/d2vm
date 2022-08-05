@@ -5,7 +5,6 @@ scratch
 *.vmdk
 *.vdi
 
+bin/
 dist/
-/d2vm
-.goreleaser.yaml
 images
