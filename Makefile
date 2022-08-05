@@ -61,7 +61,8 @@ docker-run:
 
 .PHONY: tests
 tests:
-	@go test -exec sudo -count=1 -v ./...
+	@go generate ./...
+	@go test -exec sudo -count=1 -timeout 20m -v ./...
 
 check-fmt:
 	@[ "$(gofmt -l $(find . -name '*.go') 2>&1)" = "" ]
