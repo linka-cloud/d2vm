@@ -62,7 +62,7 @@ docker-run:
 .PHONY: tests
 tests:
 	@go generate ./...
-	@go test -exec sudo -count=1 -timeout 20m -v ./...
+	@go list ./...| xargs go test -exec sudo -count=1 -timeout 20m -v
 
 check-fmt:
 	@[ "$(gofmt -l $(find . -name '*.go') 2>&1)" = "" ]
