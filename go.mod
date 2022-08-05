@@ -8,10 +8,10 @@ require (
 	github.com/google/go-containerregistry v0.8.0
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
-	github.com/rn/iso9660wrap v0.0.0-20171120145750-baf8d62ad315
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.0
+	github.com/svenwiltink/sparsecat v1.0.0
 	go.uber.org/multierr v1.8.0
 )
 
@@ -37,7 +37,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/svenwiltink/sparsecat v1.0.0 // indirect
 	github.com/vbatts/tar-split v0.11.2 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
