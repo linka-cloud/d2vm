@@ -84,7 +84,7 @@ release-snapshot: bin
 
 .PHONY: build
 build: $(BIN) bin
-	@VERSION=$(VERSION) goreleaser build --rm-dist --parallelism 8
+	@VERSION=$(VERSION) IMAGE=$(DOCKER_IMAGE) goreleaser build --rm-dist --parallelism 8
 
 .PHONY: release
 release: $(BIN) bin
