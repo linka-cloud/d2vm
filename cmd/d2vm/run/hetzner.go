@@ -5,9 +5,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -242,21 +242,10 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	if err := <-errs; err != nil {
 		return err
 	}
-	logrus.Infof("server created")
 	remove = false
-	args := []string{"-o", "StrictHostKeyChecking=no"}
-	if hetznerSSHKeyPath != "" {
-		args = append(args, "-i", hetznerSSHKeyPath)
-	}
-	args = append(args, fmt.Sprintf("%s@%s", hetznerSSHUser, sres.Server.PublicNet.IPv4.IP.String()))
-	makeCmd := func() *exec.Cmd {
-		cmd := exec.CommandContext(ctx, "ssh", args...)
-		cmd.Stdin = stdin
-		cmd.Stderr = stderr
-		cmd.Stdout = stdout
-		return cmd
-	}
+	logrus.Infof("waiting for server to be ready")
 	t := time.NewTimer(time.Minute)
+wait:
 	for {
 		select {
 		case <-t.C:
@@ -264,16 +253,25 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			cmd := makeCmd()
-			if err := cmd.Run(); err != nil {
-				if strings.Contains(err.Error(), "exit status 255") {
-					time.Sleep(time.Second)
-					continue
-				}
-				return err
-			} else {
-				return nil
+			conn, err := net.Dial("tcp", fmt.Sprintf("%s:22", sres.Server.PublicNet.IPv4.IP.String()))
+			if err == nil {
+				conn.Close()
+				break wait
 			}
+			time.Sleep(time.Second)
 		}
 	}
+	args := []string{"-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null"}
+	if hetznerSSHKeyPath != "" {
+		args = append(args, "-i", hetznerSSHKeyPath)
+	}
+	args = append(args, fmt.Sprintf("%s@%s", hetznerSSHUser, sres.Server.PublicNet.IPv4.IP.String()))
+	cmd := exec.CommandContext(ctx, "ssh", args...)
+	cmd.Stdin = stdin
+	cmd.Stderr = stderr
+	cmd.Stdout = stdout
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+	return nil
 }
