@@ -30,7 +30,8 @@ import (
 )
 
 var (
-	pull = false
+	pull         = false
+	cmdLineExtra = ""
 
 	convertCmd = &cobra.Command{
 		Use:          "convert [docker image]",
@@ -78,7 +79,7 @@ var (
 					return err
 				}
 			}
-			return d2vm.Convert(cmd.Context(), img, size, password, output)
+			return d2vm.Convert(cmd.Context(), img, size, password, output, cmdLineExtra)
 		},
 	}
 )
@@ -98,5 +99,6 @@ func init() {
 	convertCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	convertCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
 	convertCmd.Flags().BoolVarP(&force, "force", "f", false, "Override output qcow2 image")
+	convertCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
 	rootCmd.AddCommand(convertCmd)
 }

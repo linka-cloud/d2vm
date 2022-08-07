@@ -44,25 +44,25 @@ ff02::3 ip6-allhosts
   SAY Now booting the kernel from SYSLINUX...
  LABEL linux
   KERNEL /boot/vmlinuz
-  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8
+  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 %s
 `
 	syslinuxCfgDebian = `DEFAULT linux
   SAY Now booting the kernel from SYSLINUX...
  LABEL linux
   KERNEL /vmlinuz
-  APPEND ro root=UUID=%s initrd=/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8
+  APPEND ro root=UUID=%s initrd=/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 %s
 `
 	syslinuxCfgAlpine = `DEFAULT linux
   SAY Now booting the kernel from SYSLINUX...
  LABEL linux
   KERNEL /boot/vmlinuz-virt
-  APPEND ro root=UUID=%s rootfstype=ext4 initrd=/boot/initramfs-virt console=ttyS0,115200
+  APPEND ro root=UUID=%s rootfstype=ext4 initrd=/boot/initramfs-virt console=ttyS0,115200 %s
 `
 	syslinuxCfgCentOS = `DEFAULT linux
   SAY Now booting the kernel from SYSLINUX...
  LABEL linux
   KERNEL /boot/vmlinuz
-  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8
+  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 %s
 `
 )
 
@@ -119,12 +119,13 @@ type builder struct {
 
 	mbrPath string
 
-	loDevice string
-	loPart   string
-	diskUUD  string
+	loDevice     string
+	loPart       string
+	diskUUD      string
+	cmdLineExtra string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, osRelease OSRelease, format string) (*builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, osRelease OSRelease, format string, cmdLineExtra string) (*builder, error) {
 	if err := checkDependencies(); err != nil {
 		return nil, err
 	}
@@ -169,14 +170,15 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, o
 	// 	size = int64(s)
 	// }
 	b := &builder{
-		osRelease: osRelease,
-		img:       img,
-		diskRaw:   filepath.Join(workdir, disk+".d2vm.raw"),
-		diskOut:   filepath.Join(workdir, disk+"."+format),
-		format:    f,
-		size:      size,
-		mbrPath:   mbrBin,
-		mntPoint:  filepath.Join(workdir, "/mnt"),
+		osRelease:    osRelease,
+		img:          img,
+		diskRaw:      filepath.Join(workdir, disk+".d2vm.raw"),
+		diskOut:      filepath.Join(workdir, disk+"."+format),
+		format:       f,
+		size:         size,
+		mbrPath:      mbrBin,
+		mntPoint:     filepath.Join(workdir, "/mnt"),
+		cmdLineExtra: cmdLineExtra,
 	}
 	if err := os.MkdirAll(b.mntPoint, os.ModePerm); err != nil {
 		return nil, err
@@ -343,7 +345,7 @@ func (b *builder) installKernel(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.diskUUD), perm); err != nil {
+	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.diskUUD, b.cmdLineExtra), perm); err != nil {
 		return err
 	}
 	return nil
