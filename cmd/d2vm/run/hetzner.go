@@ -97,10 +97,6 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	if err != nil {
 		return err
 	}
-	_, errs := c.Action.WatchProgress(ctx, sres.Action)
-	if err := <-errs; err != nil {
-		return err
-	}
 	remove := true
 	defer func() {
 		if !remove && !hetznerRemove {
@@ -112,6 +108,10 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 			logrus.Fatalf("failed to remove server: %v", err)
 		}
 	}()
+	_, errs := c.Action.WatchProgress(ctx, sres.Action)
+	if err := <-errs; err != nil {
+		return err
+	}
 	logrus.Infof("server created with ip: %s", sres.Server.PublicNet.IPv4.IP.String())
 	logrus.Infof("enabling server rescue mode")
 	rres, _, err := c.Server.EnableRescue(ctx, sres.Server, hcloud.ServerEnableRescueOpts{Type: hcloud.ServerRescueTypeLinux64})
@@ -253,7 +253,8 @@ wait:
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			conn, err := net.Dial("tcp", fmt.Sprintf("%s:22", sres.Server.PublicNet.IPv4.IP.String()))
+			var d net.Dialer
+			conn, err := d.DialContext(ctx, "tcp", fmt.Sprintf("%s:22", sres.Server.PublicNet.IPv4.IP.String()))
 			if err == nil {
 				conn.Close()
 				break wait
@@ -261,6 +262,7 @@ wait:
 			time.Sleep(time.Second)
 		}
 	}
+	logrus.Infof("server ready")
 	args := []string{"-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null"}
 	if hetznerSSHKeyPath != "" {
 		args = append(args, "-i", hetznerSSHKeyPath)
