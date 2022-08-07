@@ -47,14 +47,14 @@ var (
 				return err
 			}
 			exec.SetDebug(debug)
-			logrus.Infof("building docker image from %s", file)
 			if file == "" {
 				file = filepath.Join(args[0], "Dockerfile")
 			}
+			logrus.Infof("building docker image from %s", file)
 			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
 				return err
 			}
-			return d2vm.Convert(cmd.Context(), tag, size, password, output)
+			return d2vm.Convert(cmd.Context(), tag, size, password, output, cmdLineExtra)
 		},
 	}
 )
@@ -70,4 +70,5 @@ func init() {
 	buildCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
 	buildCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
 	buildCmd.Flags().BoolVar(&force, "force", false, "Override output image")
+	buildCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
 }

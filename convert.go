@@ -28,7 +28,7 @@ import (
 	"go.linka.cloud/d2vm/pkg/docker"
 )
 
-func Convert(ctx context.Context, img string, size int64, password string, output string) error {
+func Convert(ctx context.Context, img string, size int64, password string, output string, cmdLineExtra string) error {
 	imgUUID := uuid.New().String()
 	tmpPath := filepath.Join(os.TempDir(), "d2vm", imgUUID)
 	if err := os.MkdirAll(tmpPath, os.ModePerm); err != nil {
@@ -67,7 +67,7 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 	if format == "" {
 		format = "raw"
 	}
-	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", size, r, format)
+	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", size, r, format, cmdLineExtra)
 	if err != nil {
 		return err
 	}
