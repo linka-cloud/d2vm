@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"io"
 	"text/template"
+
+	"github.com/sirupsen/logrus"
 )
 
 //go:embed templates/ubuntu.Dockerfile
@@ -40,33 +42,50 @@ var (
 	centOSDockerfileTemplate = template.Must(template.New("centos.Dockerfile").Parse(centOSDockerfile))
 )
 
+type NetworkManager string
+
+const (
+	NetworkManagerNone      NetworkManager = "none"
+	NetworkManagerIfupdown2 NetworkManager = "ifupdown"
+	NetworkManagerNetplan   NetworkManager = "netplan"
+)
+
 type Dockerfile struct {
-	Image    string
-	Password string
-	Release  OSRelease
-	tmpl     *template.Template
+	Image          string
+	Password       string
+	Release        OSRelease
+	NetworkManager NetworkManager
+	tmpl           *template.Template
 }
 
 func (d Dockerfile) Render(w io.Writer) error {
 	return d.tmpl.Execute(w, d)
 }
 
-func NewDockerfile(release OSRelease, img, password string) (Dockerfile, error) {
+func NewDockerfile(release OSRelease, img, password string, networkManager NetworkManager) (Dockerfile, error) {
 	if password == "" {
 		password = "root"
 	}
-	d := Dockerfile{Release: release, Image: img, Password: password}
+	d := Dockerfile{Release: release, Image: img, Password: password, NetworkManager: networkManager}
+	var net NetworkManager
 	switch release.ID {
 	case ReleaseDebian:
 		d.tmpl = debianDockerfileTemplate
+		net = NetworkManagerIfupdown2
 	case ReleaseUbuntu:
 		d.tmpl = ubuntuDockerfileTemplate
+		net = NetworkManagerNetplan
 	case ReleaseAlpine:
 		d.tmpl = alpineDockerfileTemplate
+		net = NetworkManagerIfupdown2
 	case ReleaseCentOS:
 		d.tmpl = centOSDockerfileTemplate
 	default:
 		return Dockerfile{}, fmt.Errorf("unsupported distribution: %s", release.ID)
+	}
+	if d.NetworkManager == "" {
+		logrus.Warnf("no network manager specified, using distribution defaults: %s", net)
+		d.NetworkManager = net
 	}
 	return d, nil
 }

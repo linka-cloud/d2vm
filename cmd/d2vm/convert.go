@@ -79,7 +79,7 @@ var (
 					return err
 				}
 			}
-			return d2vm.Convert(cmd.Context(), img, size, password, output, cmdLineExtra)
+			return d2vm.Convert(cmd.Context(), img, size, password, output, cmdLineExtra, d2vm.NetworkManager(networkManager))
 		},
 	}
 )
@@ -100,5 +100,6 @@ func init() {
 	convertCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
 	convertCmd.Flags().BoolVarP(&force, "force", "f", false, "Override output qcow2 image")
 	convertCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
+	convertCmd.Flags().StringVar(&networkManager, "network-manager", "", "Network manager to use for the image: none, netplan, ifupdown")
 	rootCmd.AddCommand(convertCmd)
 }
