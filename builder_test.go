@@ -27,7 +27,7 @@ func testSysconfig(t *testing.T, ctx context.Context, img, sysconf, kernel, init
 	sys, err := sysconfig(r)
 	require.NoError(t, err)
 	assert.Equal(t, sysconf, sys)
-	d, err := NewDockerfile(r, img, "root")
+	d, err := NewDockerfile(r, img, "root", "")
 	require.NoError(t, err)
 	logrus.Infof("docker image based on %s", d.Release.Name)
 	p := filepath.Join(tmpPath, docker.FormatImgName(img))
@@ -74,12 +74,6 @@ func TestSyslinuxCfg(t *testing.T) {
 			kernel:    "/boot/vmlinuz",
 			initrd:    "/boot/initrd.img",
 			sysconfig: syslinuxCfgUbuntu,
-		},
-		{
-			image:     "debian:8",
-			kernel:    "/vmlinuz",
-			initrd:    "/initrd.img",
-			sysconfig: syslinuxCfgDebian,
 		},
 		{
 			image:     "debian:9",

@@ -30,10 +30,11 @@ import (
 )
 
 var (
-	file      = "Dockerfile"
-	tag       = uuid.New().String()
-	buildArgs []string
-	buildCmd  = &cobra.Command{
+	file           = "Dockerfile"
+	tag            = uuid.New().String()
+	networkManager string
+	buildArgs      []string
+	buildCmd       = &cobra.Command{
 		Use:   "build [context directory]",
 		Short: "Build a vm image from Dockerfile",
 		Args:  cobra.ExactArgs(1),
@@ -54,7 +55,7 @@ var (
 			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
 				return err
 			}
-			return d2vm.Convert(cmd.Context(), tag, size, password, output, cmdLineExtra)
+			return d2vm.Convert(cmd.Context(), tag, size, password, output, cmdLineExtra, d2vm.NetworkManager(networkManager))
 		},
 	}
 )
@@ -71,4 +72,5 @@ func init() {
 	buildCmd.Flags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
 	buildCmd.Flags().BoolVar(&force, "force", false, "Override output image")
 	buildCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
+	buildCmd.Flags().StringVar(&networkManager, "network-manager", "", "Network manager to use for the image: none, netplan, ifupdown")
 }
