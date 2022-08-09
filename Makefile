@@ -91,3 +91,13 @@ build: $(BIN) bin
 .PHONY: release
 release: $(BIN) bin
 	@VERSION=$(VERSION) IMAGE=$(DOCKER_IMAGE) goreleaser release --rm-dist --parallelism 8
+
+.PHONY: examples
+examples: build-dev
+	@mkdir -p examples/build
+	@for f in $$(find examples -type f -name '*Dockerfile' -maxdepth 1); do \
+  		echo "Building $$f"; \
+  		./d2vm build -o examples/build/$$(basename $$f|cut -d'.' -f1).qcow2 -f $$f examples; \
+	  done
+	@echo "Building examples/full/Dockerfile"
+	@./d2vm build -o examples/build/full.qcow2 --build-arg=USER=adphi --build-arg=PASSWORD=adphi examples/full

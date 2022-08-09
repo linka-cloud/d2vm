@@ -9,7 +9,7 @@ RUN apt-get update -y && \
   systemd-sysv \
   systemd \
   dbus \
-  udhcpc \
+  isc-dhcp-client \
   iproute2 \
   iputils-ping
 

@@ -3,14 +3,11 @@ FROM ubuntu
 # Install some system packages
 RUN apt update && DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends \
       qemu-guest-agent \
-      netplan.io \
       ca-certificates \
       dnsutils \
       sudo \
       openssh-server
 
-# Setup default network config
-COPY 00-netconf.yaml /etc/netplan/
 # Add a utility script to resize serial terminal
 COPY resize /usr/local/bin/
 

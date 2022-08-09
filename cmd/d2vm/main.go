@@ -20,9 +20,11 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"go.linka.cloud/d2vm"
+	"go.linka.cloud/d2vm/pkg/exec"
 )
 
 var (
@@ -30,13 +32,19 @@ var (
 	size     = "1G"
 	password = "root"
 	force    = false
-	debug    = false
+	verbose  = false
 	format   = "qcow2"
 
 	rootCmd = &cobra.Command{
 		Use:          "d2vm",
 		SilenceUsage: true,
 		Version:      d2vm.Version,
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			if verbose {
+				logrus.SetLevel(logrus.TraceLevel)
+			}
+			exec.SetDebug(verbose)
+		},
 	}
 )
 
@@ -52,4 +60,10 @@ func main() {
 		cancel()
 	}()
 	rootCmd.ExecuteContext(ctx)
+}
+
+func init() {
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "debug", "d", false, "Enable Debug output")
+	rootCmd.PersistentFlags().MarkDeprecated("debug", "use -v instead")
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable Verbose output")
 }

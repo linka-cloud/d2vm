@@ -6,3 +6,4 @@ qemu.sh
 bin
 dist
 images
+examples/build
