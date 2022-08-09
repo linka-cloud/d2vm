@@ -31,10 +31,10 @@ alias d2vm='docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/
 
 Working and tested:
 
-- [x] Ubuntu
-- [x] Debian
+- [x] Ubuntu (18.04+)
+- [x] Debian (stretch+)
 - [x] Alpine
-- [x] CentOS
+- [x] CentOS (8+)
 
 Unsupported:
 
@@ -194,7 +194,7 @@ applicable law.
 root@localhost:~#
 ```
 
-Type `poweroff` to shutdown the vm.
+Type `poweroff` to shut down the vm.
 
 ### Building a VM Image from a Dockerfile
 

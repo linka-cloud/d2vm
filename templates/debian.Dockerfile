@@ -31,7 +31,7 @@ network:\n\
         addresses:\n\
         - 8.8.8.8\n\
         - 8.8.4.4\n\
-' > /etc/netplan/00-netcfg.yaml \
+' > /etc/netplan/00-netcfg.yaml
 {{ else if eq .NetworkManager "ifupdown"}}
 RUN apt install -y ifupdown2
 RUN mkdir -p /etc/network && printf '\
