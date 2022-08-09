@@ -50,6 +50,15 @@ const (
 	NetworkManagerNetplan   NetworkManager = "netplan"
 )
 
+func (n NetworkManager) Validate() error {
+	switch n {
+	case NetworkManagerNone, NetworkManagerIfupdown2, NetworkManagerNetplan:
+		return nil
+	default:
+		return fmt.Errorf("unsupported network manager: %s", n)
+	}
+}
+
 type Dockerfile struct {
 	Image          string
 	Password       string
@@ -78,14 +87,26 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 	case ReleaseAlpine:
 		d.tmpl = alpineDockerfileTemplate
 		net = NetworkManagerIfupdown2
+		if networkManager == NetworkManagerNetplan {
+			return d, fmt.Errorf("netplan is not supported on alpine")
+		}
 	case ReleaseCentOS:
 		d.tmpl = centOSDockerfileTemplate
+		net = NetworkManagerNone
+		if networkManager != "" && networkManager != NetworkManagerNone {
+			return Dockerfile{}, fmt.Errorf("network manager is not supported on centos")
+		}
 	default:
 		return Dockerfile{}, fmt.Errorf("unsupported distribution: %s", release.ID)
 	}
 	if d.NetworkManager == "" {
-		logrus.Warnf("no network manager specified, using distribution defaults: %s", net)
+		if release.ID != ReleaseCentOS {
+			logrus.Warnf("no network manager specified, using distribution defaults: %s", net)
+		}
 		d.NetworkManager = net
+	}
+	if err := d.NetworkManager.Validate(); err != nil {
+		return Dockerfile{}, err
 	}
 	return d, nil
 }

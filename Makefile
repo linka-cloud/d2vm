@@ -70,6 +70,8 @@ check-fmt:
 vet:
 	@go list ./...|grep -v scratch|GOOS=linux xargs go vet
 
+build-dev: docker-build .build
+
 .build:
 	@go generate ./...
 	@go build -o d2vm -ldflags "-s -w -X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./cmd/d2vm
