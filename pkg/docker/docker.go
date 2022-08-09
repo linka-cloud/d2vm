@@ -102,6 +102,9 @@ func RunD2VM(ctx context.Context, image, version, cmd string, args ...string) er
 	if err != nil {
 		return err
 	}
+	if image == "" {
+		image = "linkacloud/d2vm"
+	}
 	if version == "" {
 		version = "latest"
 	}
