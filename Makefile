@@ -66,7 +66,7 @@ tests:
 	@go generate ./...
 	@go list ./...| xargs go test -exec sudo -count=1 -timeout 20m -v
 	@$(MAKE) docs
-	@git diff --quiet || (echo "Please regenerate the documentation with 'make docs'"; exit 1)
+	@git diff --quiet docs || (echo "Please regenerate the documentation with 'make docs'"; exit 1)
 
 check-fmt:
 	@[ "$(gofmt -l $(find . -name '*.go') 2>&1)" = "" ]
