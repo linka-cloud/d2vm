@@ -45,6 +45,7 @@ func testSysconfig(t *testing.T, ctx context.Context, img, sysconf, kernel, init
 }
 
 func TestSyslinuxCfg(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		image     string
 		kernel    string
@@ -118,12 +119,14 @@ func TestSyslinuxCfg(t *testing.T) {
 			sysconfig: syslinuxCfgCentOS,
 		},
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 	exec.SetDebug(true)
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.image, func(t *testing.T) {
+			t.Parallel()
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
 			testSysconfig(t, ctx, test.image, test.sysconfig, test.kernel, test.initrd)
 		})
 	}
