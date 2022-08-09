@@ -33,9 +33,10 @@ import (
 )
 
 const (
-	serverImg     = "ubuntu-20.04"
-	vmBlockPath   = "/dev/sda"
-	sparsecatPath = "/usr/local/bin/sparsecat"
+	hetznerTokenEnv = "HETZNER_TOKEN"
+	serverImg       = "ubuntu-20.04"
+	vmBlockPath     = "/dev/sda"
+	sparsecatPath   = "/usr/local/bin/sparsecat"
 )
 
 var (
@@ -56,7 +57,7 @@ var (
 )
 
 func init() {
-	HetznerCmd.Flags().StringVarP(&hetznerToken, "token", "t", "", "Hetzner Cloud API token")
+	HetznerCmd.Flags().StringVarP(&hetznerToken, "token", "t", "", "Hetzner Cloud API token [$"+hetznerTokenEnv+"]")
 	HetznerCmd.Flags().StringVarP(&hetznerSSHUser, "user", "u", "root", "d2vm image ssh user")
 	HetznerCmd.Flags().StringVarP(&hetznerSSHKeyPath, "ssh-key", "i", "", "d2vm image identity key")
 	HetznerCmd.Flags().BoolVar(&hetznerRemove, "rm", false, "remove server when done")
@@ -85,7 +86,7 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	}
 	defer src.Close()
 
-	c := hcloud.NewClient(hcloud.WithToken(hetznerToken))
+	c := hcloud.NewClient(hcloud.WithToken(GetStringValue(hetznerTokenEnv, hetznerToken, "")))
 	st, _, err := c.ServerType.GetByName(ctx, hetznerVMType)
 	if err != nil {
 		return err
@@ -205,8 +206,10 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 						logrus.Infof("%s / %d%% transfered ( %s/s)", humanize.Bytes(uint64(b)), int(float64(b)/float64(i.VirtualSize)*100), humanize.Bytes(uint64(b-last)))
 						last = b
 					case <-ctx.Done():
+						logrus.Warnf("context cancelled")
 						return
 					case <-done:
+						logrus.Infof("transfer finished")
 						return
 					}
 				}

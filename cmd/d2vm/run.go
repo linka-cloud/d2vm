@@ -15,7 +15,6 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"go.linka.cloud/d2vm/cmd/d2vm/run"
@@ -25,11 +24,6 @@ var (
 	runCmd = &cobra.Command{
 		Use:   "run",
 		Short: "run the converted virtual machine",
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			if debug {
-				logrus.SetLevel(logrus.DebugLevel)
-			}
-		},
 	}
 )
 
@@ -39,5 +33,4 @@ func init() {
 	runCmd.AddCommand(run.VboxCmd)
 	runCmd.AddCommand(run.QemuCmd)
 	runCmd.AddCommand(run.HetznerCmd)
-	runCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable Debug output")
 }

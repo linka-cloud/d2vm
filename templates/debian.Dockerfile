@@ -11,7 +11,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       systemd \
       dbus \
       iproute2 \
-      udhcpc \
+      isc-dhcp-client \
       iputils-ping
 
 RUN systemctl preset-all
