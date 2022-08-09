@@ -28,6 +28,8 @@ GORELEASER_URL := https://github.com/goreleaser/goreleaser/releases/download/$(G
 BIN := $(PWD)/bin
 export PATH := $(BIN):$(PATH)
 
+CLI_REFERENCE_PATH := docs/reference
+
 bin:
 	@mkdir -p $(BIN)
 	@curl -sL $(GORELEASER_URL) | tar -C $(BIN) -xz goreleaser
@@ -63,6 +65,8 @@ docker-run:
 tests:
 	@go generate ./...
 	@go list ./...| xargs go test -exec sudo -count=1 -timeout 20m -v
+	@$(MAKE) docs
+	@git diff --quiet || (echo "Please regenerate the documentation with 'make docs'"; exit 1)
 
 check-fmt:
 	@[ "$(gofmt -l $(find . -name '*.go') 2>&1)" = "" ]
@@ -101,3 +105,7 @@ examples: build-dev
 	  done
 	@echo "Building examples/full/Dockerfile"
 	@./d2vm build -o examples/build/full.qcow2 --build-arg=USER=adphi --build-arg=PASSWORD=adphi examples/full
+
+docs: .build
+	@rm -rf $(CLI_REFERENCE_PATH)
+	@./d2vm docs $(CLI_REFERENCE_PATH)

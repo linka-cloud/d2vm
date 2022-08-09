@@ -41,9 +41,10 @@ var (
 	usbEnabled   bool
 
 	QemuCmd = &cobra.Command{
-		Use:  "qemu [options] [image-path]",
-		Args: cobra.ExactArgs(1),
-		Run:  Qemu,
+		Use:   "qemu [options] [image-path]",
+		Short: "Run the virtual machine image with qemu",
+		Args:  cobra.ExactArgs(1),
+		Run:   Qemu,
 	}
 )
 

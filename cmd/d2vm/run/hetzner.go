@@ -51,9 +51,10 @@ var (
 	hetznerRemove     = false
 
 	HetznerCmd = &cobra.Command{
-		Use:  "hetzner [options] image-path",
-		Args: cobra.ExactArgs(1),
-		Run:  Hetzner,
+		Use:   "hetzner [options] image-path",
+		Short: "Run the virtual machine image on Hetzner Cloud",
+		Args:  cobra.ExactArgs(1),
+		Run:   Hetzner,
 	}
 )
 
