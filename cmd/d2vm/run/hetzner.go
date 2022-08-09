@@ -22,6 +22,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"time"
 
@@ -31,6 +32,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/svenwiltink/sparsecat"
+
+	exec2 "go.linka.cloud/d2vm/pkg/exec"
 )
 
 const (
@@ -80,7 +83,21 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 		return err
 	}
 	if i.Format != "raw" {
-		return fmt.Errorf("image format must be raw")
+		logrus.Warnf("image format is %s, expected raw", i.Format)
+		rawPath := filepath.Join(os.TempDir(), "d2vm", "run", filepath.Base(imgPath)+".raw")
+		if err := os.MkdirAll(filepath.Dir(rawPath), 0755); err != nil {
+			return err
+		}
+		defer os.RemoveAll(rawPath)
+		logrus.Infof("converting image to raw: %s", rawPath)
+		if err := exec2.Run(ctx, "qemu-img", "convert", "-O", "raw", imgPath, rawPath); err != nil {
+			return err
+		}
+		imgPath = rawPath
+		i, err = ImgInfo(ctx, imgPath)
+		if err != nil {
+			return err
+		}
 	}
 	src, err := os.Open(imgPath)
 	if err != nil {
