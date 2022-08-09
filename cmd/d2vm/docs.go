@@ -15,22 +15,29 @@
 package main
 
 import (
+	"os"
+
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-
-	"go.linka.cloud/d2vm/cmd/d2vm/run"
+	"github.com/spf13/cobra/doc"
 )
 
-var (
-	runCmd = &cobra.Command{
-		Use:   "run",
-		Short: "Run the virtual machine image",
-	}
-)
+var docsCmd = &cobra.Command{
+	Use:    "docs",
+	Short:  "Generate documentation",
+	Args:   cobra.ExactArgs(1),
+	Hidden: true,
+	Run: func(cmd *cobra.Command, args []string) {
+		if err := os.MkdirAll(args[0], 0755); err != nil {
+			logrus.Fatal(err)
+		}
+		cmd.Root().DisableAutoGenTag = true
+		if err := doc.GenMarkdownTree(cmd.Root(), args[0]); err != nil {
+			logrus.Fatal(err)
+		}
+	},
+}
 
 func init() {
-	rootCmd.AddCommand(runCmd)
-
-	runCmd.AddCommand(run.VboxCmd)
-	runCmd.AddCommand(run.QemuCmd)
-	runCmd.AddCommand(run.HetznerCmd)
+	rootCmd.AddCommand(docsCmd)
 }

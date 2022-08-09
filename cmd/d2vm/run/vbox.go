@@ -20,9 +20,10 @@ import (
 
 var (
 	VboxCmd = &cobra.Command{
-		Use:  "vbox [options] image-path",
-		Args: cobra.ExactArgs(1),
-		Run:  Vbox,
+		Use:   "vbox [options] image-path",
+		Short: "Run the virtual machine image with Virtualbox",
+		Args:  cobra.ExactArgs(1),
+		Run:   Vbox,
 	}
 
 	vboxmanageFlag string
