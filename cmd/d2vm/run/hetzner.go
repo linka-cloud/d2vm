@@ -22,6 +22,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -194,7 +195,13 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 			logrus.Infof("writing image to %s", vmBlockPath)
 			done := make(chan struct{})
 			defer close(done)
-			pr := newProgressReader(sparsecat.NewEncoder(src))
+			var r io.Reader
+			if runtime.GOOS == "linux" {
+				r = sparsecat.NewEncoder(src)
+			} else {
+				r = src
+			}
+			pr := newProgressReader(r)
 			wses.Stdin = pr
 			go func() {
 				tk := time.NewTicker(time.Second)
@@ -203,7 +210,7 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 					select {
 					case <-tk.C:
 						b := pr.Progress()
-						logrus.Infof("%s / %d%% transfered ( %s/s)", humanize.Bytes(uint64(b)), int(float64(b)/float64(i.VirtualSize)*100), humanize.Bytes(uint64(b-last)))
+						logrus.Infof("%s / %d%% transfered (%s/s)", humanize.Bytes(uint64(b)), int(float64(b)/float64(i.VirtualSize)*100), humanize.Bytes(uint64(b-last)))
 						last = b
 					case <-ctx.Done():
 						logrus.Warnf("context cancelled")
@@ -214,7 +221,13 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 					}
 				}
 			}()
-			if b, err := wses.CombinedOutput(fmt.Sprintf("%s -r -disable-sparse-target -of %s", sparsecatPath, vmBlockPath)); err != nil {
+			var cmd string
+			if runtime.GOOS == "linux" {
+				cmd = fmt.Sprintf("%s -r -disable-sparse-target -of %s", sparsecatPath, vmBlockPath)
+			} else {
+				cmd = fmt.Sprintf("dd of=%s", vmBlockPath)
+			}
+			if b, err := wses.CombinedOutput(cmd); err != nil {
 				return fmt.Errorf("%v: %s", err, string(b))
 			}
 			return nil
