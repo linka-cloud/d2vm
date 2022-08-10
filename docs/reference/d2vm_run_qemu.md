@@ -9,7 +9,7 @@ d2vm run qemu [options] [image-path] [flags]
 ### Options
 
 ```
-      --accel string            Choose acceleration mode. Use 'tcg' to disable it. (default "kvm:tcg")
+      --accel string            Choose acceleration mode. Use 'tcg' to disable it. (default "hvf:tcg")
       --arch string             Type of architecture to use, e.g. x86_64, aarch64, s390x (default "x86_64")
       --cpus uint               Number of CPUs (default 1)
       --data string             String of metadata to pass to VM; error to specify both -data and -data-file
