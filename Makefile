@@ -65,6 +65,8 @@ docker-run:
 tests:
 	@go generate ./...
 	@go list ./...| xargs go test -exec sudo -count=1 -timeout 20m -v
+
+docs-up-to-date:
 	@$(MAKE) docs
 	@git diff --quiet docs || (echo "Please regenerate the documentation with 'make docs'"; exit 1)
 
