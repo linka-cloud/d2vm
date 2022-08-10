@@ -45,6 +45,35 @@ jobs:
     - name: Run tests
       run: make tests
 
+  docs-up-to-date:
+    name: Docs up to date
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        # fetching all tags is required for the Makefile to compute the right version
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+
+    - name: Share cache with other actions
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/go/pkg/mod
+          /tmp/.buildx-cache
+        key: ${{ runner.os }}-tests-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-tests-
+
+    - name: Check if docs are up to date
+      run: make docs-up-to-date
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -155,6 +184,7 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags/v')
     needs:
     - tests
+    - docs-up-to-date
     - build
 
     steps:
@@ -202,6 +232,7 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags/v')
     needs:
     - tests
+    - docs-up-to-date
     - build-image
 
     steps:
