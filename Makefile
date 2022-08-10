@@ -68,7 +68,7 @@ tests:
 
 docs-up-to-date:
 	@$(MAKE) docs
-	@git diff --quiet docs || (echo "Please regenerate the documentation with 'make docs'"; exit 1)
+	@git diff --quiet docs || (git --no-pager diff; echo "Please regenerate the documentation with 'make docs'"; exit 1)
 
 check-fmt:
 	@[ "$(gofmt -l $(find . -name '*.go') 2>&1)" = "" ]
