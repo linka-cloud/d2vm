@@ -293,7 +293,7 @@ func (b *builder) setupRootFS(ctx context.Context) error {
 		return err
 	}
 	// TODO(adphi): is it the righ fix ?
-	if err := os.RemoveAll("/ur/sbin/policy-rc.d"); err != nil {
+	if err := os.RemoveAll("/usr/sbin/policy-rc.d"); err != nil {
 		return err
 	}
 	if err := os.RemoveAll(b.chPath("/.dockerenv")); err != nil {
