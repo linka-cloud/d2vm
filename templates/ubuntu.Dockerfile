@@ -26,13 +26,14 @@ network:\n\
   ethernets:\n\
     eth0:\n\
       dhcp4: true\n\
+      dhcp-identifier: mac\n\
       nameservers:\n\
         addresses:\n\
         - 8.8.8.8\n\
         - 8.8.4.4\n\
 ' > /etc/netplan/00-netcfg.yaml
 {{ else if eq .NetworkManager "ifupdown"}}
-RUN apt install -y ifupdown-ng
+RUN if [ -z "$(apt-cache madison ifupdown-ng 2> /dev/nul)" ]; then apt install -y ifupdown; else apt install -y ifupdown-ng; fi
 RUN mkdir -p /etc/network && printf '\
 auto eth0\n\
 allow-hotplug eth0\n\
