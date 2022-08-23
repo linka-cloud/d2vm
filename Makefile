@@ -42,7 +42,7 @@ DOCKER_IMAGE := linkacloud/d2vm
 docker: docker-build docker-push
 
 docker-push:
-	@docker image push $(DOCKER_IMAGE)
+	@docker image push $(DOCKER_IMAGE):$(VERSION)
 ifneq ($(TAG),)
 	@docker image push $(DOCKER_IMAGE):latest
 endif
