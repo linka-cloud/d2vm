@@ -16,6 +16,7 @@ d2vm convert [docker image] [flags]
   -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
   -p, --password string            The Root user password (default "root")
       --pull                       Always pull docker image
+      --raw                        Just convert the container to virtual machine image without installing anything more
   -s, --size string                The output image size (default "10G")
 ```
 

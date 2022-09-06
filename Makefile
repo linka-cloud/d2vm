@@ -28,7 +28,7 @@ GORELEASER_URL := https://github.com/goreleaser/goreleaser/releases/download/$(G
 BIN := $(PWD)/bin
 export PATH := $(BIN):$(PATH)
 
-CLI_REFERENCE_PATH := docs/reference
+CLI_REFERENCE_PATH := docs/content/reference
 
 bin:
 	@mkdir -p $(BIN)
@@ -67,7 +67,7 @@ tests:
 	@go list ./...| xargs go test -exec sudo -count=1 -timeout 20m -v
 
 docs-up-to-date:
-	@$(MAKE) docs
+	@$(MAKE) cli-docs
 	@git diff --quiet -- docs ':(exclude)docs/reference/d2vm_run_qemu.md' || (git --no-pager diff -- docs ':(exclude)docs/reference/d2vm_run_qemu.md'; echo "Please regenerate the documentation with 'make docs'"; exit 1)
 
 check-fmt:
@@ -108,6 +108,6 @@ examples: build-dev
 	@echo "Building examples/full/Dockerfile"
 	@./d2vm build -o examples/build/full.qcow2 --build-arg=USER=adphi --build-arg=PASSWORD=adphi examples/full
 
-docs: .build
+cli-docs: .build
 	@rm -rf $(CLI_REFERENCE_PATH)
 	@./d2vm docs $(CLI_REFERENCE_PATH)
