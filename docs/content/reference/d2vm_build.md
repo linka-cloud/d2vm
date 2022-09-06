@@ -17,6 +17,7 @@ d2vm build [context directory] [flags]
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown
   -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
   -p, --password string            Root user password (default "root")
+      --raw                        Just convert the container to virtual machine image without installing anything more
   -s, --size string                The output image size (default "10G")
 ```
 
