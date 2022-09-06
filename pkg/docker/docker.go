@@ -62,6 +62,19 @@ func Build(ctx context.Context, tag, dockerfile, dir string, buildArgs ...string
 	return Cmd(ctx, args...)
 }
 
+func Tag(ctx context.Context, img string, tags ...string) error {
+	if len(tags) == 0 {
+		return fmt.Errorf("no tags specified")
+	}
+	args := []string{"image", "tag"}
+	for _, tag := range tags {
+		if err := Cmd(ctx, append(args, img, tag)...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func Remove(ctx context.Context, tag string) error {
 	return Cmd(ctx, "image", "rm", tag)
 }
@@ -97,10 +110,16 @@ func RunAndRemove(ctx context.Context, args ...string) error {
 	return Cmd(ctx, append([]string{"run", "--rm"}, args...)...)
 }
 
-func RunD2VM(ctx context.Context, image, version, cmd string, args ...string) error {
+func RunD2VM(ctx context.Context, image, version, in, out, cmd string, args ...string) error {
 	pwd, err := os.Getwd()
 	if err != nil {
 		return err
+	}
+	if in == "" {
+		in = pwd
+	}
+	if out == "" {
+		out = pwd
 	}
 	if image == "" {
 		image = "linkacloud/d2vm"
@@ -113,7 +132,9 @@ func RunD2VM(ctx context.Context, image, version, cmd string, args ...string) er
 		"-v",
 		fmt.Sprintf("%s:/var/run/docker.sock", dockerSocket()),
 		"-v",
-		fmt.Sprintf("%s:/d2vm", pwd),
+		fmt.Sprintf("%s:/in", in),
+		"-v",
+		fmt.Sprintf("%s:/out", out),
 		"-w",
 		"/d2vm",
 		fmt.Sprintf("%s:%s", image, version),

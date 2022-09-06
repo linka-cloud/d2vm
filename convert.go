@@ -28,7 +28,11 @@ import (
 	"go.linka.cloud/d2vm/pkg/docker"
 )
 
-func Convert(ctx context.Context, img string, size int64, password string, output string, cmdLineExtra string, networkManager NetworkManager) error {
+func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
+	o := &convertOptions{}
+	for _, opt := range opts {
+		opt(o)
+	}
 	imgUUID := uuid.New().String()
 	tmpPath := filepath.Join(os.TempDir(), "d2vm", imgUUID)
 	if err := os.MkdirAll(tmpPath, os.ModePerm); err != nil {
@@ -41,33 +45,41 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 	if err != nil {
 		return err
 	}
-	d, err := NewDockerfile(r, img, password, networkManager)
-	if err != nil {
-		return err
+	if !o.raw {
+		d, err := NewDockerfile(r, img, o.password, o.networkManager)
+		if err != nil {
+			return err
+		}
+		logrus.Infof("docker image based on %s", d.Release.Name)
+		p := filepath.Join(tmpPath, docker.FormatImgName(img))
+		dir := filepath.Dir(p)
+		f, err := os.Create(p)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		if err := d.Render(f); err != nil {
+			return err
+		}
+		logrus.Infof("building kernel enabled image")
+		if err := docker.Build(ctx, imgUUID, p, dir); err != nil {
+			return err
+		}
+		defer docker.Remove(ctx, imgUUID)
+	} else {
+		// for raw images, we just tag the image with the uuid
+		if err := docker.Tag(ctx, img, imgUUID); err != nil {
+			return err
+		}
+		defer docker.Remove(ctx, imgUUID)
 	}
-	logrus.Infof("docker image based on %s", d.Release.Name)
-	p := filepath.Join(tmpPath, docker.FormatImgName(img))
-	dir := filepath.Dir(p)
-	f, err := os.Create(p)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	if err := d.Render(f); err != nil {
-		return err
-	}
-	logrus.Infof("building kernel enabled image")
-	if err := docker.Build(ctx, imgUUID, p, dir); err != nil {
-		return err
-	}
-	defer docker.Remove(ctx, imgUUID)
 
 	logrus.Infof("creating vm image")
-	format := strings.TrimPrefix(filepath.Ext(output), ".")
+	format := strings.TrimPrefix(filepath.Ext(o.output), ".")
 	if format == "" {
 		format = "raw"
 	}
-	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", size, r, format, cmdLineExtra)
+	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra)
 	if err != nil {
 		return err
 	}
@@ -75,10 +87,10 @@ func Convert(ctx context.Context, img string, size int64, password string, outpu
 	if err := b.Build(ctx); err != nil {
 		return err
 	}
-	if err := os.RemoveAll(output); err != nil {
+	if err := os.RemoveAll(o.output); err != nil {
 		return err
 	}
-	if err := MoveFile(filepath.Join(tmpPath, "disk0."+format), output); err != nil {
+	if err := MoveFile(filepath.Join(tmpPath, "disk0."+format), o.output); err != nil {
 		return err
 	}
 	return nil

@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -29,6 +30,7 @@ import (
 )
 
 var (
+	raw          bool
 	pull         = false
 	cmdLineExtra = ""
 
@@ -39,7 +41,19 @@ var (
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if runtime.GOOS != "linux" {
-				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, cmd.Name(), os.Args[2:]...)
+				abs, err := filepath.Abs(output)
+				if err != nil {
+					return err
+				}
+				out := filepath.Dir(abs)
+				dargs := os.Args[2:]
+				for i, v := range dargs {
+					if v == output {
+						dargs[i] = filepath.Join("/out", filepath.Base(output))
+						break
+					}
+				}
+				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, out, out, cmd.Name(), dargs...)
 			}
 			img := args[0]
 			tag := "latest"
@@ -49,11 +63,6 @@ var (
 			size, err := parseSize(size)
 			if err != nil {
 				return err
-			}
-			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
-				if !force {
-					return fmt.Errorf("%s already exists", output)
-				}
 			}
 			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
 				if !force {
@@ -77,7 +86,16 @@ var (
 					return err
 				}
 			}
-			return d2vm.Convert(cmd.Context(), img, size, password, output, cmdLineExtra, d2vm.NetworkManager(networkManager))
+			return d2vm.Convert(
+				cmd.Context(),
+				img,
+				d2vm.WithSize(size),
+				d2vm.WithPassword(password),
+				d2vm.WithOutput(output),
+				d2vm.WithCmdLineExtra(cmdLineExtra),
+				d2vm.WithNetworkManager(d2vm.NetworkManager(networkManager)),
+				d2vm.WithRaw(raw),
+			)
 		},
 	}
 )
@@ -98,5 +116,6 @@ func init() {
 	convertCmd.Flags().BoolVarP(&force, "force", "f", false, "Override output qcow2 image")
 	convertCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
 	convertCmd.Flags().StringVar(&networkManager, "network-manager", "", "Network manager to use for the image: none, netplan, ifupdown")
+	convertCmd.Flags().BoolVar(&raw, "raw", false, "Just convert the container to virtual machine image without installing anything more")
 	rootCmd.AddCommand(convertCmd)
 }
