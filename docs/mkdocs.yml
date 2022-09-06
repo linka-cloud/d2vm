@@ -9,6 +9,24 @@ theme:
   language: en
 repo_url: https://github.com/linka-cloud/d2vm
 copyright: Copyright &copy; 2022 Linka Cloud
+nav:
+- Getting Started: index.md
+- Complete Example: full-example.md
+- Command Line:
+    - d2vm: reference/d2vm.md
+    - build: reference/d2vm_build.md
+    - convert: reference/d2vm_convert.md
+    - run:
+        - hetzner: reference/d2vm_run_hetzner.md
+        - qemu: reference/d2vm_run_qemu.md
+        - virtualbox: reference/d2vm_run_vbox.md
+    - completion:
+        - bash: reference/d2vm_completion_bash.md
+        - fish: reference/d2vm_completion_fish.md
+        - powershell: reference/d2vm_completion_powershell.md
+        - zsh: reference/d2vm_completion_zsh.md
+    - version: reference/d2vm_version.md
+
 extra:
   homepage: https://github.com/linka-cloud/d2vm
   social:
