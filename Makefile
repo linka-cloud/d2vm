@@ -68,7 +68,7 @@ tests:
 
 docs-up-to-date:
 	@$(MAKE) cli-docs
-	@git diff --quiet -- docs ':(exclude)docs/reference/d2vm_run_qemu.md' || (git --no-pager diff -- docs ':(exclude)docs/reference/d2vm_run_qemu.md'; echo "Please regenerate the documentation with 'make docs'"; exit 1)
+	@git diff --quiet -- docs ':(exclude)docs/content/reference/d2vm_run_qemu.md' || (git --no-pager diff -- docs ':(exclude)docs/content/reference/d2vm_run_qemu.md'; echo "Please regenerate the documentation with 'make docs'"; exit 1)
 
 check-fmt:
 	@[ "$(gofmt -l $(find . -name '*.go') 2>&1)" = "" ]
