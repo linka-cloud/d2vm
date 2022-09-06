@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -40,7 +41,41 @@ var (
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// TODO(adphi): resolve context path
 			if runtime.GOOS != "linux" {
-				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, cmd.Name(), os.Args[2:]...)
+				ctxAbsPath, err := filepath.Abs(args[0])
+				if err != nil {
+					return err
+				}
+				dockerFileAbsPath, err := filepath.Abs(file)
+				if err != nil {
+					return err
+				}
+				if !strings.HasPrefix(dockerFileAbsPath, ctxAbsPath) {
+					return fmt.Errorf("Dockerfile must be in the context directory path")
+				}
+				outputPath, err := filepath.Abs(output)
+				if err != nil {
+					return err
+				}
+				var (
+					in  = ctxAbsPath
+					out = filepath.Dir(outputPath)
+				)
+				dargs := os.Args[2:]
+				for i, v := range dargs {
+					switch v {
+					case file:
+						rel, err := filepath.Rel(in, file)
+						if err != nil {
+							return fmt.Errorf("failed to construct Dockerfile container paths: %w", err)
+						}
+						dargs[i] = filepath.Join("/in", rel)
+					case output:
+						dargs[i] = filepath.Join("/out", output)
+					case args[0]:
+						dargs[i] = "/in"
+					}
+				}
+				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, in, out, cmd.Name(), os.Args[2:]...)
 			}
 			size, err := parseSize(size)
 			if err != nil {
@@ -49,11 +84,25 @@ var (
 			if file == "" {
 				file = filepath.Join(args[0], "Dockerfile")
 			}
+			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
+				if !force {
+					return fmt.Errorf("%s already exists", output)
+				}
+			}
 			logrus.Infof("building docker image from %s", file)
 			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
 				return err
 			}
-			return d2vm.Convert(cmd.Context(), tag, size, password, output, cmdLineExtra, d2vm.NetworkManager(networkManager))
+			return d2vm.Convert(
+				cmd.Context(),
+				tag,
+				d2vm.WithSize(size),
+				d2vm.WithPassword(password),
+				d2vm.WithOutput(output),
+				d2vm.WithCmdLineExtra(cmdLineExtra),
+				d2vm.WithNetworkManager(d2vm.NetworkManager(networkManager)),
+				d2vm.WithRaw(raw),
+			)
 		},
 	}
 )
@@ -70,4 +119,5 @@ func init() {
 	buildCmd.Flags().BoolVar(&force, "force", false, "Override output image")
 	buildCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
 	buildCmd.Flags().StringVar(&networkManager, "network-manager", "", "Network manager to use for the image: none, netplan, ifupdown")
+	buildCmd.Flags().BoolVar(&raw, "raw", false, "Just convert the container to virtual machine image without installing anything more")
 }
