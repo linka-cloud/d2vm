@@ -2,20 +2,23 @@ package run
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/containerd/console"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+
+	exec2 "go.linka.cloud/d2vm/pkg/exec"
 )
 
 var (
@@ -27,7 +30,7 @@ var (
 	}
 
 	vboxmanageFlag string
-	vmName         string
+	name           string
 	networks       VBNetworks
 )
 
@@ -38,7 +41,7 @@ func init() {
 
 	// vbox options
 	flags.StringVar(&vboxmanageFlag, "vboxmanage", "VBoxManage", "VBoxManage binary to use")
-	flags.StringVar(&vmName, "name", "", "Name of the Virtualbox VM")
+	flags.StringVar(&name, "name", "d2vm", "Name of the Virtualbox VM")
 
 	// Paths and settings for disks
 	flags.Var(&disks, "disk", "Disk config, may be repeated. [file=]path[,size=1G][,format=raw]")
@@ -57,15 +60,35 @@ func init() {
 
 func Vbox(cmd *cobra.Command, args []string) {
 	path := args[0]
+	if err := vbox(cmd.Context(), path); err != nil {
+		logrus.Fatal(err)
+	}
+}
 
+func vbox(ctx context.Context, path string) error {
+	if _, err := os.Stat(path); err != nil {
+		return err
+	}
 	vboxmanage, err := exec.LookPath(vboxmanageFlag)
 	if err != nil {
-		log.Fatalf("Cannot find management binary %s: %v", vboxmanageFlag, err)
+		return fmt.Errorf("Cannot find management binary %s: %v", vboxmanageFlag, err)
 	}
-
-	name := vmName
-	if name == "" {
-		name = strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	i, err := ImgInfo(ctx, path)
+	if err != nil {
+		return fmt.Errorf("failed to get image info: %v", err)
+	}
+	if i.Format != "vdi" {
+		logrus.Warnf("image format is %s, expected vdi", i.Format)
+		vdi := filepath.Join(os.TempDir(), "d2vm", "run", filepath.Base(path)+".vdi")
+		if err := os.MkdirAll(filepath.Dir(vdi), 0755); err != nil {
+			return err
+		}
+		defer os.RemoveAll(vdi)
+		logrus.Infof("converting image to raw: %s", vdi)
+		if err := exec2.Run(ctx, "qemu-img", "convert", "-O", "vdi", path, vdi); err != nil {
+			return err
+		}
+		path = vdi
 	}
 
 	// remove machine in case it already exists
@@ -73,43 +96,43 @@ func Vbox(cmd *cobra.Command, args []string) {
 
 	_, out, err := manage(vboxmanage, "createvm", "--name", name, "--register")
 	if err != nil {
-		log.Fatalf("createvm error: %v\n%s", err, out)
+		return fmt.Errorf("createvm error: %v\n%s", err, out)
 	}
 
 	_, out, err = manage(vboxmanage, "modifyvm", name, "--acpi", "on")
 	if err != nil {
-		log.Fatalf("modifyvm --acpi error: %v\n%s", err, out)
+		return fmt.Errorf("modifyvm --acpi error: %v\n%s", err, out)
 	}
 
 	_, out, err = manage(vboxmanage, "modifyvm", name, "--memory", fmt.Sprintf("%d", mem))
 	if err != nil {
-		log.Fatalf("modifyvm --memory error: %v\n%s", err, out)
+		return fmt.Errorf("modifyvm --memory error: %v\n%s", err, out)
 	}
 
 	_, out, err = manage(vboxmanage, "modifyvm", name, "--cpus", fmt.Sprintf("%d", cpus))
 	if err != nil {
-		log.Fatalf("modifyvm --cpus error: %v\n%s", err, out)
+		return fmt.Errorf("modifyvm --cpus error: %v\n%s", err, out)
 	}
 
 	_, out, err = manage(vboxmanage, "modifyvm", name, "--firmware", "bios")
 	if err != nil {
-		log.Fatalf("modifyvm --firmware error: %v\n%s", err, out)
+		return fmt.Errorf("modifyvm --firmware error: %v\n%s", err, out)
 	}
 
 	// set up serial console
 	_, out, err = manage(vboxmanage, "modifyvm", name, "--uart1", "0x3F8", "4")
 	if err != nil {
-		log.Fatalf("modifyvm --uart error: %v\n%s", err, out)
+		return fmt.Errorf("modifyvm --uart error: %v\n%s", err, out)
 	}
 
 	consolePath := filepath.Join(os.TempDir(), "d2vm-vb", name, "console")
 	if err := os.MkdirAll(filepath.Dir(consolePath), os.ModePerm); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("mkir %s: %v", consolePath, err)
 	}
 	if runtime.GOOS != "windows" {
 		consolePath, err = filepath.Abs(consolePath)
 		if err != nil {
-			log.Fatalf("Bad path: %v", err)
+			return fmt.Errorf("Bad path: %v", err)
 		}
 	} else {
 		// TODO use a named pipe on Windows
@@ -117,27 +140,27 @@ func Vbox(cmd *cobra.Command, args []string) {
 
 	_, out, err = manage(vboxmanage, "modifyvm", name, "--uartmode1", "client", consolePath)
 	if err != nil {
-		log.Fatalf("modifyvm --uartmode error: %v\n%s", err, out)
+		return fmt.Errorf("modifyvm --uartmode error: %v\n%s", err, out)
 	}
 
 	_, out, err = manage(vboxmanage, "storagectl", name, "--name", "IDE Controller", "--add", "ide")
 	if err != nil {
-		log.Fatalf("storagectl error: %v\n%s", err, out)
+		return fmt.Errorf("storagectl error: %v\n%s", err, out)
 	}
 
 	_, out, err = manage(vboxmanage, "storageattach", name, "--storagectl", "IDE Controller", "--port", "1", "--device", "0", "--type", "hdd", "--medium", path)
 	if err != nil {
-		log.Fatalf("storageattach error: %v\n%s", err, out)
+		return fmt.Errorf("storageattach error: %v\n%s", err, out)
 	}
 	_, out, err = manage(vboxmanage, "modifyvm", name, "--boot1", "disk")
 	if err != nil {
-		log.Fatalf("modifyvm --boot error: %v\n%s", err, out)
+		return fmt.Errorf("modifyvm --boot error: %v\n%s", err, out)
 	}
 
 	if len(disks) > 0 {
 		_, out, err = manage(vboxmanage, "storagectl", name, "--name", "SATA", "--add", "sata")
 		if err != nil {
-			log.Fatalf("storagectl error: %v\n%s", err, out)
+			return fmt.Errorf("storagectl error: %v\n%s", err, out)
 		}
 	}
 
@@ -147,20 +170,20 @@ func Vbox(cmd *cobra.Command, args []string) {
 			d.Format = "raw"
 		}
 		if d.Format != "raw" && d.Path == "" {
-			log.Fatal("vbox currently can only create raw disks")
+			return fmt.Errorf("vbox currently can only create raw disks")
 		}
 		if d.Path == "" && d.Size == 0 {
-			log.Fatal("please specify an existing disk file or a size")
+			return fmt.Errorf("please specify an existing disk file or a size")
 		}
 		if d.Path == "" {
 			d.Path = "disk" + id + ".img"
 			if err := os.Truncate(d.Path, int64(d.Size)*int64(1048576)); err != nil {
-				log.Fatalf("Cannot create disk: %v", err)
+				return fmt.Errorf("Cannot create disk: %v", err)
 			}
 		}
 		_, out, err = manage(vboxmanage, "storageattach", name, "--storagectl", "SATA", "--port", "0", "--device", id, "--type", "hdd", "--medium", d.Path)
 		if err != nil {
-			log.Fatalf("storageattach error: %v\n%s", err, out)
+			return fmt.Errorf("storageattach error: %v\n%s", err, out)
 		}
 	}
 
@@ -168,28 +191,28 @@ func Vbox(cmd *cobra.Command, args []string) {
 		nic := i + 1
 		_, out, err = manage(vboxmanage, "modifyvm", name, fmt.Sprintf("--nictype%d", nic), "virtio")
 		if err != nil {
-			log.Fatalf("modifyvm --nictype error: %v\n%s", err, out)
+			return fmt.Errorf("modifyvm --nictype error: %v\n%s", err, out)
 		}
 
 		_, out, err = manage(vboxmanage, "modifyvm", name, fmt.Sprintf("--nic%d", nic), d.Type)
 		if err != nil {
-			log.Fatalf("modifyvm --nic error: %v\n%s", err, out)
+			return fmt.Errorf("modifyvm --nic error: %v\n%s", err, out)
 		}
 		if d.Type == "hostonly" {
 			_, out, err = manage(vboxmanage, "modifyvm", name, fmt.Sprintf("--hostonlyadapter%d", nic), d.Adapter)
 			if err != nil {
-				log.Fatalf("modifyvm --hostonlyadapter error: %v\n%s", err, out)
+				return fmt.Errorf("modifyvm --hostonlyadapter error: %v\n%s", err, out)
 			}
 		} else if d.Type == "bridged" {
 			_, out, err = manage(vboxmanage, "modifyvm", name, fmt.Sprintf("--bridgeadapter%d", nic), d.Adapter)
 			if err != nil {
-				log.Fatalf("modifyvm --bridgeadapter error: %v\n%s", err, out)
+				return fmt.Errorf("modifyvm --bridgeadapter error: %v\n%s", err, out)
 			}
 		}
 
 		_, out, err = manage(vboxmanage, "modifyvm", name, fmt.Sprintf("--cableconnected%d", nic), "on")
 		if err != nil {
-			log.Fatalf("modifyvm --cableconnected error: %v\n%s", err, out)
+			return fmt.Errorf("modifyvm --cableconnected error: %v\n%s", err, out)
 		}
 	}
 
@@ -197,8 +220,9 @@ func Vbox(cmd *cobra.Command, args []string) {
 	_ = os.Remove(consolePath)
 	ln, err := net.Listen("unix", consolePath)
 	if err != nil {
-		log.Fatalf("Cannot listen on console socket %s: %v", consolePath, err)
+		return fmt.Errorf("Cannot listen on console socket %s: %v", consolePath, err)
 	}
+	defer ln.Close()
 
 	var vmType string
 	if enableGUI {
@@ -210,57 +234,49 @@ func Vbox(cmd *cobra.Command, args []string) {
 	term := console.Current()
 	ws, err := term.Size()
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("get term size: %v", err)
 	}
 	if err := term.Resize(ws); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("resize term: %v", err)
 	}
 	if err := term.SetRaw(); err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("set raw term: %v", err)
 	}
-	defer term.Close()
+	defer func() {
+		if err := term.Reset(); err != nil {
+			log.Errorf("failed to reset term: %v", err)
+		}
+		if err := term.Close(); err != nil {
+			log.Errorf("failed to close term: %v", err)
+		}
+	}()
 
 	_, out, err = manage(vboxmanage, "startvm", name, "--type", vmType)
 	if err != nil {
-		log.Fatalf("startvm error: %v\n%s", err, out)
+		return fmt.Errorf("startvm error: %v\n%s", err, out)
 	}
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		<-c
-		cleanup(vboxmanage, name)
-		os.Exit(1)
-	}()
+	defer cleanup(vboxmanage, name)
 
 	socket, err := ln.Accept()
 	if err != nil {
-		log.Fatalf("Accept error: %v", err)
+		return fmt.Errorf("Accept error: %v", err)
 	}
-
+	defer socket.Close()
+	errs := make(chan error, 2)
 	go func() {
-		if _, err := io.Copy(socket, term); err != nil {
-			cleanup(vboxmanage, name)
-			log.Fatalf("Copy error: %v", err)
-		}
-		cleanup(vboxmanage, name)
-		os.Exit(0)
+		_, err := io.Copy(socket, term)
+		errs <- err
 	}()
 	go func() {
-		if _, err := io.Copy(term, socket); err != nil {
-			cleanup(vboxmanage, name)
-			log.Fatalf("Copy error: %v", err)
-		}
-		cleanup(vboxmanage, name)
-		os.Exit(0)
+		_, err := io.Copy(term, socket)
+		errs <- err
 	}()
-	// wait forever
-	select {}
+	return <-errs
 }
 
 func cleanup(vboxmanage string, name string) {
 	if _, _, err := manage(vboxmanage, "controlvm", name, "poweroff"); err != nil {
-		return
+		log.Errorf("controlvm poweroff error: %v", err)
 	}
 	_, out, err := manage(vboxmanage, "storageattach", name, "--storagectl", "IDE Controller", "--port", "1", "--device", "0", "--type", "hdd", "--medium", "emptydrive")
 	if err != nil {
@@ -279,13 +295,13 @@ func cleanup(vboxmanage string, name string) {
 }
 
 func manage(vboxmanage string, args ...string) (string, string, error) {
+	log.Debugf("$ %s %s", vboxmanage, strings.Join(args, " "))
 	cmd := exec.Command(vboxmanage, args...)
-	log.Debugf("[VBOX]: %s %s", vboxmanage, strings.Join(args, " "))
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	cmd.Stdout = io.MultiWriter(&stdout, logrus.StandardLogger().WriterLevel(logrus.DebugLevel))
+	cmd.Stderr = io.MultiWriter(&stderr, logrus.StandardLogger().WriterLevel(logrus.DebugLevel))
 	err := cmd.Run()
 	return stdout.String(), stderr.String(), err
 }
