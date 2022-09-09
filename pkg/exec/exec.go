@@ -18,9 +18,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -31,17 +32,18 @@ var (
 
 func SetDebug(debug bool) {
 	if debug {
-		Run = RunStdout
+		Run = RunDebug
+		logrus.SetLevel(logrus.DebugLevel)
 	} else {
 		Run = RunNoOut
 	}
 }
 
-func RunStdout(ctx context.Context, c string, args ...string) error {
-	fmt.Printf("\n$ %s %s\n", c, strings.Join(args, " "))
+func RunDebug(ctx context.Context, c string, args ...string) error {
+	logrus.Debugf("$ %s %s", c, strings.Join(args, " "))
 	cmd := exec.CommandContext(ctx, c, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = logrus.StandardLogger().WriterLevel(logrus.DebugLevel)
+	cmd.Stderr = logrus.StandardLogger().WriterLevel(logrus.DebugLevel)
 	return cmd.Run()
 }
 

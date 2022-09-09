@@ -31,7 +31,7 @@ import (
 
 var (
 	file           = "Dockerfile"
-	tag            = uuid.New().String()
+	tag            = "d2vm-"+uuid.New().String()
 	networkManager string
 	buildArgs      []string
 	buildCmd       = &cobra.Command{

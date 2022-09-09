@@ -50,7 +50,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 		if err != nil {
 			return err
 		}
-		logrus.Infof("docker image based on %s", d.Release.Name)
+		logrus.Infof("docker image based on %s %s", d.Release.Name, d.Release.Version)
 		p := filepath.Join(tmpPath, docker.FormatImgName(img))
 		dir := filepath.Dir(p)
 		f, err := os.Create(p)

@@ -15,11 +15,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
+	"time"
 
+	"github.com/fatih/color"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -28,18 +32,26 @@ import (
 )
 
 var (
-	output   = "disk0.qcow2"
-	size     = "1G"
-	password = "root"
-	force    = false
-	verbose  = false
-	format   = "qcow2"
+	output     = "disk0.qcow2"
+	size       = "1G"
+	password   = "root"
+	force      = false
+	verbose    = false
+	timeFormat = ""
+	format     = "qcow2"
 
 	rootCmd = &cobra.Command{
 		Use:          "d2vm",
 		SilenceUsage: true,
 		Version:      d2vm.Version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			switch timeFormat {
+			case "full", "f":
+			case "relative", "rel", "r":
+			case "none", "":
+			default:
+				logrus.Fatalf("invalid time format: %s. Valid format: 'relative', 'full'", timeFormat)
+			}
 			if verbose {
 				logrus.SetLevel(logrus.TraceLevel)
 			}
@@ -66,4 +78,53 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "debug", "d", false, "Enable Debug output")
 	rootCmd.PersistentFlags().MarkDeprecated("debug", "use -v instead")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable Verbose output")
+	rootCmd.PersistentFlags().StringVarP(&timeFormat, "time", "t", "none", "Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)'")
+	color.NoColor = false
+	logrus.StandardLogger().Formatter = &logfmtFormatter{start: time.Now()}
+}
+
+const (
+	red    = 31
+	yellow = 33
+	blue   = 36
+	gray   = 90
+)
+
+type logfmtFormatter struct {
+	start time.Time
+}
+
+func (f *logfmtFormatter) Format(entry *logrus.Entry) ([]byte, error) {
+	var b bytes.Buffer
+	var c *color.Color
+	switch entry.Level {
+	case logrus.DebugLevel, logrus.TraceLevel:
+		c = color.New(gray)
+	// case logrus.InfoLevel:
+	//	c = color.New(blue)
+	case logrus.WarnLevel:
+		c = color.New(yellow)
+	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
+		c = color.New(red)
+	default:
+		c = color.New(color.FgWhite)
+	}
+	msg := entry.Message
+	if len(entry.Message) > 0 && entry.Level < logrus.DebugLevel {
+		msg = strings.ToTitle(string(msg[0])) + msg[1:]
+	}
+
+	var err error
+	switch timeFormat {
+	case "full", "f":
+		_, err = c.Fprintf(&b, "[%s] %s\n", entry.Time.Format("2006-01-02 15:04:05"), entry.Message)
+	case "relative", "rel", "r":
+		_, err = c.Fprintf(&b, "[%5v] %s\n", entry.Time.Sub(f.start).Truncate(time.Second).String(), msg)
+	default:
+		_, err = c.Fprintln(&b, msg)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return b.Bytes(), nil
 }

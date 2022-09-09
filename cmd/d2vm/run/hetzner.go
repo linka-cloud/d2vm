@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -62,7 +63,7 @@ var (
 )
 
 func init() {
-	HetznerCmd.Flags().StringVarP(&hetznerToken, "token", "t", "", "Hetzner Cloud API token [$"+hetznerTokenEnv+"]")
+	HetznerCmd.Flags().StringVar(&hetznerToken, "token", "", "Hetzner Cloud API token [$"+hetznerTokenEnv+"]")
 	HetznerCmd.Flags().StringVarP(&hetznerSSHUser, "user", "u", "root", "d2vm image ssh user")
 	HetznerCmd.Flags().StringVarP(&hetznerSSHKeyPath, "ssh-key", "i", "", "d2vm image identity key")
 	HetznerCmd.Flags().BoolVar(&hetznerRemove, "rm", false, "remove server when done")
@@ -175,6 +176,7 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 		return err
 	}
 	f, err := sftpc.Create(sparsecatPath)
+	logrus.Debugf("creating sparsecat on remote host")
 	if err != nil {
 		return err
 	}
@@ -197,7 +199,9 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 			}
 			defer s.Close()
 			logrus.Infof("installing cloud-guest-utils on rescue server")
-			if b, err := s.CombinedOutput("apt update && apt install -y cloud-guest-utils"); err != nil {
+			cmd := "apt update && apt install -y cloud-guest-utils"
+			logrus.Debugf("$ %s", cmd)
+			if b, err := s.CombinedOutput(cmd); err != nil {
 				return fmt.Errorf("%v: %s", err, string(b))
 			}
 			return nil
@@ -245,8 +249,11 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 			} else {
 				cmd = fmt.Sprintf("dd of=%s", vmBlockPath)
 			}
+			logrus.Debugf("$ %s", cmd)
 			if b, err := wses.CombinedOutput(cmd); err != nil {
 				return fmt.Errorf("%v: %s", err, string(b))
+			} else {
+				logrus.Debugf(string(b))
 			}
 			return nil
 		}()
@@ -267,8 +274,12 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	}
 	defer gses.Close()
 	logrus.Infof("resizing disk partition")
-	if b, err := gses.CombinedOutput(fmt.Sprintf("growpart %s 1", vmBlockPath)); err != nil {
+	cmd := fmt.Sprintf("growpart %s 1", vmBlockPath)
+	logrus.Debugf("$ %s", cmd)
+	if b, err := gses.CombinedOutput(cmd); err != nil {
 		return fmt.Errorf("%v: %s", err, string(b))
+	} else {
+		logrus.Debugf(string(b))
 	}
 	eses, err := sc.NewSession()
 	if err != nil {
@@ -276,7 +287,9 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	}
 	defer eses.Close()
 	logrus.Infof("extending partition file system")
-	if b, err := eses.CombinedOutput(fmt.Sprintf("resize2fs %s1", vmBlockPath)); err != nil {
+	cmd = fmt.Sprintf("resize2fs %s1", vmBlockPath)
+	logrus.Debugf("$ %s", cmd)
+	if b, err := eses.CombinedOutput(cmd); err != nil {
 		return fmt.Errorf("%v: %s", err, string(b))
 	}
 	logrus.Infof("rebooting server")
@@ -314,11 +327,12 @@ wait:
 		args = append(args, "-i", hetznerSSHKeyPath)
 	}
 	args = append(args, fmt.Sprintf("%s@%s", hetznerSSHUser, sres.Server.PublicNet.IPv4.IP.String()))
-	cmd := exec.CommandContext(ctx, "ssh", args...)
-	cmd.Stdin = stdin
-	cmd.Stderr = stderr
-	cmd.Stdout = stdout
-	if err := cmd.Run(); err != nil {
+	logrus.Debugf("$ ssh %s", strings.Join(args, " "))
+	sshCmd := exec.CommandContext(ctx, "ssh", args...)
+	sshCmd.Stdin = stdin
+	sshCmd.Stderr = stderr
+	sshCmd.Stdout = stdout
+	if err := sshCmd.Run(); err != nil {
 		return err
 	}
 	return nil
