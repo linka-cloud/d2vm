@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/containerd/console"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.linka.cloud/console"
 
 	exec2 "go.linka.cloud/d2vm/pkg/exec"
 )
@@ -236,6 +236,13 @@ func vbox(ctx context.Context, path string) error {
 	if err != nil {
 		return fmt.Errorf("get term size: %v", err)
 	}
+
+	_, out, err = manage(vboxmanage, "startvm", name, "--type", vmType)
+	if err != nil {
+		return fmt.Errorf("startvm error: %v\n%s", err, out)
+	}
+	defer cleanup(vboxmanage, name)
+
 	if err := term.Resize(ws); err != nil {
 		return fmt.Errorf("resize term: %v", err)
 	}
@@ -246,16 +253,7 @@ func vbox(ctx context.Context, path string) error {
 		if err := term.Reset(); err != nil {
 			log.Errorf("failed to reset term: %v", err)
 		}
-		if err := term.Close(); err != nil {
-			log.Errorf("failed to close term: %v", err)
-		}
 	}()
-
-	_, out, err = manage(vboxmanage, "startvm", name, "--type", vmType)
-	if err != nil {
-		return fmt.Errorf("startvm error: %v\n%s", err, out)
-	}
-	defer cleanup(vboxmanage, name)
 
 	socket, err := ln.Accept()
 	if err != nil {
