@@ -31,7 +31,7 @@ import (
 
 var (
 	file           = "Dockerfile"
-	tag            = "d2vm-"+uuid.New().String()
+	tag            = "d2vm-" + uuid.New().String()
 	networkManager string
 	buildArgs      []string
 	buildCmd       = &cobra.Command{
@@ -44,6 +44,9 @@ var (
 				ctxAbsPath, err := filepath.Abs(args[0])
 				if err != nil {
 					return err
+				}
+				if file == "" {
+					file = filepath.Join(args[0], "Dockerfile")
 				}
 				dockerFileAbsPath, err := filepath.Abs(file)
 				if err != nil {
@@ -70,7 +73,7 @@ var (
 						}
 						dargs[i] = filepath.Join("/in", rel)
 					case output:
-						dargs[i] = filepath.Join("/out", output)
+						dargs[i] = filepath.Join("/out", filepath.Base(output))
 					case args[0]:
 						dargs[i] = "/in"
 					}
