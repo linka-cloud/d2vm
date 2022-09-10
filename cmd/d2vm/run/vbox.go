@@ -3,6 +3,7 @@ package run
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -243,7 +244,7 @@ func vbox(ctx context.Context, path string) error {
 	}
 	defer cleanup(vboxmanage, name)
 
-	if err := term.Resize(ws); err != nil {
+	if err := term.Resize(ws); err != nil && !errors.Is(err, console.ErrUnsupported) {
 		return fmt.Errorf("resize term: %v", err)
 	}
 	if err := term.SetRaw(); err != nil {

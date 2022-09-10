@@ -814,8 +814,8 @@ go.etcd.io/etcd v0.5.0-alpha.5.0.20200910180754-dd1b699fc489/go.mod h1:yVHk9ub3C
 go.etcd.io/etcd/api/v3 v3.5.1/go.mod h1:cbVKeC6lCfl7j/8jBhAK6aIYO9XOjdptoxU/nLQcPvs=
 go.etcd.io/etcd/client/pkg/v3 v3.5.1/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3YSwc9/Ac1g=
 go.etcd.io/etcd/client/v2 v2.305.1/go.mod h1:pMEacxZW7o8pg4CrFE7pquyCJJzZvkvdD2RibOCCCGs=
-go.linka.cloud/console v0.0.0-20220909155039-4f33e50bb6ab h1:v0ALU+2/9TNLmTXOodq5M6ZJXXpQ4jLxSHNVR4YG71Y=
-go.linka.cloud/console v0.0.0-20220909155039-4f33e50bb6ab/go.mod h1:CDIUd0pM9zEd+8b0oYJO4GPi/r/ftrZkdL4AOJKNy3w=
+go.linka.cloud/console v0.0.0-20220910100646-48f9f2b8843b h1:LccDAOuhRuyJqirU7I34UEEoYvuWWJ2jbs2Hyuc2aYU=
+go.linka.cloud/console v0.0.0-20220910100646-48f9f2b8843b/go.mod h1:P/4MMfexPBBlmMpefLne7phPoNice1vhX65ZqOfzGII=
 go.mozilla.org/pkcs7 v0.0.0-20200128120323-432b2356ecb1/go.mod h1:SNgMg+EgDFwmvSmLRTNKC5fegJjB7v23qTQ0XLGUNHk=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=

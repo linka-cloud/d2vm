@@ -15,7 +15,7 @@ require (
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.0
 	github.com/svenwiltink/sparsecat v1.0.0
-	go.linka.cloud/console v0.0.0-20220909155039-4f33e50bb6ab
+	go.linka.cloud/console v0.0.0-20220910100646-48f9f2b8843b
 	go.uber.org/multierr v1.8.0
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 )
