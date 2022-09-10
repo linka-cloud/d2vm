@@ -36,6 +36,8 @@ signs:
   stdin: '{{ .Env.GPG_PASSWORD }}'
 snapshot:
   name_template: "{{ .Env.VERSION }}"
+release:
+  prerelease: auto
 changelog:
   sort: asc
   filters:
