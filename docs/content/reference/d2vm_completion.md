@@ -17,7 +17,8 @@ See each sub-command's help for details on how to use the generated script.
 ### Options inherited from parent commands
 
 ```
-  -v, --verbose   Enable Verbose output
+  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+  -v, --verbose       Enable Verbose output
 ```
 
 ### SEE ALSO

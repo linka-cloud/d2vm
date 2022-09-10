@@ -13,14 +13,15 @@ d2vm run hetzner [options] image-path [flags]
   -n, --name string      d2vm server name (default "d2vm")
       --rm               remove server when done
   -i, --ssh-key string   d2vm image identity key
-  -t, --token string     Hetzner Cloud API token [$HETZNER_TOKEN]
+      --token string     Hetzner Cloud API token [$HETZNER_TOKEN]
   -u, --user string      d2vm image ssh user (default "root")
 ```
 
 ### Options inherited from parent commands
 
 ```
-  -v, --verbose   Enable Verbose output
+  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+  -v, --verbose       Enable Verbose output
 ```
 
 ### SEE ALSO

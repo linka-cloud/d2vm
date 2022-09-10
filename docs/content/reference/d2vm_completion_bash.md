@@ -40,7 +40,8 @@ d2vm completion bash
 ### Options inherited from parent commands
 
 ```
-  -v, --verbose   Enable Verbose output
+  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+  -v, --verbose       Enable Verbose output
 ```
 
 ### SEE ALSO

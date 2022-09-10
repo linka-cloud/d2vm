@@ -5,8 +5,9 @@
 ### Options
 
 ```
-  -h, --help      help for d2vm
-  -v, --verbose   Enable Verbose output
+  -h, --help          help for d2vm
+  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+  -v, --verbose       Enable Verbose output
 ```
 
 ### SEE ALSO

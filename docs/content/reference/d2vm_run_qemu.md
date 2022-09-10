@@ -9,7 +9,7 @@ d2vm run qemu [options] [image-path] [flags]
 ### Options
 
 ```
-      --accel string            Choose acceleration mode. Use 'tcg' to disable it. (default "kvm:tcg")
+      --accel string            Choose acceleration mode. Use 'tcg' to disable it. (default "hvf:tcg")
       --arch string             Type of architecture to use, e.g. x86_64, aarch64, s390x (default "x86_64")
       --cpus uint               Number of CPUs (default 1)
       --data string             String of metadata to pass to VM; error to specify both -data and -data-file
@@ -28,7 +28,8 @@ d2vm run qemu [options] [image-path] [flags]
 ### Options inherited from parent commands
 
 ```
-  -v, --verbose   Enable Verbose output
+  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+  -v, --verbose       Enable Verbose output
 ```
 
 ### SEE ALSO
