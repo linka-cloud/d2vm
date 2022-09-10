@@ -31,6 +31,7 @@ import (
 )
 
 func testSysconfig(t *testing.T, ctx context.Context, img, sysconf, kernel, initrd string) {
+	require.NoError(t, docker.Pull(ctx, img))
 	tmpPath := filepath.Join(os.TempDir(), "d2vm-tests", strings.NewReplacer(":", "-", ".", "-").Replace(img))
 	require.NoError(t, os.MkdirAll(tmpPath, 0755))
 	defer os.RemoveAll(tmpPath)

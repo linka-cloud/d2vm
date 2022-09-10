@@ -93,7 +93,7 @@ var (
 )
 
 func FetchDockerImageOSRelease(ctx context.Context, img string, tmpPath string) (OSRelease, error) {
-	d := filepath.Join(tmpPath, "osrelase.Dockerfile")
+	d := filepath.Join(tmpPath, "osrelease.Dockerfile")
 	f, err := os.Create(d)
 	if err != nil {
 		return OSRelease{}, err
