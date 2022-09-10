@@ -91,11 +91,11 @@ release-snapshot: bin
 	@VERSION=$(VERSION) IMAGE=$(DOCKER_IMAGE) goreleaser release --snapshot --rm-dist --skip-announce --skip-publish --parallelism 8
 
 .PHONY: build
-build: $(BIN) bin
+build: bin
 	@VERSION=$(VERSION) IMAGE=$(DOCKER_IMAGE) goreleaser build --rm-dist --parallelism 8
 
 .PHONY: release
-release: $(BIN) bin
+release: bin
 	@VERSION=$(VERSION) IMAGE=$(DOCKER_IMAGE) goreleaser release --rm-dist --parallelism 8
 
 .PHONY: examples
