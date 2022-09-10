@@ -243,12 +243,7 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 					}
 				}
 			}()
-			var cmd string
-			if runtime.GOOS == "linux" {
-				cmd = fmt.Sprintf("%s -r -disable-sparse-target -of %s", sparsecatPath, vmBlockPath)
-			} else {
-				cmd = fmt.Sprintf("dd of=%s", vmBlockPath)
-			}
+			cmd := fmt.Sprintf("%s -r -disable-sparse-target -of %s", sparsecatPath, vmBlockPath)
 			logrus.Debugf("$ %s", cmd)
 			if b, err := wses.CombinedOutput(cmd); err != nil {
 				return fmt.Errorf("%v: %s", err, string(b))
@@ -277,6 +272,19 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	cmd := fmt.Sprintf("growpart %s 1", vmBlockPath)
 	logrus.Debugf("$ %s", cmd)
 	if b, err := gses.CombinedOutput(cmd); err != nil {
+		return fmt.Errorf("%v: %s", err, string(b))
+	} else {
+		logrus.Debugf(string(b))
+	}
+	cses, err := sc.NewSession()
+	if err != nil {
+		return err
+	}
+	defer cses.Close()
+	logrus.Infof("checking disk partition")
+	cmd = fmt.Sprintf("e2fsck -yf %s1", vmBlockPath)
+	logrus.Debugf("$ %s", cmd)
+	if b, err := cses.CombinedOutput(cmd); err != nil {
 		return fmt.Errorf("%v: %s", err, string(b))
 	} else {
 		logrus.Debugf(string(b))

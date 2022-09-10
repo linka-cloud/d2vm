@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+. $HOME/demo-magic
+
+TYPE_SPEED=20
+EXEC_WAIT=1
+DEMO_PROMPT="${PURPLE}➜ ${PURPLE}\W "
+
+defer_kill_htop() {
+  sleep 8
+  pkill htop
+}
+
+resize
+
+print_prompt
+
+sleep 2
+
+pei "# Nice auto login ;)"
+
+PROMPT_TIMEOUT=1
+wait
+
+if ! $(ps aux|grep -e "sshd: adphi" | grep -v grep &> /dev/null); then
+  pei "# Is the network configured ?"
+  pei "ip a"
+  
+  pei "# But is it trully working ?"
+  pei "ping -c 5 linka.cloud"
+fi
+
+pei "# Now let's take a look at CPU and Memory usage..."
+wait
+
+defer_kill_htop &
+pei "htop"
+
+pei "# Let's see disk usage..."
+
+PROMPT_TIMEOUT=3
+pei "df -hT"
+wait
+
+pei "# Pretty small right ? ;)"
+
+PROMPT_TIMEOUT=1
+wait
+
+pei "sudo poweroff"
+

@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+dir="$PWD"
+scripts_dir="scripts"
+if [ "$(basename $PWD)" == "$scripts_dir" ]; then
+  cd ..
+fi
+
+. ./$scripts_dir/demo-magic
+
+TYPE_SPEED=20
+EXEC_WAIT=1
+DEMO_PROMPT="${CYAN}➜ ${CYAN}\W "
+clear
+
+IMAGE="./images/workstation.qcow2"
+
+
+PROMPT_TIMEOUT=1
+print_prompt
+wait
+pei "# Let's create a virtual machine from a Dockerfile"
+wait
+
+DOCKERFILE="examples/full/Dockerfile"
+
+pei "cat $DOCKERFILE"
+
+cp scripts/demo-magic examples/full
+cp scripts/inside examples/full
+cat <<EOF >> $DOCKERFILE
+COPY demo-magic /home/adphi/demo-magic
+COPY inside /home/adphi/inside
+RUN sudo chmod +x /home/adphi/inside && echo /home/adphi/inside >> /home/adphi/.zshrc && sudo apt install -y pv
+EOF
+
+
+PROMPT_TIMEOUT=5
+wait
+PROMPT_TIMEOUT=0
+
+EXEC_WAIT=2
+pei "export PASSWORD=\"Don'tThinkTh4tIReallyUseThisPassword:)\""
+pei "sudo d2vm build -s 10G -o $IMAGE --force --build-arg USER=adphi --build-arg PASSWORD=\$PASSWORD -p \$PASSWORD -v --time=relative examples/full"
+
+rm examples/full/{demo-magic,inside}
+git checkout examples/ &> /dev/null
+
+PROMPT_TIMEOUT=1
+wait
+PROMPT_TIMEOUT=2
+EXEC_WAIT=1
+pei "# Now let's run this image"
+wait
+
+EXEC_WAIT=2
+pei "sudo d2vm run qemu --cpus 4 --mem 4096 --networking default $IMAGE"
+
+# demo continues inside the vm is soon as the boot completes
+
+wait
+
+EXEC_WAIT=1
+
+pei "# Let's try to run it on a cloud provider: Hetzner..."
+
+EXEC_WAIT=2
+pei "sudo -E d2vm run hetzner --rm -v --time=relative -u adphi -i ~/.ssh/id_rsa $IMAGE"
+
+# demo continues inside the vm is soon as the boot completes
+
+pei "# Pretty cool rigth ? :)"
+wait
+
+cd $dir
