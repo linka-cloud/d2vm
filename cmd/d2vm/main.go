@@ -87,6 +87,7 @@ const (
 	red    = 31
 	yellow = 33
 	blue   = 36
+	white  = 39
 	gray   = 90
 )
 
@@ -100,14 +101,12 @@ func (f *logfmtFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	switch entry.Level {
 	case logrus.DebugLevel, logrus.TraceLevel:
 		c = color.New(gray)
-	// case logrus.InfoLevel:
-	//	c = color.New(blue)
 	case logrus.WarnLevel:
 		c = color.New(yellow)
 	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
 		c = color.New(red)
 	default:
-		c = color.New(color.FgWhite)
+		c = color.New(white)
 	}
 	msg := entry.Message
 	if len(entry.Message) > 0 && entry.Level < logrus.DebugLevel {

@@ -13,17 +13,11 @@ Many thanks to him.
 
 **Status**: *alpha*
 
-[![asciicast](https://asciinema.org/a/4WFKxaSNWTMPMeYbZWcSNm2nm.svg)](https://asciinema.org/a/4WFKxaSNWTMPMeYbZWcSNm2nm)
+[![asciicast](https://asciinema.org/a/520132.svg)](https://asciinema.org/a/520132)
 
 ## Supported Environments:
 
-**Only Linux is supported.**
-
-If you want to run it on **OSX** or **Windows** (the last one is totally untested) you can do it using Docker:
-
-```bash
-alias d2vm='docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/build -w /build linkacloud/d2vm' 
-```
+**Only building Linux Virtual Machine images is supported.**
 
 **Starting from v0.1.0, d2vm automatically run build and convert commands inside Docker when not running on linux**.
 
@@ -47,31 +41,22 @@ Obviously, **Distroless** images are not supported.
 
 ## Getting started
 
+### Install from release
+
+Download the latest release for your platform from the [release page](https://github.com/linka-cloud/d2vm/releases/latest)
+
+### Install from source
+
 Clone the git repository:
 
 ```bash
 git clone https://github.com/linka-cloud/d2vm && cd d2vm
 ```
 
-Install using the Go tool chain:
+Install using the *make*, *docker* and the Go tool chain:
 
 ```bash
-go install ./cmd/d2vm
-which d2vm
-```
-```
-# Should be install in the $GOBIN directory
-/go/bin/d2vm
-```
-
-Or use an alias to the **docker** image:
-
-```bash
-alias d2vm='docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/build -w /build linkacloud/d2vm'
-which d2vm
-```
-```
-d2vm: aliased to docker run --rm -i -t --privileged -v /var/run/docker.sock:/var/run/docker.sock -v $PWD:/build -w /build linkacloud/d2vm
+make build-dev && sudo cp d2vm /usr/local/bin/
 ```
 
 ### Converting an existing Docker Image to VM image:
@@ -86,13 +71,20 @@ Usage:
   d2vm convert [docker image] [flags]
 
 Flags:
-  -d, --debug             Enable Debug output
-  -f, --force             Override output qcow2 image
-  -h, --help              help for convert
-  -o, --output string     The output image, the extension determine the image format. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
-  -p, --password string   The Root user password (default "root")
-      --pull              Always pull docker image
-  -s, --size string       The output image size (default "10G")
+      --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+  -f, --force                      Override output qcow2 image
+  -h, --help                       help for convert
+      --network-manager string     Network manager to use for the image: none, netplan, ifupdown
+  -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
+  -p, --password string            The Root user password (default "root")
+      --pull                       Always pull docker image
+      --raw                        Just convert the container to virtual machine image without installing anything more
+  -s, --size string                The output image size (default "10G")
+
+Global Flags:
+  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+  -v, --verbose       Enable Verbose output
+
 
 ```
 
@@ -102,27 +94,27 @@ Create an image based on the **ubuntu** official image:
 sudo d2vm convert ubuntu -o ubuntu.qcow2 -p MyP4Ssw0rd
 ```
 ```
-INFO[0000] pulling image ubuntu                         
-INFO[0001] inspecting image ubuntu                      
-INFO[0002] docker image based on Ubuntu                 
-INFO[0002] building kernel enabled image                
-INFO[0038] creating root file system archive            
-INFO[0040] creating vm image                            
-INFO[0040] creating raw image                           
-INFO[0040] mounting raw image                           
-INFO[0040] creating raw image file system               
-INFO[0040] copying rootfs to raw image                  
-INFO[0041] setting up rootfs                            
-INFO[0041] installing linux kernel                      
-INFO[0042] unmounting raw image                         
-INFO[0042] writing MBR                                  
-INFO[0042] converting to qcow2
+Pulling image ubuntu
+Inspecting image ubuntu
+No network manager specified, using distribution defaults: netplan
+Docker image based on Ubuntu 22.04.1 LTS (Jammy Jellyfish)
+Building kernel enabled image
+Creating vm image
+Creating raw image
+Mounting raw image
+Creating raw image file system
+Copying rootfs to raw image
+Setting up rootfs
+Installing linux kernel
+Unmounting raw image
+Writing MBR
+Converting to qcow2
 ```
 
 You can now run your ubuntu image using the created `ubuntu.qcow2` image with **qemu**:
 
 ```bash
-./qemu.sh ununtu.qcow2
+d2vm run qemu ubuntu.qcow2
 ```
 ```
 SeaBIOS (version 1.13.0-1ubuntu1.1)
@@ -210,7 +202,7 @@ cd examples
 FROM ubuntu
 
 RUN apt update && apt install -y openssh-server && \
-    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config
 
 ```
 
@@ -231,14 +223,20 @@ Usage:
   d2vm build [context directory] [flags]
 
 Flags:
-      --build-arg stringArray   Set build-time variables
-  -d, --debug                   Enable Debug output
-  -f, --file string             Name of the Dockerfile
-      --force                   Override output image
-  -h, --help                    help for build
-  -o, --output string           The output image, the extension determine the image format. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
-  -p, --password string         Root user password (default "root")
-  -s, --size string             The output image size (default "10G")
+      --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --build-arg stringArray      Set build-time variables
+  -f, --file string                Name of the Dockerfile
+      --force                      Override output image
+  -h, --help                       help for build
+      --network-manager string     Network manager to use for the image: none, netplan, ifupdown
+  -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
+  -p, --password string            Root user password (default "root")
+      --raw                        Just convert the container to virtual machine image without installing anything more
+  -s, --size string                The output image size (default "10G")
+
+Global Flags:
+  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+  -v, --verbose       Enable Verbose output
 
 ```
 

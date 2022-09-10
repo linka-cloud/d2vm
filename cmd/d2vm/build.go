@@ -67,7 +67,7 @@ var (
 				for i, v := range dargs {
 					switch v {
 					case file:
-						rel, err := filepath.Rel(in, file)
+						rel, err := filepath.Rel(in, dockerFileAbsPath)
 						if err != nil {
 							return fmt.Errorf("failed to construct Dockerfile container paths: %w", err)
 						}
