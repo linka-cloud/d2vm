@@ -37,6 +37,9 @@ snapshot:
   name_template: "{{ .Env.VERSION }}"
 release:
   prerelease: auto
+  extra_files:
+  - glob: LICENSE
+  - glob: pgp.pub
 changelog:
   sort: asc
   filters:
