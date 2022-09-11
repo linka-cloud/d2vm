@@ -17,4 +17,4 @@ RUN dracut --no-hostonly --regenerate-all --force && \
     ln -s $(find . -name 'vmlinuz-*') vmlinuz && \
     ln -s $(find . -name 'initramfs-*.img') initrd.img
 
-RUN echo "root:{{- if .Password}}{{ .Password}}{{- else}}root{{- end}}" | chpasswd
+{{ if .Password }}RUN echo "root:{{ .Password }}" | chpasswd {{ end }}

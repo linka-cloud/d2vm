@@ -12,7 +12,7 @@ RUN apk update --no-cache && \
 RUN for s in bootmisc hostname hwclock modules networking swap sysctl urandom syslog; do rc-update add $s boot; done
 RUN for s in devfs dmesg hwdrivers mdev; do rc-update add $s sysinit; done
 
-RUN echo "root:{{- if .Password}}{{ .Password}}{{- else}}root{{- end}}" | chpasswd
+{{ if .Password }}RUN echo "root:{{ .Password }}" | chpasswd {{ end }}
 
 {{ if eq .NetworkManager "ifupdown"}}
 RUN apk add --no-cache ifupdown-ng

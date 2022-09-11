@@ -15,7 +15,7 @@ RUN apt-get update -y && \
 
 RUN systemctl preset-all
 
-RUN echo "root:{{- if .Password}}{{ .Password}}{{- else}}root{{- end}}" | chpasswd
+{{ if .Password }}RUN echo "root:{{ .Password }}" | chpasswd {{ end }}
 
 {{ if eq .NetworkManager "netplan" }}
 RUN apt install -y netplan.io
