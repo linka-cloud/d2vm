@@ -243,7 +243,12 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 					}
 				}
 			}()
-			cmd := fmt.Sprintf("%s -r -disable-sparse-target -of %s", sparsecatPath, vmBlockPath)
+			var cmd string
+			if runtime.GOOS == "linux" {
+				cmd = fmt.Sprintf("%s -r -disable-sparse-target -of %s", sparsecatPath, vmBlockPath)
+			} else {
+				cmd = fmt.Sprintf("dd of=%s", vmBlockPath)
+			}
 			logrus.Debugf("$ %s", cmd)
 			if b, err := wses.CombinedOutput(cmd); err != nil {
 				return fmt.Errorf("%v: %s", err, string(b))
