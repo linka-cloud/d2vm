@@ -105,6 +105,11 @@ func sysconfig(osRelease OSRelease) (string, error) {
 	}
 }
 
+type Builder interface {
+	Build(ctx context.Context) (err error)
+	Close() error
+}
+
 type builder struct {
 	osRelease OSRelease
 
@@ -125,7 +130,7 @@ type builder struct {
 	cmdLineExtra string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, osRelease OSRelease, format string, cmdLineExtra string) (*builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, osRelease OSRelease, format string, cmdLineExtra string) (Builder, error) {
 	if err := checkDependencies(); err != nil {
 		return nil, err
 	}
