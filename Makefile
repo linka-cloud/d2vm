@@ -106,7 +106,7 @@ completions: .build
 	@rm -rf completions
 	@mkdir -p completions
 	@for shell in bash zsh fish powershell; do \
-		d2vm completion $$shell > completions/d2vm.$$shell; \
+		./d2vm completion $$shell > completions/d2vm.$$shell; \
 	done
 
 .PHONY: examples
