@@ -41,6 +41,12 @@ Obviously, **Distroless** images are not supported.
 
 ## Getting started
 
+### Install with Homebrew
+
+```bash
+brew install linka-cloud/tap/d2vm
+```
+
 ### Install from release
 
 Download the latest release for your platform from the [release page](https://github.com/linka-cloud/d2vm/releases/latest).
