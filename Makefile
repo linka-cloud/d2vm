@@ -101,6 +101,14 @@ build: bin
 release: bin
 	@VERSION=$(VERSION) IMAGE=$(DOCKER_IMAGE) goreleaser release --rm-dist --parallelism 8
 
+.PHONY: completions
+completions: .build
+	@rm -rf completions
+	@mkdir -p completions
+	@for shell in bash zsh fish powershell; do \
+		d2vm completion $$shell > completions/d2vm.$$shell; \
+	done
+
 .PHONY: examples
 examples: build-dev
 	@mkdir -p examples/build

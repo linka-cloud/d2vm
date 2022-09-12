@@ -13,3 +13,4 @@ images
 .goreleaser.yaml
 docs/build
 docs-src
+/completions

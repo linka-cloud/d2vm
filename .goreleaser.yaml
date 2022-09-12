@@ -15,6 +15,7 @@ project_name: d2vm
 before:
   hooks:
   - go mod tidy
+  - make completions
 builds:
 - main: ./cmd/d2vm
   env:
@@ -38,9 +39,13 @@ snapshot:
 release:
   prerelease: auto
   extra_files:
-  - glob: README.md
-  - glob: LICENSE
+  - glob: LICENCE
   - glob: pgp.pub
+archives:
+- files:
+  - LICENCE
+  - README.md
+  - completions/*
 changelog:
   sort: asc
   filters:
