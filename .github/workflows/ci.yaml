@@ -43,7 +43,7 @@ jobs:
           ${{ runner.os }}-tests-
 
     - name: Run tests
-      run: make tests
+      run: git --no-pager diff --exit-code HEAD~1 HEAD **/**.go templates/ || make tests
 
   docs-up-to-date:
     name: Docs up to date
