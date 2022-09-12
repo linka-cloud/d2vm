@@ -42,10 +42,31 @@ release:
   - glob: LICENCE
   - glob: pgp.pub
 archives:
-- files:
+- name_template: '{{ .ProjectName }}_{{ .Env.VERSION }}_{{ .Os }}_{{ .Arch }}{{ with .Arm }}v{{ . }}{{ end }}{{ with .Mips }}_{{ . }}{{ end }}{{ if not (eq .Amd64 "v1") }}{{ .Amd64 }}{{ end }}'
+  files:
   - LICENCE
   - README.md
   - completions/*
+brews:
+- name: d2vm
+  tap:
+    owner: linka-cloud
+    name: homebrew-tap
+  folder: Formula
+  homepage: https://github.com/linka-cloud/d2vm
+  description: Build Virtual Machine Image from Dockerfile or Docker image
+  license: Apache License 2.0
+  test: |
+    system "#{bin}/d2vm --version"
+  dependencies:
+  - name: go
+    type: optional
+  - name: git
+  install: |-
+    bin.install "d2vm"
+    bash_completion.install "completions/d2vm.bash" => "d2vm"
+    zsh_completion.install "completions/d2vm.zsh" => "_d2vm"
+    fish_completion.install "completions/d2vm.fish"
 changelog:
   sort: asc
   filters:
