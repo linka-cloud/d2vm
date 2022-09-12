@@ -43,7 +43,15 @@ Obviously, **Distroless** images are not supported.
 
 ### Install from release
 
-Download the latest release for your platform from the [release page](https://github.com/linka-cloud/d2vm/releases/latest)
+Download the latest release for your platform from the [release page](https://github.com/linka-cloud/d2vm/releases/latest).
+
+Extract the tarball:
+
+```bash
+tar -xvzf <RELEASE-TARBALL-NAME>.tar.gz
+```
+
+Move the extracted *d2vm* binary to somewhere in your `$PATH` (`/usr/local/bin` for most users).
 
 ### Install from source
 
@@ -56,7 +64,15 @@ git clone https://github.com/linka-cloud/d2vm && cd d2vm
 Install using the *make*, *docker* and the Go tool chain:
 
 ```bash
-make build-dev && sudo cp d2vm /usr/local/bin/
+make install
+```
+
+The *d2vm* binary is installed in the `$GOBIN` directory.
+
+```bash
+which d2vm
+
+/go/bin/d2vm
 ```
 
 ### Converting an existing Docker Image to VM image:

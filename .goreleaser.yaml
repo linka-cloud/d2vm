@@ -38,6 +38,7 @@ snapshot:
 release:
   prerelease: auto
   extra_files:
+  - glob: README.md
   - glob: LICENSE
   - glob: pgp.pub
 changelog:
