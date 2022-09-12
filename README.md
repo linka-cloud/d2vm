@@ -75,6 +75,23 @@ which d2vm
 /go/bin/d2vm
 ```
 
+### Generate shell completion
+
+The *d2vm* program supports shell completion for *bash*, *zsh* and *fish*.
+
+It can be enabled by running the following command:
+
+```bash
+source <(d2vm completion $(basename $SHELL))
+```
+
+Or you can install the completion file in the shell completion directory by following the instructions:
+
+```bash
+d2vm completion $(basename $SHELL) --help
+```
+
+
 ### Converting an existing Docker Image to VM image:
 
 ```bash

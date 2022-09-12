@@ -56,6 +56,12 @@ var (
 				logrus.SetLevel(logrus.TraceLevel)
 			}
 			exec.SetDebug(verbose)
+
+			// make the zsh completion work when sourced with `source <(d2vm completion zsh)`
+			if cmd.Name() == "zsh" && cmd.Parent() != nil && cmd.Parent().Name() == "completion" {
+				zshHead := fmt.Sprintf("#compdef %[1]s\ncompdef _%[1]s %[1]s\n", cmd.Root().Name())
+				cmd.OutOrStdout().Write([]byte(zshHead))
+			}
 		},
 	}
 )
