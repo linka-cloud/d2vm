@@ -15,6 +15,7 @@ project_name: d2vm
 before:
   hooks:
   - go mod tidy
+  - go generate ./...
   - make completions
 builds:
 - main: ./cmd/d2vm

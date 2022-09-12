@@ -14,3 +14,4 @@ images
 docs/build
 docs-src
 /completions
+/cmd/d2vm/run/sparsecat-linux-amd64
