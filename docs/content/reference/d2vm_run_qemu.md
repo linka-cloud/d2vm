@@ -12,9 +12,9 @@ d2vm run qemu [options] [image-path] [flags]
       --accel string            Choose acceleration mode. Use 'tcg' to disable it. (default "hvf:tcg")
       --arch string             Type of architecture to use, e.g. x86_64, aarch64, s390x (default "x86_64")
       --cpus uint               Number of CPUs (default 1)
-      --data string             String of metadata to pass to VM; error to specify both -data and -data-file
+      --data string             String of metadata to pass to VM
       --detached                Set qemu container to run in the background
-      --device multiple-flag    Add USB host device(s). Format driver[,prop=value][,...] -- add device, like -device on the qemu command line. (default A multiple flag is a type of flag that can be repeated any number of times)
+      --device multiple-flag    Add USB host device(s). Format driver[,prop=value][,...] -- add device, like --device on the qemu command line. (default A multiple flag is a type of flag that can be repeated any number of times)
       --disk disk               Disk config, may be repeated. [file=]path[,size=1G][,format=qcow2] (default [])
       --gui                     Set qemu to use video output instead of stdio
   -h, --help                    help for qemu
