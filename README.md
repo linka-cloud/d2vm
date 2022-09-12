@@ -239,8 +239,6 @@ RUN apt update && apt install -y openssh-server && \
 
 ```
 
-When building the vm image, *d2vm* will create a root password, so there is no need to configure it now.
-
 Build the vm image:
 
 The *build* command take most of its flags and arguments from the *docker build* command.

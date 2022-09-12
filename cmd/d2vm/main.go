@@ -34,7 +34,7 @@ import (
 var (
 	output     = "disk0.qcow2"
 	size       = "1G"
-	password   = "root"
+	password   = ""
 	force      = false
 	verbose    = false
 	timeFormat = ""

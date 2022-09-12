@@ -93,7 +93,7 @@ func vbox(ctx context.Context, path string) error {
 	}
 
 	// remove machine in case it already exists
-	cleanup(vboxmanage, name)
+	cleanup(vboxmanage, name, false)
 
 	_, out, err := manage(vboxmanage, "createvm", "--name", name, "--register")
 	if err != nil {
@@ -273,22 +273,26 @@ func vbox(ctx context.Context, path string) error {
 	return <-errs
 }
 
-func cleanup(vboxmanage string, name string) {
-	if _, _, err := manage(vboxmanage, "controlvm", name, "poweroff"); err != nil {
+func cleanup(vboxmanage string, name string, logErrs ...bool) {
+	logErr := true
+	if len(logErrs) > 0 {
+		logErr = logErrs[0]
+	}
+	if _, _, err := manage(vboxmanage, "controlvm", name, "poweroff"); err != nil && logErr {
 		log.Errorf("controlvm poweroff error: %v", err)
 	}
 	_, out, err := manage(vboxmanage, "storageattach", name, "--storagectl", "IDE Controller", "--port", "1", "--device", "0", "--type", "hdd", "--medium", "emptydrive")
-	if err != nil {
+	if err != nil && logErr {
 		log.Errorf("storageattach error: %v\n%s", err, out)
 	}
 	for i := range disks {
 		id := strconv.Itoa(i)
 		_, out, err := manage(vboxmanage, "storageattach", name, "--storagectl", "SATA", "--port", "0", "--device", id, "--type", "hdd", "--medium", "emptydrive")
-		if err != nil {
+		if err != nil && logErr {
 			log.Errorf("storageattach error: %v\n%s", err, out)
 		}
 	}
-	if _, out, err = manage(vboxmanage, "unregistervm", name, "--delete"); err != nil {
+	if _, out, err = manage(vboxmanage, "unregistervm", name, "--delete"); err != nil && logErr {
 		log.Errorf("unregistervm error: %v\n%s", err, out)
 	}
 }

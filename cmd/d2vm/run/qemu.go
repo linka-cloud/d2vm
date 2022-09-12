@@ -71,7 +71,7 @@ func init() {
 
 	// Paths and settings for disks
 	flags.Var(&disks, "disk", "Disk config, may be repeated. [file=]path[,size=1G][,format=qcow2]")
-	flags.StringVar(&data, "data", "", "String of metadata to pass to VM; error to specify both -data and -data-file")
+	flags.StringVar(&data, "data", "", "String of metadata to pass to VM")
 
 	// VM configuration
 	flags.StringVar(&accel, "accel", defaultAccel, "Choose acceleration mode. Use 'tcg' to disable it.")
@@ -91,7 +91,7 @@ func init() {
 	// USB devices
 	flags.BoolVar(&usbEnabled, "usb", false, "Enable USB controller")
 
-	flags.Var(&deviceFlags, "device", "Add USB host device(s). Format driver[,prop=value][,...] -- add device, like -device on the qemu command line.")
+	flags.Var(&deviceFlags, "device", "Add USB host device(s). Format driver[,prop=value][,...] -- add device, like --device on the qemu command line.")
 
 }
 

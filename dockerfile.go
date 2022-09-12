@@ -72,9 +72,6 @@ func (d Dockerfile) Render(w io.Writer) error {
 }
 
 func NewDockerfile(release OSRelease, img, password string, networkManager NetworkManager) (Dockerfile, error) {
-	if password == "" {
-		password = "root"
-	}
 	d := Dockerfile{Release: release, Image: img, Password: password, NetworkManager: networkManager}
 	var net NetworkManager
 	switch release.ID {
