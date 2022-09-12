@@ -79,6 +79,7 @@ vet:
 build-dev: docker-build .build
 
 install: docker-build
+	@go generate ./...
 	@go install -ldflags "-s -w -X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./cmd/d2vm
 
 .build:
