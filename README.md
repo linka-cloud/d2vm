@@ -19,7 +19,10 @@ Many thanks to him.
 
 **Only building Linux Virtual Machine images is supported.**
 
-**Starting from v0.1.0, d2vm automatically run build and convert commands inside Docker when not running on linux**.
+Starting from v0.1.0, **d2vm** automatically run build and convert commands inside Docker when not running on linux
+or when running without *root* privileges.
+
+*Note: windows should be working, but is totally untested.*
 
 ## Supported VM Linux distributions:
 
@@ -37,29 +40,69 @@ Unsupported:
 The program uses the `/etc/os-release` file to discover the Linux distribution and install the Kernel,
 if the file is missing, the build cannot succeed.
 
-Obviously, **Distroless** images are not supported. 
+Obviously, **Distroless** images are not supported.
+
+## Prerequisites
+
+### osx
+- [Docker](https://docs.docker.com/get-docker/)
+- [QEMU](https://www.qemu.org/download/#macos) (optional)
+- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (optional)
+
+### Linux
+- [Docker](https://docs.docker.com/get-docker/)
+- util-linux
+- udev
+- parted
+- e2fsprogs
+- mount
+- tar
+- extlinux
+- qemu-utils
+- [QEMU](https://www.qemu.org/download/#linux) (optional)
+- [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads) (optional)
 
 ## Getting started
 
-### Install with Homebrew
+### Install
+
+#### With Docker
+
+*Note: this will only work if both the source context (and Dockerfile) and the output directory are somewhere inside
+the directory where you run the command.*
+
+```bash
+docker pull linkacloud/d2vm:latest
+alias d2vm="docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v \$PWD:/d2vm -w /d2vm linkacloud/d2vm:latest"
+```
+
+```bash
+wich d2vm
+
+d2vm: aliased to docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v $PWD:/d2vm -w /d2vm linkacloud/d2vm:latest
+```
+
+#### With Homebrew
 
 ```bash
 brew install linka-cloud/tap/d2vm
 ```
 
-### Install from release
+#### From release
 
 Download the latest release for your platform from the [release page](https://github.com/linka-cloud/d2vm/releases/latest).
 
-Extract the tarball:
+Extract the tarball, then move the extracted *d2vm* binary to somewhere in your `$PATH` (`/usr/local/bin` for most users).
 
 ```bash
-tar -xvzf <RELEASE-TARBALL-NAME>.tar.gz
+VERSION=$(git ls-remote --tags https://github.com/linka-cloud/d2vm |cut -d'/' -f 3|tail -n 1)
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$([ "$(uname -m)" = "x86_64" ] && echo "amd64" || echo "arm64")
+curl -sL "https://github.com/linka-cloud/d2vm/releases/download/${VERSION}/d2vm_${VERSION}_${OS}_${ARCH}.tar.gz" | tar -xvz d2vm
+sudo mv d2vm /usr/local/bin/
 ```
 
-Move the extracted *d2vm* binary to somewhere in your `$PATH` (`/usr/local/bin` for most users).
-
-### Install from source
+#### From source
 
 Clone the git repository:
 
