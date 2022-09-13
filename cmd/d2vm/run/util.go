@@ -25,12 +25,17 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"golang.org/x/crypto/ssh"
+
+	"go.linka.cloud/d2vm"
+	"go.linka.cloud/d2vm/pkg/docker"
+	exec2 "go.linka.cloud/d2vm/pkg/exec"
 )
 
 //go:embed sparsecat-linux-amd64
@@ -349,8 +354,36 @@ type QemuInfo struct {
 	DirtyFlag   bool   `json:"dirty-flag"`
 }
 
-func ImgInfo(ctx context.Context, path string) (*QemuInfo, error) {
-	o, err := exec.CommandContext(ctx, "qemu-img", "info", path, "--output", "json").CombinedOutput()
+func QemuImgInfo(ctx context.Context, in string) (*QemuInfo, error) {
+	var (
+		o   []byte
+		err error
+	)
+	if path, _ := exec.LookPath("qemu-img"); path == "" {
+		inAbs, err := filepath.Abs(in)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get absolute path for %q: %v", path, err)
+		}
+		inMount := filepath.Dir(inAbs)
+		in := filepath.Join("/in", filepath.Base(inAbs))
+		o, err = exec2.CommandContext(
+			ctx,
+			"docker",
+			"run",
+			"--rm",
+			"-v",
+			inMount+":/in",
+			"--entrypoint",
+			"qemu-img",
+			fmt.Sprintf("%s:%s", d2vm.Image, d2vm.Version),
+			"info",
+			in,
+			"--output",
+			"json",
+		).CombinedOutput()
+	} else {
+		o, err = exec2.CommandContext(ctx, "qemu-img", "info", path, "--output", "json").CombinedOutput()
+	}
 	if err != nil {
 		return nil, fmt.Errorf("%v: %s", err, string(o))
 	}
@@ -359,4 +392,39 @@ func ImgInfo(ctx context.Context, path string) (*QemuInfo, error) {
 		return nil, err
 	}
 	return &i, nil
+}
+
+func QemuImgConvert(ctx context.Context, format, in, out string) error {
+	if path, _ := exec.LookPath("qemu-img"); path != "" {
+		return exec2.Run(ctx, "qemu-img", "convert", "-O", format, in, out)
+	}
+	inAbs, err := filepath.Abs(in)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for %q: %v", in, err)
+	}
+	inMount := filepath.Dir(inAbs)
+	in = filepath.Join("/in", filepath.Base(inAbs))
+
+	outAbs, err := filepath.Abs(out)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for %q: %v", out, err)
+	}
+	outMount := filepath.Dir(outAbs)
+	out = filepath.Join("/out", filepath.Base(outAbs))
+
+	return docker.RunAndRemove(
+		ctx,
+		"-v",
+		fmt.Sprintf("%s:/in", inMount),
+		"-v",
+		fmt.Sprintf("%s:/out", outMount),
+		"--entrypoint",
+		"qemu-img",
+		fmt.Sprintf("%s:%s", d2vm.Image, d2vm.Version),
+		"convert",
+		"-O",
+		format,
+		in,
+		out,
+	)
 }

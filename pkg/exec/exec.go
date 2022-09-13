@@ -26,8 +26,6 @@ import (
 
 var (
 	Run = RunNoOut
-
-	CommandContext = exec.CommandContext
 )
 
 func SetDebug(debug bool) {
@@ -37,6 +35,11 @@ func SetDebug(debug bool) {
 	} else {
 		Run = RunNoOut
 	}
+}
+
+func CommandContext(ctx context.Context, c string, args ...string) *exec.Cmd {
+	logrus.Debugf("$ %s %s", c, strings.Join(args, " "))
+	return exec.CommandContext(ctx, c, args...)
 }
 
 func RunDebug(ctx context.Context, c string, args ...string) error {

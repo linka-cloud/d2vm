@@ -97,7 +97,6 @@ func Pull(ctx context.Context, tag string) error {
 }
 
 func RunInteractiveAndRemove(ctx context.Context, args ...string) error {
-	logrus.Tracef("running 'docker run --rm -i -t %s'", strings.Join(args, " "))
 	cmd := exec.CommandContext(ctx, "docker", append([]string{"run", "--rm", "-it"}, args...)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -129,6 +128,9 @@ func RunD2VM(ctx context.Context, image, version, in, out, cmd string, args ...s
 	}
 	a := []string{
 		"--privileged",
+		"-e",
+		// yes... it is kind of a dirty hack
+		fmt.Sprintf("SUDO_UID=%d", os.Getuid()),
 		"-v",
 		fmt.Sprintf("%s:/var/run/docker.sock", dockerSocket()),
 		"-v",

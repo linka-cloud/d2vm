@@ -40,7 +40,7 @@ var (
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if runtime.GOOS != "linux" {
+			if runtime.GOOS != "linux" || !isRoot() {
 				abs, err := filepath.Abs(output)
 				if err != nil {
 					return err
@@ -86,7 +86,7 @@ var (
 					return err
 				}
 			}
-			return d2vm.Convert(
+			if err := d2vm.Convert(
 				cmd.Context(),
 				img,
 				d2vm.WithSize(size),
@@ -95,7 +95,15 @@ var (
 				d2vm.WithCmdLineExtra(cmdLineExtra),
 				d2vm.WithNetworkManager(d2vm.NetworkManager(networkManager)),
 				d2vm.WithRaw(raw),
-			)
+			); err != nil {
+				return err
+			}
+			// set user permissions on the output file if the command was run with sudo
+			uid, ok := sudoUser()
+			if !ok {
+				return nil
+			}
+			return os.Chown(output, uid, uid)
 		},
 	}
 )

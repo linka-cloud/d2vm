@@ -40,7 +40,7 @@ var (
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// TODO(adphi): resolve context path
-			if runtime.GOOS != "linux" {
+			if runtime.GOOS != "linux" || !isRoot() {
 				ctxAbsPath, err := filepath.Abs(args[0])
 				if err != nil {
 					return err
@@ -96,7 +96,7 @@ var (
 			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
 				return err
 			}
-			return d2vm.Convert(
+			if err := d2vm.Convert(
 				cmd.Context(),
 				tag,
 				d2vm.WithSize(size),
@@ -105,7 +105,14 @@ var (
 				d2vm.WithCmdLineExtra(cmdLineExtra),
 				d2vm.WithNetworkManager(d2vm.NetworkManager(networkManager)),
 				d2vm.WithRaw(raw),
-			)
+			); err != nil {
+				return err
+			}
+			uid, ok := sudoUser()
+			if !ok {
+				return nil
+			}
+			return os.Chown(output, uid, uid)
 		},
 	}
 )

@@ -18,8 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.linka.cloud/console"
-
-	exec2 "go.linka.cloud/d2vm/pkg/exec"
 )
 
 var (
@@ -74,7 +72,7 @@ func vbox(ctx context.Context, path string) error {
 	if err != nil {
 		return fmt.Errorf("Cannot find management binary %s: %v", vboxmanageFlag, err)
 	}
-	i, err := ImgInfo(ctx, path)
+	i, err := QemuImgInfo(ctx, path)
 	if err != nil {
 		return fmt.Errorf("failed to get image info: %v", err)
 	}
@@ -86,7 +84,7 @@ func vbox(ctx context.Context, path string) error {
 		}
 		defer os.RemoveAll(vdi)
 		logrus.Infof("converting image to raw: %s", vdi)
-		if err := exec2.Run(ctx, "qemu-img", "convert", "-O", "vdi", path, vdi); err != nil {
+		if err := QemuImgConvert(ctx, "vdi", path, vdi); err != nil {
 			return err
 		}
 		path = vdi
