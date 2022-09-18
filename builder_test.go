@@ -116,6 +116,12 @@ func TestSyslinuxCfg(t *testing.T) {
 			sysconfig: syslinuxCfgDebian,
 		},
 		{
+			image:     "kalilinux/kali-rolling:latest",
+			kernel:    "/vmlinuz",
+			initrd:    "/initrd.img",
+			sysconfig: syslinuxCfgDebian,
+		},
+		{
 			image:     "alpine",
 			kernel:    "/boot/vmlinuz-virt",
 			initrd:    "/boot/initramfs-virt",

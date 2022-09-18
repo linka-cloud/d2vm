@@ -34,6 +34,7 @@ const (
 	ReleaseAlpine Release = "alpine"
 	ReleaseCentOS Release = "centos"
 	ReleaseRHEL   Release = "rhel"
+	ReleaseKali   Release = "kali"
 )
 
 type Release string
@@ -43,6 +44,8 @@ func (r Release) Supported() bool {
 	case ReleaseUbuntu:
 		return true
 	case ReleaseDebian:
+		return true
+	case ReleaseKali:
 		return true
 	case ReleaseAlpine:
 		return true

@@ -96,6 +96,8 @@ func sysconfig(osRelease OSRelease) (string, error) {
 		return syslinuxCfgUbuntu, nil
 	case ReleaseDebian:
 		return syslinuxCfgDebian, nil
+	case ReleaseKali:
+		return syslinuxCfgDebian, nil
 	case ReleaseAlpine:
 		return syslinuxCfgAlpine, nil
 	case ReleaseCentOS:
