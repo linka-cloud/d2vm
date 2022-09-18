@@ -78,6 +78,9 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 	case ReleaseDebian:
 		d.tmpl = debianDockerfileTemplate
 		net = NetworkManagerIfupdown2
+	case ReleaseKali:
+		d.tmpl = debianDockerfileTemplate
+		net = NetworkManagerIfupdown2
 	case ReleaseUbuntu:
 		d.tmpl = ubuntuDockerfileTemplate
 		net = NetworkManagerNetplan
