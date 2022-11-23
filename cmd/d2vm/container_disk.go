@@ -12,19 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package d2vm
+package main
 
 import (
-	"go.linka.cloud/d2vm/pkg/qemu_img"
+	"context"
+	"fmt"
+
+	"github.com/sirupsen/logrus"
+
+	"go.linka.cloud/d2vm"
+	"go.linka.cloud/d2vm/pkg/docker"
 )
 
-var (
-	Version   = ""
-	BuildDate = ""
-	Image     = "linkacloud/d2vm"
-)
-
-func init() {
-	qemu_img.DockerImageName = Image
-	qemu_img.DockerImageVersion = Version
+func maybeMakeContainerDisk(ctx context.Context) error {
+	if containerDiskTag == "" {
+		return nil
+	}
+	logrus.Infof("creating container disk image %s", containerDiskTag)
+	if err := d2vm.MakeContainerDisk(ctx, output, containerDiskTag); err != nil {
+		return err
+	}
+	if !push {
+		return nil
+	}
+	logrus.Infof("pushing container disk image %s", containerDiskTag)
+	if err := docker.Push(ctx, containerDiskTag); err != nil {
+		return fmt.Errorf("failed to push container disk: %w", err)
+	}
+	return nil
 }

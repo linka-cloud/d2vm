@@ -30,10 +30,6 @@ import (
 )
 
 var (
-	raw          bool
-	pull         = false
-	cmdLineExtra = ""
-
 	convertCmd = &cobra.Command{
 		Use:          "convert [docker image]",
 		Short:        "Convert Docker image to vm image",
@@ -64,6 +60,9 @@ var (
 			size, err := parseSize(size)
 			if err != nil {
 				return err
+			}
+			if push && tag == "" {
+				return fmt.Errorf("tag is required when pushing container disk image")
 			}
 			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
 				if !force {
@@ -100,11 +99,12 @@ var (
 				return err
 			}
 			// set user permissions on the output file if the command was run with sudo
-			uid, ok := sudoUser()
-			if !ok {
-				return nil
+			if uid, ok := sudoUser(); ok {
+				if err := os.Chown(output, uid, uid); err != nil {
+					return err
+				}
 			}
-			return os.Chown(output, uid, uid)
+			return maybeMakeContainerDisk(cmd.Context())
 		},
 	}
 )
@@ -119,12 +119,6 @@ func parseSize(s string) (int64, error) {
 
 func init() {
 	convertCmd.Flags().BoolVar(&pull, "pull", false, "Always pull docker image")
-	convertCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format, raw will be used if none. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
-	convertCmd.Flags().StringVarP(&password, "password", "p", "", "Optional root user password")
-	convertCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
-	convertCmd.Flags().BoolVarP(&force, "force", "f", false, "Override output qcow2 image")
-	convertCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
-	convertCmd.Flags().StringVar(&networkManager, "network-manager", "", "Network manager to use for the image: none, netplan, ifupdown")
-	convertCmd.Flags().BoolVar(&raw, "raw", false, "Just convert the container to virtual machine image without installing anything more")
+	convertCmd.Flags().AddFlagSet(buildFlags())
 	rootCmd.AddCommand(convertCmd)
 }

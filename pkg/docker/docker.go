@@ -96,6 +96,10 @@ func Pull(ctx context.Context, tag string) error {
 	return Cmd(ctx, "image", "pull", tag)
 }
 
+func Push(ctx context.Context, tag string) error {
+	return Cmd(ctx, "image", "push", tag)
+}
+
 func RunInteractiveAndRemove(ctx context.Context, args ...string) error {
 	cmd := exec.CommandContext(ctx, "docker", append([]string{"run", "--rm", "-it"}, args...)...)
 	cmd.Stdin = os.Stdin

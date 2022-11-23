@@ -30,11 +30,10 @@ import (
 )
 
 var (
-	file           = "Dockerfile"
-	tag            = "d2vm-" + uuid.New().String()
-	networkManager string
-	buildArgs      []string
-	buildCmd       = &cobra.Command{
+	file      = "Dockerfile"
+	tag       = "d2vm-" + uuid.New().String()
+	buildArgs []string
+	buildCmd  = &cobra.Command{
 		Use:   "build [context directory]",
 		Short: "Build a vm image from Dockerfile",
 		Args:  cobra.ExactArgs(1),
@@ -87,6 +86,9 @@ var (
 			if file == "" {
 				file = filepath.Join(args[0], "Dockerfile")
 			}
+			if push && tag == "" {
+				return fmt.Errorf("tag is required when pushing container disk image")
+			}
 			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
 				if !force {
 					return fmt.Errorf("%s already exists", output)
@@ -108,11 +110,12 @@ var (
 			); err != nil {
 				return err
 			}
-			uid, ok := sudoUser()
-			if !ok {
-				return nil
+			if uid, ok := sudoUser(); ok {
+				if err := os.Chown(output, uid, uid); err != nil {
+					return err
+				}
 			}
-			return os.Chown(output, uid, uid)
+			return maybeMakeContainerDisk(cmd.Context())
 		},
 	}
 )
@@ -123,11 +126,5 @@ func init() {
 	buildCmd.Flags().StringVarP(&file, "file", "f", "", "Name of the Dockerfile")
 	buildCmd.Flags().StringArrayVar(&buildArgs, "build-arg", nil, "Set build-time variables")
 
-	buildCmd.Flags().StringVarP(&output, "output", "o", output, "The output image, the extension determine the image format, raw will be used if none. Supported formats: "+strings.Join(d2vm.OutputFormats(), " "))
-	buildCmd.Flags().StringVarP(&password, "password", "p", "", "Optional root user password")
-	buildCmd.Flags().StringVarP(&size, "size", "s", "10G", "The output image size")
-	buildCmd.Flags().BoolVar(&force, "force", false, "Override output image")
-	buildCmd.Flags().StringVar(&cmdLineExtra, "append-to-cmdline", "", "Extra kernel cmdline arguments to append to the generated one")
-	buildCmd.Flags().StringVar(&networkManager, "network-manager", "", "Network manager to use for the image: none, netplan, ifupdown")
-	buildCmd.Flags().BoolVar(&raw, "raw", false, "Just convert the container to virtual machine image without installing anything more")
+	buildCmd.Flags().AddFlagSet(buildFlags())
 }

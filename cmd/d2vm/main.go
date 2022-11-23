@@ -34,10 +34,6 @@ import (
 )
 
 var (
-	output     = "disk0.qcow2"
-	size       = "1G"
-	password   = ""
-	force      = false
 	verbose    = false
 	timeFormat = ""
 	format     = "qcow2"
@@ -86,7 +82,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "debug", "d", false, "Enable Debug output")
 	rootCmd.PersistentFlags().MarkDeprecated("debug", "use -v instead")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable Verbose output")
-	rootCmd.PersistentFlags().StringVarP(&timeFormat, "time", "t", "none", "Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)'")
+	rootCmd.PersistentFlags().StringVar(&timeFormat, "time", "none", "Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)'")
 	color.NoColor = false
 	logrus.StandardLogger().Formatter = &logfmtFormatter{start: time.Now()}
 }

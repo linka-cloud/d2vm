@@ -33,6 +33,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/svenwiltink/sparsecat"
+
+	"go.linka.cloud/d2vm/pkg/qemu_img"
 )
 
 const (
@@ -77,7 +79,7 @@ func Hetzner(cmd *cobra.Command, args []string) {
 }
 
 func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.Writer, stdout io.Writer) error {
-	i, err := QemuImgInfo(ctx, imgPath)
+	i, err := qemu_img.Info(ctx, imgPath)
 	if err != nil {
 		return err
 	}
@@ -89,11 +91,11 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 		}
 		defer os.RemoveAll(rawPath)
 		logrus.Infof("converting image to raw: %s", rawPath)
-		if err := QemuImgConvert(ctx, "raw", imgPath, rawPath); err != nil {
+		if err := qemu_img.Convert(ctx, "raw", imgPath, rawPath); err != nil {
 			return err
 		}
 		imgPath = rawPath
-		i, err = QemuImgInfo(ctx, imgPath)
+		i, err = qemu_img.Info(ctx, imgPath)
 		if err != nil {
 			return err
 		}
