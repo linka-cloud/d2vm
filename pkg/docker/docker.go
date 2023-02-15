@@ -137,6 +137,8 @@ func RunD2VM(ctx context.Context, image, version, in, out, cmd string, args ...s
 		fmt.Sprintf("%s:/in", in),
 		"-v",
 		fmt.Sprintf("%s:/out", out),
+		"-v",
+		"/dev:/dev",
 		"-w",
 		"/d2vm",
 		fmt.Sprintf("%s:%s", image, version),

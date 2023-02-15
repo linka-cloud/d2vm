@@ -73,7 +73,7 @@ the directory where you run the command.*
 
 ```bash
 docker pull linkacloud/d2vm:latest
-alias d2vm="docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v \$PWD:/d2vm -w /d2vm linkacloud/d2vm:latest"
+alias d2vm="docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v \$(pwd):/d2vm -v /dev:/dev -w /d2vm linkacloud/d2vm:latest"
 ```
 
 ```bash
