@@ -122,6 +122,12 @@ func TestSyslinuxCfg(t *testing.T) {
 			sysconfig: syslinuxCfgDebian,
 		},
 		{
+			image:     "alpine:3.16",
+			kernel:    "/boot/vmlinuz-virt",
+			initrd:    "/boot/initramfs-virt",
+			sysconfig: syslinuxCfgAlpine,
+		},
+		{
 			image:     "alpine",
 			kernel:    "/boot/vmlinuz-virt",
 			initrd:    "/boot/initramfs-virt",

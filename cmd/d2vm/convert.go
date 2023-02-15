@@ -60,6 +60,7 @@ var (
 			if parts := strings.Split(img, ":"); len(parts) > 1 {
 				img, tag = parts[0], parts[1]
 			}
+			img = fmt.Sprintf("%s:%s", img, tag)
 			size, err := parseSize(size)
 			if err != nil {
 				return err
@@ -75,9 +76,9 @@ var (
 				if err != nil {
 					return err
 				}
-				found = len(imgs) == 1 && imgs[0] == fmt.Sprintf("%s:%s", img, tag)
+				found = len(imgs) == 1 && imgs[0] == img
 				if found {
-					logrus.Infof("using local image %s:%s", img, tag)
+					logrus.Infof("using local image %s", img)
 				}
 			}
 			if pull || !found {
