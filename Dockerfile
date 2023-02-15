@@ -33,6 +33,7 @@ RUN apt-get update && \
         util-linux \
         udev \
         parted \
+        kpartx \
         e2fsprogs \
         mount \
         tar \

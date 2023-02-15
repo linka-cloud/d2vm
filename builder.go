@@ -265,10 +265,10 @@ func (b *builder) mountImg(ctx context.Context) error {
 		return err
 	}
 	b.loDevice = strings.TrimSuffix(o, "\n")
-	if err := exec.Run(ctx, "partprobe", b.loDevice); err != nil {
+	if err := exec.Run(ctx, "kpartx", "-a", b.loDevice); err != nil {
 		return err
 	}
-	b.loPart = fmt.Sprintf("%sp1", b.loDevice)
+	b.loPart = fmt.Sprintf("/dev/mapper/%sp1", filepath.Base(b.loDevice))
 	logrus.Infof("creating raw image file system")
 	if err := exec.Run(ctx, "mkfs.ext4", b.loPart); err != nil {
 		return err
@@ -283,6 +283,9 @@ func (b *builder) unmountImg(ctx context.Context) error {
 	logrus.Infof("unmounting raw image")
 	var merr error
 	if err := exec.Run(ctx, "umount", b.mntPoint); err != nil {
+		merr = multierr.Append(merr, err)
+	}
+	if err := exec.Run(ctx, "kpartx", "-d", b.loDevice); err != nil {
 		merr = multierr.Append(merr, err)
 	}
 	if err := exec.Run(ctx, "losetup", "-d", b.loDevice); err != nil {
