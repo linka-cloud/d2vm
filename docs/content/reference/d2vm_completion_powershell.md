@@ -28,7 +28,7 @@ d2vm completion powershell [flags]
 ### Options inherited from parent commands
 
 ```
-  -t, --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
+      --time string   Enable formated timed output, valide formats: 'relative (rel | r)', 'full (f)' (default "none")
   -v, --verbose       Enable Verbose output
 ```
 
