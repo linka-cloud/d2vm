@@ -4,6 +4,7 @@ scratch
 *.qcow2
 *.vmdk
 *.vdi
+.DS_Store
 
 bin/
 dist/
