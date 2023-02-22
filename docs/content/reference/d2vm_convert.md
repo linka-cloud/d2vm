@@ -10,6 +10,7 @@ d2vm convert [docker image] [flags]
 
 ```
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --boot-size uint             Size of the boot partition in MB (default 100)
       --force                      Override output qcow2 image
   -h, --help                       help for convert
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown
@@ -19,6 +20,7 @@ d2vm convert [docker image] [flags]
       --push                       Push the container disk image to the registry
       --raw                        Just convert the container to virtual machine image without installing anything more
   -s, --size string                The output image size (default "10G")
+      --split-boot                 Split the boot partition from the root partition
   -t, --tag string                 Container disk Docker image tag
 ```
 

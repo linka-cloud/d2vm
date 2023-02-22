@@ -107,6 +107,8 @@ var (
 				d2vm.WithCmdLineExtra(cmdLineExtra),
 				d2vm.WithNetworkManager(d2vm.NetworkManager(networkManager)),
 				d2vm.WithRaw(raw),
+				d2vm.WithSplitBoot(splitBoot),
+				d2vm.WithBootSize(bootSize),
 			); err != nil {
 				return err
 			}

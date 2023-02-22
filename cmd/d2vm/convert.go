@@ -95,6 +95,8 @@ var (
 				d2vm.WithCmdLineExtra(cmdLineExtra),
 				d2vm.WithNetworkManager(d2vm.NetworkManager(networkManager)),
 				d2vm.WithRaw(raw),
+				d2vm.WithSplitBoot(splitBoot),
+				d2vm.WithBootSize(bootSize),
 			); err != nil {
 				return err
 			}
@@ -109,12 +111,12 @@ var (
 	}
 )
 
-func parseSize(s string) (int64, error) {
+func parseSize(s string) (uint64, error) {
 	var v datasize.ByteSize
 	if err := v.UnmarshalText([]byte(s)); err != nil {
 		return 0, err
 	}
-	return int64(v), nil
+	return uint64(v), nil
 }
 
 func init() {
