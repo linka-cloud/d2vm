@@ -121,18 +121,24 @@ type builder struct {
 	diskOut string
 	format  string
 
-	size     int64
+	size     uint64
 	mntPoint string
+
+	splitBoot bool
+	bootSize  uint64
 
 	mbrPath string
 
-	loDevice     string
-	loPart       string
-	diskUUD      string
+	loDevice string
+	bootPart string
+	rootPart string
+	bootUUID string
+	rootUUID string
+
 	cmdLineExtra string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, osRelease OSRelease, format string, cmdLineExtra string) (Builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootSize uint64) (Builder, error) {
 	if err := checkDependencies(); err != nil {
 		return nil, err
 	}
@@ -147,6 +153,14 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, o
 		return nil, fmt.Errorf("invalid format: %s valid formats are: %s", f, strings.Join(formats, " "))
 	}
 
+	if splitBoot && bootSize < 50 {
+		return nil, fmt.Errorf("boot partition size must be at least 50MiB")
+	}
+
+	if splitBoot && bootSize >= size {
+		return nil, fmt.Errorf("boot partition size must be less than the disk size")
+	}
+
 	mbrBin := ""
 	for _, v := range mbrPaths {
 		if _, err := os.Stat(v); err == nil {
@@ -158,7 +172,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, o
 		return nil, fmt.Errorf("unable to find syslinux's mbr.bin path")
 	}
 	if size == 0 {
-		size = 10 * int64(datasize.GB)
+		size = 10 * uint64(datasize.GB)
 	}
 	if disk == "" {
 		disk = "disk0"
@@ -186,6 +200,8 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size int64, o
 		mbrPath:      mbrBin,
 		mntPoint:     filepath.Join(workdir, "/mnt"),
 		cmdLineExtra: cmdLineExtra,
+		splitBoot:    splitBoot,
+		bootSize:     bootSize,
 	}
 	if err := os.MkdirAll(b.mntPoint, os.ModePerm); err != nil {
 		return nil, err
@@ -252,9 +268,21 @@ func (b *builder) makeImg(ctx context.Context) error {
 		return err
 	}
 
-	if err := exec.Run(ctx, "parted", "-s", b.diskRaw, "mklabel", "msdos", "mkpart", "primary", "1Mib", "100%", "set", "1", "boot", "on"); err != nil {
+	var args []string
+	if b.splitBoot {
+		args = []string{"-s", b.diskRaw,
+			"mklabel", "msdos", "mkpart", "primary", "1Mib", fmt.Sprintf("%dMib", b.bootSize),
+			"mkpart", "primary", fmt.Sprintf("%dMib", b.bootSize), "100%",
+			"set", "1", "boot", "on",
+		}
+	} else {
+		args = []string{"-s", b.diskRaw, "mklabel", "msdos", "mkpart", "primary", "1Mib", "100%", "set", "1", "boot", "on"}
+	}
+
+	if err := exec.Run(ctx, "parted", args...); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -268,12 +296,29 @@ func (b *builder) mountImg(ctx context.Context) error {
 	if err := exec.Run(ctx, "kpartx", "-a", b.loDevice); err != nil {
 		return err
 	}
-	b.loPart = fmt.Sprintf("/dev/mapper/%sp1", filepath.Base(b.loDevice))
+	b.bootPart = fmt.Sprintf("/dev/mapper/%sp1", filepath.Base(b.loDevice))
+	if b.splitBoot {
+		b.rootPart = fmt.Sprintf("/dev/mapper/%sp2", filepath.Base(b.loDevice))
+	} else {
+		b.rootPart = b.bootPart
+	}
 	logrus.Infof("creating raw image file system")
-	if err := exec.Run(ctx, "mkfs.ext4", b.loPart); err != nil {
+	if err := exec.Run(ctx, "mkfs.ext4", b.rootPart); err != nil {
 		return err
 	}
-	if err := exec.Run(ctx, "mount", b.loPart, b.mntPoint); err != nil {
+	if err := exec.Run(ctx, "mount", b.rootPart, b.mntPoint); err != nil {
+		return err
+	}
+	if !b.splitBoot {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Join(b.mntPoint, "boot"), os.ModePerm); err != nil {
+		return err
+	}
+	if err := exec.Run(ctx, "mkfs.ext4", b.bootPart); err != nil {
+		return err
+	}
+	if err := exec.Run(ctx, "mount", b.bootPart, filepath.Join(b.mntPoint, "boot")); err != nil {
 		return err
 	}
 	return nil
@@ -282,6 +327,11 @@ func (b *builder) mountImg(ctx context.Context) error {
 func (b *builder) unmountImg(ctx context.Context) error {
 	logrus.Infof("unmounting raw image")
 	var merr error
+	if b.splitBoot {
+		if err := exec.Run(ctx, "umount", filepath.Join(b.mntPoint, "boot")); err != nil {
+			merr = multierr.Append(merr, err)
+		}
+	}
 	if err := exec.Run(ctx, "umount", b.mntPoint); err != nil {
 		merr = multierr.Append(merr, err)
 	}
@@ -302,14 +352,28 @@ func (b *builder) copyRootFS(ctx context.Context) error {
 	return nil
 }
 
-func (b *builder) setupRootFS(ctx context.Context) error {
-	logrus.Infof("setting up rootfs")
-	o, _, err := exec.RunOut(ctx, "blkid", "-s", "UUID", "-o", "value", b.loPart)
+func diskUUID(ctx context.Context, disk string) (string, error) {
+	o, _, err := exec.RunOut(ctx, "blkid", "-s", "UUID", "-o", "value", disk)
 	if err != nil {
-		return err
+		return "", err
 	}
-	b.diskUUD = strings.TrimSuffix(o, "\n")
-	fstab := fmt.Sprintf("UUID=%s / ext4 errors=remount-ro 0 1\n", b.diskUUD)
+	return strings.TrimSuffix(o, "\n"), nil
+}
+
+func (b *builder) setupRootFS(ctx context.Context) (err error) {
+	logrus.Infof("setting up rootfs")
+	b.rootUUID, err = diskUUID(ctx, b.rootPart)
+	var fstab string
+	if b.splitBoot {
+		b.bootUUID, err = diskUUID(ctx, b.bootPart)
+		if err != nil {
+			return err
+		}
+		fstab = fmt.Sprintf("UUID=%s / ext4 errors=remount-ro 0 1\nUUID=%s /boot ext4 errors=remount-ro 0 2\n", b.rootUUID, b.bootUUID)
+	} else {
+		b.bootUUID = b.rootUUID
+		fstab = fmt.Sprintf("UUID=%s / ext4 errors=remount-ro 0 1\n", b.bootUUID)
+	}
 	if err := b.chWriteFile("/etc/fstab", fstab, perm); err != nil {
 		return err
 	}
@@ -329,21 +393,51 @@ func (b *builder) setupRootFS(ctx context.Context) error {
 	if err := os.RemoveAll(b.chPath("/.dockerenv")); err != nil {
 		return err
 	}
-	if b.osRelease.ID != ReleaseAlpine {
+	// create a symlink to /boot for non-alpine images in order to have a consistent path
+	// even if the image is not split
+	if _, err := os.Stat(b.chPath("/boot/boot")); os.IsNotExist(err) {
+		if err := os.Symlink(".", b.chPath("/boot/boot")); err != nil {
+			return err
+		}
+	}
+	switch b.osRelease.ID {
+	case ReleaseAlpine:
+		by, err := os.ReadFile(b.chPath("/etc/inittab"))
+		if err != nil {
+			return err
+		}
+		by = append(by, []byte("\n"+"ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100\n")...)
+		if err := b.chWriteFile("/etc/inittab", string(by), perm); err != nil {
+			return err
+		}
+		if err := b.chWriteFileIfNotExist("/etc/network/interfaces", "", perm); err != nil {
+			return err
+		}
+		return nil
+	case ReleaseUbuntu:
+		if b.osRelease.VersionID >= "20.04" {
+			return nil
+		}
+		fallthrough
+	case ReleaseDebian, ReleaseKali:
+		t, err := os.Readlink(b.chPath("/vmlinuz"))
+		if err != nil {
+			return err
+		}
+		if err := os.Symlink(t, b.chPath("/boot/vmlinuz")); err != nil {
+			return err
+		}
+		t, err = os.Readlink(b.chPath("/initrd.img"))
+		if err != nil {
+			return err
+		}
+		if err := os.Symlink(t, b.chPath("/boot/initrd.img")); err != nil {
+			return err
+		}
+		return nil
+	default:
 		return nil
 	}
-	by, err := os.ReadFile(b.chPath("/etc/inittab"))
-	if err != nil {
-		return err
-	}
-	by = append(by, []byte("\n"+"ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100\n")...)
-	if err := b.chWriteFile("/etc/inittab", string(by), perm); err != nil {
-		return err
-	}
-	if err := b.chWriteFileIfNotExist("/etc/network/interfaces", "", perm); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (b *builder) installKernel(ctx context.Context) error {
@@ -355,7 +449,7 @@ func (b *builder) installKernel(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.diskUUD, b.cmdLineExtra), perm); err != nil {
+	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.rootUUID, b.cmdLineExtra), perm); err != nil {
 		return err
 	}
 	return nil
@@ -393,13 +487,13 @@ func (b *builder) Close() error {
 	return b.img.Close()
 }
 
-func block(path string, size int64) error {
+func block(path string, size uint64) error {
 	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	return f.Truncate(size)
+	return f.Truncate(int64(size))
 }
 
 func checkDependencies() error {

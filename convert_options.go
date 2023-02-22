@@ -17,15 +17,18 @@ package d2vm
 type ConvertOption func(o *convertOptions)
 
 type convertOptions struct {
-	size           int64
+	size           uint64
 	password       string
 	output         string
 	cmdLineExtra   string
 	networkManager NetworkManager
 	raw            bool
+
+	splitBoot bool
+	bootSize  uint64
 }
 
-func WithSize(size int64) ConvertOption {
+func WithSize(size uint64) ConvertOption {
 	return func(o *convertOptions) {
 		o.size = size
 	}
@@ -58,5 +61,17 @@ func WithNetworkManager(networkManager NetworkManager) ConvertOption {
 func WithRaw(raw bool) ConvertOption {
 	return func(o *convertOptions) {
 		o.raw = raw
+	}
+}
+
+func WithSplitBoot(b bool) ConvertOption {
+	return func(o *convertOptions) {
+		o.splitBoot = b
+	}
+}
+
+func WithBootSize(bootSize uint64) ConvertOption {
+	return func(o *convertOptions) {
+		o.bootSize = bootSize
 	}
 }

@@ -6,14 +6,14 @@ RUN apk update --no-cache && \
     apk add \
       util-linux \
       linux-virt \
-{{ if ge .Release.VersionID "3.17" }} \
+{{- if ge .Release.VersionID "3.17" }}
       busybox-openrc \
       busybox-mdev-openrc \
       busybox-extras-openrc \
       busybox-mdev-openrc \
-{{ else }}
+{{- else }}
       busybox-initscripts \
-{{ end }}
+{{- end }}
       openrc
 
 RUN for s in bootmisc hostname hwclock modules networking swap sysctl urandom syslog; do rc-update add $s boot; done

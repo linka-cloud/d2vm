@@ -38,7 +38,9 @@ RUN apt-get update && \
         mount \
         tar \
         extlinux \
-        qemu-utils
+        qemu-utils && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin/
 
