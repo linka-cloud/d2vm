@@ -7,7 +7,7 @@ RUN apt-get update -y && \
   linux-image-virtual \
   initramfs-tools \
 {{- if .Luks }}
-      cryptsetup \
+  cryptsetup-initramfs \
 {{- end }}
   systemd-sysv \
   systemd \
@@ -43,3 +43,7 @@ allow-hotplug eth0\n\
 iface eth0 inet dhcp\n\
 ' > /etc/network/interfaces
 {{ end }}
+
+{{- if .Luks }}
+RUN update-initramfs -u -v
+{{- end }}

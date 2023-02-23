@@ -5,7 +5,7 @@ USER root
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
 {{- if .Luks }}
-      cryptsetup \
+      cryptsetup-initramfs \
 {{- end }}
       linux-image-amd64
 
@@ -44,3 +44,8 @@ allow-hotplug eth0\n\
 iface eth0 inet dhcp\n\
 ' > /etc/network/interfaces
 {{ end }}
+
+
+{{- if .Luks }}
+RUN update-initramfs -u -v
+{{- end }}
