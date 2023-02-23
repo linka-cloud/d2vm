@@ -151,8 +151,8 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	}
 	if luksPassword != "" {
 		// TODO(adphi): remove this check when we support luks encryption on other distros
-		if osRelease.ID != ReleaseAlpine {
-			return nil, fmt.Errorf("luks encryption is only supported on alpine")
+		if osRelease.ID == ReleaseCentOS {
+			return nil, fmt.Errorf("luks encryption is not supported on centos")
 		}
 		if !splitBoot {
 			return nil, fmt.Errorf("luks encryption requires split boot")
@@ -381,7 +381,7 @@ func (b *builder) unmountImg(ctx context.Context) error {
 	}
 	merr = multierr.Append(merr, exec.Run(ctx, "umount", b.mntPoint))
 	if b.isLuksEnabled() {
-		merr = multierr.Append(merr, exec.Run(ctx, "cryptsetup", "close", b.cryptRoot))
+		merr = multierr.Append(merr, exec.Run(ctx, "cryptsetup", "close", b.mappedCryptRoot))
 	}
 	return multierr.Combine(
 		merr,
@@ -503,8 +503,13 @@ func (b *builder) installKernel(ctx context.Context) error {
 	}
 	var cfg string
 	if b.isLuksEnabled() {
-		cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptdm=root", b.cmdLineExtra))
-		cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "cryptroot=UUID="+b.cryptUUID, 1)
+		if b.osRelease.ID != ReleaseAlpine {
+			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptopts=target=root,source=UUID=%s", b.cmdLineExtra, b.cryptUUID))
+			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "", 1)
+		} else {
+			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptdm=root", b.cmdLineExtra))
+			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "cryptroot=UUID="+b.cryptUUID, 1)
+		}
 	} else {
 		cfg = fmt.Sprintf(sysconfig, b.rootUUID, b.cmdLineExtra)
 	}
