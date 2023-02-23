@@ -130,7 +130,14 @@ func RunD2VM(ctx context.Context, image, version, in, out, cmd string, args ...s
 	if version == "" {
 		version = "latest"
 	}
-	a := []string{
+	a := []string{"run", "--rm"}
+
+	interactive := isInteractive()
+
+	if interactive {
+		a = append(a, "-i", "-t")
+	}
+	a = append(a,
 		"--privileged",
 		"-e",
 		// yes... it is kind of a dirty hack
@@ -145,6 +152,12 @@ func RunD2VM(ctx context.Context, image, version, in, out, cmd string, args ...s
 		"/d2vm",
 		fmt.Sprintf("%s:%s", image, version),
 		cmd,
+	)
+	c := exec.CommandContext(ctx, "docker", append(a, args...)...)
+	if interactive {
+		c.Stdin = os.Stdin
 	}
-	return RunInteractiveAndRemove(ctx, append(a, args...)...)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	return c.Run()
 }
