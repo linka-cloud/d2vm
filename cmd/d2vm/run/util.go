@@ -28,6 +28,8 @@ import (
 	"time"
 
 	"golang.org/x/crypto/ssh"
+
+	"go.linka.cloud/d2vm/pkg/qemu"
 )
 
 //go:embed sparsecat-linux-amd64
@@ -188,15 +190,8 @@ func ConvertMBtoGB(i int) int {
 	return (i + (1024 - i%1024)) / 1024
 }
 
-// DiskConfig is the config for a disk
-type DiskConfig struct {
-	Path   string
-	Size   int
-	Format string
-}
-
 // Disks is the type for a list of DiskConfig
-type Disks []DiskConfig
+type Disks []qemu.Disk
 
 func (l *Disks) String() string {
 	return fmt.Sprint(*l)
@@ -204,7 +199,7 @@ func (l *Disks) String() string {
 
 // Set is used by flag to configure value from CLI
 func (l *Disks) Set(value string) error {
-	d := DiskConfig{}
+	d := qemu.Disk{}
 	s := strings.Split(value, ",")
 	for _, p := range s {
 		c := strings.SplitN(p, "=", 2)
