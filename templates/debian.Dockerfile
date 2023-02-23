@@ -4,6 +4,9 @@ USER root
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+{{- if .Luks }}
+      cryptsetup \
+{{- end }}
       linux-image-amd64
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \

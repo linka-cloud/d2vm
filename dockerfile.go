@@ -64,6 +64,7 @@ type Dockerfile struct {
 	Password       string
 	Release        OSRelease
 	NetworkManager NetworkManager
+	Luks           bool
 	tmpl           *template.Template
 }
 
@@ -71,8 +72,8 @@ func (d Dockerfile) Render(w io.Writer) error {
 	return d.tmpl.Execute(w, d)
 }
 
-func NewDockerfile(release OSRelease, img, password string, networkManager NetworkManager) (Dockerfile, error) {
-	d := Dockerfile{Release: release, Image: img, Password: password, NetworkManager: networkManager}
+func NewDockerfile(release OSRelease, img, password string, networkManager NetworkManager, luks bool) (Dockerfile, error) {
+	d := Dockerfile{Release: release, Image: img, Password: password, NetworkManager: networkManager, Luks: luks}
 	var net NetworkManager
 	switch release.ID {
 	case ReleaseDebian:
