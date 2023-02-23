@@ -6,6 +6,9 @@ RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
   linux-image-virtual \
   initramfs-tools \
+{{- if .Luks }}
+      cryptsetup \
+{{- end }}
   systemd-sysv \
   systemd \
   dbus \

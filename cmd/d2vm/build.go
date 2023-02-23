@@ -79,6 +79,10 @@ var (
 				}
 				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, in, out, cmd.Name(), os.Args[2:]...)
 			}
+			if luksPassword != "" && !splitBoot {
+				logrus.Warnf("luks password is set: enabling split boot")
+				splitBoot = true
+			}
 			size, err := parseSize(size)
 			if err != nil {
 				return err
@@ -109,6 +113,7 @@ var (
 				d2vm.WithRaw(raw),
 				d2vm.WithSplitBoot(splitBoot),
 				d2vm.WithBootSize(bootSize),
+				d2vm.WithLuksPassword(luksPassword),
 			); err != nil {
 				return err
 			}

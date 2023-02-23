@@ -6,6 +6,9 @@ RUN apk update --no-cache && \
     apk add \
       util-linux \
       linux-virt \
+{{- if .Luks }}
+      cryptsetup \
+{{- end }}
 {{- if ge .Release.VersionID "3.17" }}
       busybox-openrc \
       busybox-mdev-openrc \
@@ -29,3 +32,9 @@ allow-hotplug eth0\n\
 iface eth0 inet dhcp\n\
 ' > /etc/network/interfaces
 {{ end }}
+
+{{- if .Luks }}
+RUN source /etc/mkinitfs/mkinitfs.conf && \
+    echo "features=\"${features} cryptsetup\"" > /etc/mkinitfs/mkinitfs.conf && \
+    mkinitfs $(ls /lib/modules)
+{{- end }}

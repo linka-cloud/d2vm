@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/c2h5oh/datasize"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"go.uber.org/multierr"
 
@@ -129,18 +130,33 @@ type builder struct {
 
 	mbrPath string
 
-	loDevice string
-	bootPart string
-	rootPart string
-	bootUUID string
-	rootUUID string
+	loDevice        string
+	bootPart        string
+	rootPart        string
+	cryptPart       string
+	cryptRoot       string
+	mappedCryptRoot string
+	bootUUID        string
+	rootUUID        string
+	cryptUUID       string
+
+	luksPassword string
 
 	cmdLineExtra string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootSize uint64) (Builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootSize uint64, luksPassword string) (Builder, error) {
 	if err := checkDependencies(); err != nil {
 		return nil, err
+	}
+	if luksPassword != "" {
+		// TODO(adphi): remove this check when we support luks encryption on other distros
+		if osRelease.ID != ReleaseAlpine {
+			return nil, fmt.Errorf("luks encryption is only supported on alpine")
+		}
+		if !splitBoot {
+			return nil, fmt.Errorf("luks encryption requires split boot")
+		}
 	}
 	f := strings.ToLower(format)
 	valid := false
@@ -202,6 +218,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		cmdLineExtra: cmdLineExtra,
 		splitBoot:    splitBoot,
 		bootSize:     bootSize,
+		luksPassword: luksPassword,
 	}
 	if err := os.MkdirAll(b.mntPoint, os.ModePerm); err != nil {
 		return nil, err
@@ -302,12 +319,44 @@ func (b *builder) mountImg(ctx context.Context) error {
 	} else {
 		b.rootPart = b.bootPart
 	}
-	logrus.Infof("creating raw image file system")
-	if err := exec.Run(ctx, "mkfs.ext4", b.rootPart); err != nil {
-		return err
-	}
-	if err := exec.Run(ctx, "mount", b.rootPart, b.mntPoint); err != nil {
-		return err
+	if b.isLuksEnabled() {
+		logrus.Infof("encrypting root partition")
+		f, err := os.CreateTemp("", "key")
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		defer os.Remove(f.Name())
+		if _, err := f.WriteString(b.luksPassword); err != nil {
+			return err
+		}
+		// cryptsetup luksFormat --batch-mode --verify-passphrase --type luks2 $ROOT_DEVICE $KEY_FILE
+		if err := exec.Run(ctx, "cryptsetup", "luksFormat", "--batch-mode", "--type", "luks2", b.rootPart, f.Name()); err != nil {
+			return err
+		}
+		b.cryptRoot = fmt.Sprintf("d2vm-%s-root", uuid.New().String())
+		// cryptsetup open -d $KEY_FILE $ROOT_DEVICE $ROOT_LABEL
+		if err := exec.Run(ctx, "cryptsetup", "open", "--key-file", f.Name(), b.rootPart, b.cryptRoot); err != nil {
+			return err
+		}
+		b.cryptPart = b.rootPart
+		b.rootPart = "/dev/mapper/root"
+		b.mappedCryptRoot = filepath.Join("/dev/mapper", b.cryptRoot)
+		logrus.Infof("creating raw image file system")
+		if err := exec.Run(ctx, "mkfs.ext4", b.mappedCryptRoot); err != nil {
+			return err
+		}
+		if err := exec.Run(ctx, "mount", b.mappedCryptRoot, b.mntPoint); err != nil {
+			return err
+		}
+	} else {
+		logrus.Infof("creating raw image file system")
+		if err := exec.Run(ctx, "mkfs.ext4", b.rootPart); err != nil {
+			return err
+		}
+		if err := exec.Run(ctx, "mount", b.rootPart, b.mntPoint); err != nil {
+			return err
+		}
 	}
 	if !b.splitBoot {
 		return nil
@@ -328,20 +377,17 @@ func (b *builder) unmountImg(ctx context.Context) error {
 	logrus.Infof("unmounting raw image")
 	var merr error
 	if b.splitBoot {
-		if err := exec.Run(ctx, "umount", filepath.Join(b.mntPoint, "boot")); err != nil {
-			merr = multierr.Append(merr, err)
-		}
+		merr = multierr.Append(merr, exec.Run(ctx, "umount", filepath.Join(b.mntPoint, "boot")))
 	}
-	if err := exec.Run(ctx, "umount", b.mntPoint); err != nil {
-		merr = multierr.Append(merr, err)
+	merr = multierr.Append(merr, exec.Run(ctx, "umount", b.mntPoint))
+	if b.isLuksEnabled() {
+		merr = multierr.Append(merr, exec.Run(ctx, "cryptsetup", "close", b.cryptRoot))
 	}
-	if err := exec.Run(ctx, "kpartx", "-d", b.loDevice); err != nil {
-		merr = multierr.Append(merr, err)
-	}
-	if err := exec.Run(ctx, "losetup", "-d", b.loDevice); err != nil {
-		merr = multierr.Append(merr, err)
-	}
-	return merr
+	return multierr.Combine(
+		merr,
+		exec.Run(ctx, "kpartx", "-d", b.loDevice),
+		exec.Run(ctx, "losetup", "-d", b.loDevice),
+	)
 }
 
 func (b *builder) copyRootFS(ctx context.Context) error {
@@ -368,6 +414,12 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 		b.bootUUID, err = diskUUID(ctx, b.bootPart)
 		if err != nil {
 			return err
+		}
+		if b.isLuksEnabled() {
+			b.cryptUUID, err = diskUUID(ctx, b.cryptPart)
+			if err != nil {
+				return err
+			}
 		}
 		fstab = fmt.Sprintf("UUID=%s / ext4 errors=remount-ro 0 1\nUUID=%s /boot ext4 errors=remount-ro 0 2\n", b.rootUUID, b.bootUUID)
 	} else {
@@ -449,7 +501,14 @@ func (b *builder) installKernel(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if err := b.chWriteFile("/boot/syslinux.cfg", fmt.Sprintf(sysconfig, b.rootUUID, b.cmdLineExtra), perm); err != nil {
+	var cfg string
+	if b.isLuksEnabled() {
+		cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptdm=root", b.cmdLineExtra))
+		cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "cryptroot=UUID="+b.cryptUUID, 1)
+	} else {
+		cfg = fmt.Sprintf(sysconfig, b.rootUUID, b.cmdLineExtra)
+	}
+	if err := b.chWriteFile("/boot/syslinux.cfg", cfg, perm); err != nil {
 		return err
 	}
 	return nil
@@ -483,6 +542,10 @@ func (b *builder) chPath(path string) string {
 	return fmt.Sprintf("%s%s", b.mntPoint, path)
 }
 
+func (b *builder) isLuksEnabled() bool {
+	return b.luksPassword != ""
+}
+
 func (b *builder) Close() error {
 	return b.img.Close()
 }
@@ -498,7 +561,7 @@ func block(path string, size uint64) error {
 
 func checkDependencies() error {
 	var merr error
-	for _, v := range []string{"mount", "blkid", "tar", "losetup", "parted", "partprobe", "qemu-img", "extlinux", "dd", "mkfs"} {
+	for _, v := range []string{"mount", "blkid", "tar", "losetup", "parted", "kpartx", "qemu-img", "extlinux", "dd", "mkfs.ext4", "cryptsetup"} {
 		if _, err := exec2.LookPath(v); err != nil {
 			merr = multierr.Append(merr, err)
 		}

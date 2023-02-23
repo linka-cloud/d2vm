@@ -42,7 +42,7 @@ func testSysconfig(t *testing.T, ctx context.Context, img, sysconf, kernel, init
 	sys, err := sysconfig(r)
 	require.NoError(t, err)
 	assert.Equal(t, sysconf, sys)
-	d, err := NewDockerfile(r, img, "root", "")
+	d, err := NewDockerfile(r, img, "root", "", false)
 	require.NoError(t, err)
 	logrus.Infof("docker image based on %s", d.Release.Name)
 	p := filepath.Join(tmpPath, docker.FormatImgName(img))
