@@ -38,11 +38,16 @@ type test struct {
 	args []string
 }
 
-var images = []string{
-	"alpine:3.17",
-	"ubuntu:20.04",
-	"debian:11",
-	"centos:8",
+type img struct {
+	name string
+	luks string
+}
+
+var images = []img{
+	{name: "alpine:3.17", luks: "Enter passphrase for /dev/sda2:"},
+	{name: "ubuntu:20.04", luks: "Please unlock disk root:"},
+	{name: "debian:11", luks: "Please unlock disk root:"},
+	{name: "centos:8", luks: "Please enter passphrase for disk"},
 }
 
 func TestConvert(t *testing.T) {
@@ -55,6 +60,10 @@ func TestConvert(t *testing.T) {
 			name: "split-boot",
 			args: []string{"--split-boot"},
 		},
+		{
+			name: "luks",
+			args: []string{"--luks-password=root"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -64,21 +73,21 @@ func TestConvert(t *testing.T) {
 			require.NoError(os.MkdirAll(dir, os.ModePerm))
 
 			defer os.RemoveAll(dir)
-			for _, i := range images {
-				t.Run(i, func(t *testing.T) {
+			for _, img := range images {
+				t.Run(img.name, func(t *testing.T) {
 					ctx, cancel := context.WithCancel(context.Background())
 					defer cancel()
 
 					// t.Parallel()
 					require := require2.New(t)
 
-					out := filepath.Join(dir, strings.NewReplacer(":", "-", ".", "-").Replace(i)+".qcow2")
+					out := filepath.Join(dir, strings.NewReplacer(":", "-", ".", "-").Replace(img.name)+".qcow2")
 
 					if _, err := os.Stat(out); err == nil {
 						require.NoError(os.Remove(out))
 					}
-
-					require.NoError(docker.RunD2VM(ctx, d2vm.Image, d2vm.Version, dir, dir, "convert", append([]string{"-p", "root", "-o", "/out/" + filepath.Base(out), "-v", i}, tt.args...)...))
+					
+					require.NoError(docker.RunD2VM(ctx, d2vm.Image, d2vm.Version, dir, dir, "convert", append([]string{"-p", "root", "-o", "/out/" + filepath.Base(out), "-v", "--keep-cache", img.name}, tt.args...)...))
 
 					inr, inw := io.Pipe()
 					defer inr.Close()
@@ -93,6 +102,9 @@ func TestConvert(t *testing.T) {
 						password := []byte("Password:")
 						s := bufio.NewScanner(outr)
 						s.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+							if i := bytes.Index(data, []byte(img.luks)); i >= 0 {
+								return i + len(img.luks), []byte(img.luks), nil
+							}
 							if i := bytes.Index(data, login); i >= 0 {
 								return i + len(login), login, nil
 							}
@@ -106,8 +118,14 @@ func TestConvert(t *testing.T) {
 						})
 						for s.Scan() {
 							b := s.Bytes()
+							if bytes.Contains(b, []byte(img.luks)) {
+								t.Logf("sending luks password")
+								if _, err := inw.Write([]byte("root\n")); err != nil {
+									t.Logf("failed to write luks password: %v", err)
+									cancel()
+								}
+							}
 							if bytes.Contains(b, login) {
-								t.Logf("vm ready")
 								t.Logf("sending login")
 								if _, err := inw.Write([]byte("root\n")); err != nil {
 									t.Logf("failed to write login: %v", err)
@@ -134,7 +152,7 @@ func TestConvert(t *testing.T) {
 							cancel()
 						}
 					}()
-					if err := qemu.Run(ctx, out, qemu.WithStdin(inr), qemu.WithStdout(io.MultiWriter(outw, os.Stdout)), qemu.WithStderr(io.Discard)); err != nil && !success.Load() {
+					if err := qemu.Run(ctx, out, qemu.WithStdin(inr), qemu.WithStdout(io.MultiWriter(outw, os.Stdout)), qemu.WithStderr(io.Discard), qemu.WithMemory(2048)); err != nil && !success.Load() {
 						t.Fatalf("failed to run qemu: %v", err)
 					}
 				})

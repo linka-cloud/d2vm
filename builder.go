@@ -150,10 +150,6 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		return nil, err
 	}
 	if luksPassword != "" {
-		// TODO(adphi): remove this check when we support luks encryption on other distros
-		if osRelease.ID == ReleaseCentOS {
-			return nil, fmt.Errorf("luks encryption is not supported on centos")
-		}
 		if !splitBoot {
 			return nil, fmt.Errorf("luks encryption requires split boot")
 		}
@@ -314,11 +310,7 @@ func (b *builder) mountImg(ctx context.Context) error {
 		return err
 	}
 	b.bootPart = fmt.Sprintf("/dev/mapper/%sp1", filepath.Base(b.loDevice))
-	if b.splitBoot {
-		b.rootPart = fmt.Sprintf("/dev/mapper/%sp2", filepath.Base(b.loDevice))
-	} else {
-		b.rootPart = b.bootPart
-	}
+	b.rootPart = ifElse(b.splitBoot, fmt.Sprintf("/dev/mapper/%sp2", filepath.Base(b.loDevice)), b.bootPart)
 	if b.isLuksEnabled() {
 		logrus.Infof("encrypting root partition")
 		f, err := os.CreateTemp("", "key")
@@ -408,7 +400,10 @@ func diskUUID(ctx context.Context, disk string) (string, error) {
 
 func (b *builder) setupRootFS(ctx context.Context) (err error) {
 	logrus.Infof("setting up rootfs")
-	b.rootUUID, err = diskUUID(ctx, b.rootPart)
+	b.rootUUID, err = diskUUID(ctx, ifElse(b.isLuksEnabled(), b.mappedCryptRoot, b.rootPart))
+	if err != nil {
+		return err
+	}
 	var fstab string
 	if b.splitBoot {
 		b.bootUUID, err = diskUUID(ctx, b.bootPart)
@@ -503,12 +498,15 @@ func (b *builder) installKernel(ctx context.Context) error {
 	}
 	var cfg string
 	if b.isLuksEnabled() {
-		if b.osRelease.ID != ReleaseAlpine {
-			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptopts=target=root,source=UUID=%s", b.cmdLineExtra, b.cryptUUID))
-			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "", 1)
-		} else {
+		switch b.osRelease.ID {
+		case ReleaseAlpine:
 			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptdm=root", b.cmdLineExtra))
 			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "cryptroot=UUID="+b.cryptUUID, 1)
+		case ReleaseCentOS:
+			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s rd.luks.name=UUID=%s rd.luks.uuid=%s rd.luks.crypttab=0", b.cmdLineExtra, b.rootUUID, b.cryptUUID))
+		default:
+			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptopts=target=root,source=UUID=%s", b.cmdLineExtra, b.cryptUUID))
+			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "", 1)
 		}
 	} else {
 		cfg = fmt.Sprintf(sysconfig, b.rootUUID, b.cmdLineExtra)
@@ -576,4 +574,11 @@ func checkDependencies() error {
 
 func OutputFormats() []string {
 	return formats[:]
+}
+
+func ifElse(v bool, t string, f string) string {
+	if v {
+		return t
+	}
+	return f
 }
