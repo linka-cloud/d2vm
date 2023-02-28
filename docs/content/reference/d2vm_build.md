@@ -15,6 +15,7 @@ d2vm build [context directory] [flags]
   -f, --file string                Name of the Dockerfile
       --force                      Override output qcow2 image
   -h, --help                       help for build
+      --keep-cache                 Keep the images after the build
       --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown
   -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")

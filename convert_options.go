@@ -28,6 +28,8 @@ type convertOptions struct {
 	bootSize  uint64
 
 	luksPassword string
+
+	keepCache bool
 }
 
 func WithSize(size uint64) ConvertOption {
@@ -81,5 +83,11 @@ func WithBootSize(bootSize uint64) ConvertOption {
 func WithLuksPassword(password string) ConvertOption {
 	return func(o *convertOptions) {
 		o.luksPassword = password
+	}
+}
+
+func WithKeepCache(b bool) ConvertOption {
+	return func(o *convertOptions) {
+		o.keepCache = b
 	}
 }

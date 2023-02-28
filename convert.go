@@ -65,13 +65,17 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 		if err := docker.Build(ctx, imgUUID, p, dir); err != nil {
 			return err
 		}
-		defer docker.Remove(ctx, imgUUID)
+		if !o.keepCache {
+			defer docker.Remove(ctx, imgUUID)
+		}
 	} else {
 		// for raw images, we just tag the image with the uuid
 		if err := docker.Tag(ctx, img, imgUUID); err != nil {
 			return err
 		}
-		defer docker.Remove(ctx, imgUUID)
+		if !o.keepCache {
+			defer docker.Remove(ctx, imgUUID)
+		}
 	}
 
 	logrus.Infof("creating vm image")
