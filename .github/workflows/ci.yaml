@@ -226,6 +226,7 @@ jobs:
     - tests
     - docs-up-to-date
     - build
+    - e2e-tests
 
     steps:
     - name: Checkout
@@ -274,6 +275,7 @@ jobs:
     - tests
     - docs-up-to-date
     - build-image
+    - e2e-tests
 
     steps:
     - name: Checkout
