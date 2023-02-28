@@ -505,7 +505,10 @@ func (b *builder) installKernel(ctx context.Context) error {
 		case ReleaseCentOS:
 			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s rd.luks.name=UUID=%s rd.luks.uuid=%s rd.luks.crypttab=0", b.cmdLineExtra, b.rootUUID, b.cryptUUID))
 		default:
-			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptopts=target=root,source=UUID=%s", b.cmdLineExtra, b.cryptUUID))
+			// for some versions of debian, the cryptopts parameter MUST contain all the following: target,srouce,key,opts...
+			// see https://salsa.debian.org/cryptsetup-team/cryptsetup/-/blob/debian/buster/debian/functions
+			// and https://cryptsetup-team.pages.debian.net/cryptsetup/README.initramfs.html
+			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptopts=target=root,source=UUID=%s,key=none,luks", b.cmdLineExtra, b.cryptUUID))
 			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "", 1)
 		}
 	} else {

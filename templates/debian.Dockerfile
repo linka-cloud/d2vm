@@ -4,9 +4,6 @@ USER root
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
-{{- if .Luks }}
-      cryptsetup-initramfs \
-{{- end }}
       linux-image-amd64
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -47,5 +44,6 @@ iface eth0 inet dhcp\n\
 
 
 {{- if .Luks }}
-RUN update-initramfs -u -v
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cryptsetup-initramfs && \
+     update-initramfs -u -v
 {{- end }}

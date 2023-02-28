@@ -6,9 +6,6 @@ RUN apt-get update -y && \
   DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
   linux-image-virtual \
   initramfs-tools \
-{{- if .Luks }}
-  cryptsetup-initramfs \
-{{- end }}
   systemd-sysv \
   systemd \
   dbus \
@@ -45,5 +42,6 @@ iface eth0 inet dhcp\n\
 {{ end }}
 
 {{- if .Luks }}
-RUN update-initramfs -u -v
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cryptsetup-initramfs && \
+     update-initramfs -u -v
 {{- end }}

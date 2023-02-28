@@ -45,7 +45,8 @@ type img struct {
 
 var images = []img{
 	{name: "alpine:3.17", luks: "Enter passphrase for /dev/sda2:"},
-	{name: "ubuntu:20.04", luks: "Please unlock disk root:"},
+	{name: "ubuntu:18.04", luks: "Please unlock disk root:"},
+	{name: "ubuntu:22.04", luks: "Please unlock disk root:"},
 	{name: "debian:11", luks: "Please unlock disk root:"},
 	{name: "centos:8", luks: "Please enter passphrase for disk"},
 }
@@ -68,7 +69,7 @@ func TestConvert(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// t.Parallel()
+
 			dir := filepath.Join("/tmp", "d2vm-e2e", tt.name)
 			require.NoError(os.MkdirAll(dir, os.ModePerm))
 
@@ -78,7 +79,6 @@ func TestConvert(t *testing.T) {
 					ctx, cancel := context.WithCancel(context.Background())
 					defer cancel()
 
-					// t.Parallel()
 					require := require2.New(t)
 
 					out := filepath.Join(dir, strings.NewReplacer(":", "-", ".", "-").Replace(img.name)+".qcow2")
@@ -86,7 +86,7 @@ func TestConvert(t *testing.T) {
 					if _, err := os.Stat(out); err == nil {
 						require.NoError(os.Remove(out))
 					}
-					
+
 					require.NoError(docker.RunD2VM(ctx, d2vm.Image, d2vm.Version, dir, dir, "convert", append([]string{"-p", "root", "-o", "/out/" + filepath.Base(out), "-v", "--keep-cache", img.name}, tt.args...)...))
 
 					inr, inw := io.Pipe()
