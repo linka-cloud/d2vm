@@ -92,6 +92,10 @@ func ImageList(ctx context.Context, tag string) ([]string, error) {
 	return imgs, s.Err()
 }
 
+func ImageSave(ctx context.Context, tag, file string) error {
+	return Cmd(ctx, "image", "save", "-o", file, tag)
+}
+
 func Pull(ctx context.Context, tag string) error {
 	return Cmd(ctx, "image", "pull", tag)
 }
