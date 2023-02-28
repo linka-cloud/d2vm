@@ -22,7 +22,7 @@ RUN yum install -y \
 
 {{ if .Luks }}
 RUN yum install -y cryptsetup && \
-    dracut --no-hostonly --regenerate-all --force --install="/usr/sbin/cryptsetup" && \
+    dracut --no-hostonly --regenerate-all --force --install="/usr/sbin/cryptsetup"
 {{ else }}
 RUN dracut --no-hostonly --regenerate-all --force
 {{ end }}
