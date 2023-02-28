@@ -134,7 +134,7 @@ RUN rm -rf /etc/apk
 	)
 	exec.SetDebug(true)
 	tmp := filepath.Join(os.TempDir(), "d2vm-tests", "image-flatten")
-	require.NoError(t, os.MkdirAll(tmp, perm))
+	require.NoError(t, os.MkdirAll(tmp, os.ModePerm))
 	defer os.RemoveAll(tmp)
 
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "hostname"), []byte("d2vm-flatten-test"), perm))

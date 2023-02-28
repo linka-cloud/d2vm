@@ -81,7 +81,7 @@ func (i DockerImage) AsRunScript(w io.Writer) error {
 }
 
 func NewImage(ctx context.Context, tag string, imageTmpPath string) (*image, error) {
-	if err := os.MkdirAll(imageTmpPath, perm); err != nil {
+	if err := os.MkdirAll(imageTmpPath, os.ModePerm); err != nil {
 		return nil, err
 	}
 	// save the image to a tar file to avoid loading it in memory
@@ -110,6 +110,9 @@ type image struct {
 }
 
 func (i image) Flatten(ctx context.Context, out string) error {
+	if err := os.MkdirAll(out, os.ModePerm); err != nil {
+		return err
+	}
 	tar := filepath.Join(i.dir, "img.tar")
 	f, err := os.Create(tar)
 	if err != nil {
