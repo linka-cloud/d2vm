@@ -24,11 +24,11 @@ import (
 	"text/template"
 
 	"github.com/google/go-containerregistry/cmd/crane/cmd"
-	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/google/go-containerregistry/pkg/crane"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
-	"github.com/google/go-containerregistry/pkg/v1/daemon"
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 
+	"go.linka.cloud/d2vm/pkg/docker"
 	"go.linka.cloud/d2vm/pkg/exec"
 )
 
@@ -81,15 +81,16 @@ func (i DockerImage) AsRunScript(w io.Writer) error {
 }
 
 func NewImage(ctx context.Context, tag string, imageTmpPath string) (*image, error) {
-	ref, err := name.ParseReference(tag)
-	if err != nil {
-		return nil, err
-	}
-	img, err := daemon.Image(ref)
-	if err != nil {
-		return nil, err
-	}
 	if err := os.MkdirAll(imageTmpPath, perm); err != nil {
+		return nil, err
+	}
+	// save the image to a tar file to avoid loading it in memory
+	tar := filepath.Join(imageTmpPath, "img.layers.tar")
+	if err := docker.ImageSave(ctx, tag, tar); err != nil {
+		return nil, err
+	}
+	img, err := crane.Load(tar)
+	if err != nil {
 		return nil, err
 	}
 	i := &image{
@@ -109,10 +110,6 @@ type image struct {
 }
 
 func (i image) Flatten(ctx context.Context, out string) error {
-	if err := os.MkdirAll(out, perm); err != nil {
-		return err
-	}
-
 	tar := filepath.Join(i.dir, "img.tar")
 	f, err := os.Create(tar)
 	if err != nil {
