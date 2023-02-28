@@ -59,6 +59,7 @@ Obviously, **Distroless** images are not supported.
 - tar
 - extlinux
 - qemu-utils
+- cryptsetup (when using LUKS)
 - [QEMU](https://www.qemu.org/download/#linux) (optional)
 - [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads) (optional)
 
@@ -157,6 +158,8 @@ Flags:
       --boot-size uint             Size of the boot partition in MB (default 100)
       --force                      Override output qcow2 image
   -h, --help                       help for convert
+      --keep-cache                 Keep the images after the build
+      --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown
   -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
   -p, --password string            Optional root user password
@@ -312,6 +315,8 @@ Flags:
   -f, --file string                Name of the Dockerfile
       --force                      Override output qcow2 image
   -h, --help                       help for build
+      --keep-cache                 Keep the images after the build
+      --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown
   -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
   -p, --password string            Optional root user password

@@ -102,6 +102,7 @@ var (
 				d2vm.WithSplitBoot(splitBoot),
 				d2vm.WithBootSize(bootSize),
 				d2vm.WithLuksPassword(luksPassword),
+				d2vm.WithKeepCache(keepCache),
 			); err != nil {
 				return err
 			}

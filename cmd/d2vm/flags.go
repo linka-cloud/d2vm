@@ -36,6 +36,8 @@ var (
 	splitBoot        bool
 	bootSize         uint64
 	luksPassword     string
+
+	keepCache bool
 )
 
 func buildFlags() *pflag.FlagSet {
@@ -52,5 +54,6 @@ func buildFlags() *pflag.FlagSet {
 	flags.BoolVar(&splitBoot, "split-boot", false, "Split the boot partition from the root partition")
 	flags.Uint64Var(&bootSize, "boot-size", 100, "Size of the boot partition in MB")
 	flags.StringVar(&luksPassword, "luks-password", "", "Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted")
+	flags.BoolVar(&keepCache, "keep-cache", false, "Keep the images after the build")
 	return flags
 }
