@@ -45,6 +45,11 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	if err != nil {
 		return err
 	}
+
+	if o.luksPassword != "" && !r.SupportsLUKS() {
+		return fmt.Errorf("luks is not supported for %s %s", r.Name, r.Version)
+	}
+
 	if !o.raw {
 		d, err := NewDockerfile(r, img, o.password, o.networkManager, o.luksPassword != "")
 		if err != nil {

@@ -8,3 +8,4 @@ dist
 images
 examples/build
 e2e
+**/*_test.go

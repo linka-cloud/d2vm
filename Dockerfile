@@ -38,7 +38,7 @@ RUN apt-get update && \
         mount \
         tar \
         extlinux \
-        cryptsetup \
+        cryptsetup-bin \
         qemu-utils && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
