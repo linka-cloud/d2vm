@@ -75,7 +75,9 @@ func main() {
 		fmt.Println()
 		cancel()
 	}()
-	rootCmd.ExecuteContext(ctx)
+	if err := rootCmd.ExecuteContext(ctx); err != nil {
+		logrus.Fatal(err)
+	}
 }
 
 func init() {
