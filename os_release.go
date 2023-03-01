@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -64,6 +65,31 @@ type OSRelease struct {
 	VersionID       string
 	Version         string
 	VersionCodeName string
+}
+
+func (r OSRelease) SupportsLUKS() bool {
+	switch r.ID {
+	case ReleaseUbuntu:
+		return r.VersionID >= "20.04"
+	case ReleaseDebian:
+		v, err := strconv.Atoi(r.VersionID)
+		if err != nil {
+			logrus.Warnf("%s: failed to parse version id: %v", r.Version, err)
+			return false
+		}
+		return v >= 10
+	case ReleaseKali:
+		// TODO: check version
+		return true
+	case ReleaseCentOS:
+		return true
+	case ReleaseAlpine:
+		return true
+	case ReleaseRHEL:
+		return false
+	default:
+		return false
+	}
 }
 
 func ParseOSRelease(s string) (OSRelease, error) {

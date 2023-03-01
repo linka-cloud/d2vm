@@ -45,8 +45,9 @@ type img struct {
 
 var images = []img{
 	{name: "alpine:3.17", luks: "Enter passphrase for /dev/sda2:"},
-	{name: "ubuntu:18.04", luks: "Please unlock disk root:"},
+	{name: "ubuntu:20.04", luks: "Please unlock disk root:"},
 	{name: "ubuntu:22.04", luks: "Please unlock disk root:"},
+	{name: "debian:10", luks: "Please unlock disk root:"},
 	{name: "debian:11", luks: "Please unlock disk root:"},
 	{name: "centos:8", luks: "Please enter passphrase for disk"},
 }

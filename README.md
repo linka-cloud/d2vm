@@ -29,7 +29,9 @@ or when running without *root* privileges.
 Working and tested:
 
 - [x] Ubuntu (18.04+)
+  Luks support is available only on Ubuntu 20.04+
 - [x] Debian (stretch+)
+  Luks support is available only on Debian buster+
 - [x] Alpine
 - [x] CentOS (8+)
 

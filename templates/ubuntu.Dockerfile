@@ -43,5 +43,5 @@ iface eth0 inet dhcp\n\
 
 {{- if .Luks }}
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cryptsetup-initramfs && \
-     update-initramfs -u -v
+    update-initramfs -u -v
 {{- end }}
