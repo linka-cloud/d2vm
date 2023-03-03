@@ -18,7 +18,7 @@ require (
 	github.com/svenwiltink/sparsecat v1.0.0
 	go.linka.cloud/console v0.0.0-20220910100646-48f9f2b8843b
 	go.uber.org/multierr v1.8.0
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/crypto v0.1.0
 	golang.org/x/sys v0.5.0
 )
 
