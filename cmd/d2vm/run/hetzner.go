@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -40,7 +41,8 @@ import (
 const (
 	hetznerTokenEnv = "HETZNER_TOKEN"
 	serverImg       = "ubuntu-20.04"
-	vmBlockPath     = "/dev/sda"
+	vmBlock         = "sda"
+	vmBlockPath     = "/dev/" + vmBlock
 	sparsecatPath   = "/usr/local/bin/sparsecat"
 )
 
@@ -268,13 +270,31 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 			return ctx.Err()
 		}
 	}
+	nses, err := sc.NewSession()
+	if err != nil {
+		return err
+	}
+	defer nses.Close()
+	// retrieve the partition number
+	cmd := fmt.Sprintf("ls %s*", vmBlockPath)
+	logrus.Debugf("$ %s", cmd)
+	b, err := nses.CombinedOutput(cmd)
+	if err != nil {
+		return fmt.Errorf("%v: %s", err, string(b))
+	}
+	logrus.Debugf(string(b))
+	parts := strings.Fields(strings.TrimSuffix(string(b), "\n"))
+	vmPartNumber, err := strconv.Atoi(strings.Replace(parts[len(parts)-1], vmBlockPath, "", 1))
+	if err != nil {
+		return err
+	}
 	gses, err := sc.NewSession()
 	if err != nil {
 		return err
 	}
 	defer gses.Close()
 	logrus.Infof("resizing disk partition")
-	cmd := fmt.Sprintf("growpart %s 1", vmBlockPath)
+	cmd = fmt.Sprintf("growpart %s %d", vmBlockPath, vmPartNumber)
 	logrus.Debugf("$ %s", cmd)
 	if b, err := gses.CombinedOutput(cmd); err != nil {
 		return fmt.Errorf("%v: %s", err, string(b))
@@ -287,7 +307,7 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	}
 	defer cses.Close()
 	logrus.Infof("checking disk partition")
-	cmd = fmt.Sprintf("e2fsck -yf %s1", vmBlockPath)
+	cmd = fmt.Sprintf("e2fsck -yf %s%d", vmBlockPath, vmPartNumber)
 	logrus.Debugf("$ %s", cmd)
 	if b, err := cses.CombinedOutput(cmd); err != nil {
 		return fmt.Errorf("%v: %s", err, string(b))
@@ -300,7 +320,7 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	}
 	defer eses.Close()
 	logrus.Infof("extending partition file system")
-	cmd = fmt.Sprintf("resize2fs %s1", vmBlockPath)
+	cmd = fmt.Sprintf("resize2fs %s%d", vmBlockPath, vmPartNumber)
 	logrus.Debugf("$ %s", cmd)
 	if b, err := eses.CombinedOutput(cmd); err != nil {
 		return fmt.Errorf("%v: %s", err, string(b))
