@@ -175,7 +175,7 @@ jobs:
 
   build-image:
     name: Build Docker Image
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -220,7 +220,7 @@ jobs:
 
   release:
     name: Release Binaries
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     if: startsWith(github.event.ref, 'refs/tags/v')
     needs:
     - tests
@@ -269,7 +269,7 @@ jobs:
 
   release-image:
     name: Release Docker Image
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     if: startsWith(github.event.ref, 'refs/tags/v')
     needs:
     - tests
