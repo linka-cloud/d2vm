@@ -87,7 +87,7 @@ install: docker-build
 
 .build:
 	@go generate ./...
-	@go build -o d2vm -ldflags "-s -w -X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./cmd/d2vm
+	@CGO_ENABLED=0 go build -o d2vm -ldflags "-s -w -X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./cmd/d2vm
 
 .PHONY: build-snapshot
 build-snapshot: bin
@@ -116,7 +116,7 @@ completions: .build
 .PHONY: examples
 examples: build-dev
 	@mkdir -p examples/build
-	@for f in $$(find examples -type f -name '*Dockerfile' -maxdepth 1); do \
+	@for f in $$(find examples -maxdepth 1 -type f -name '*Dockerfile'); do \
   		echo "Building $$f"; \
   		./d2vm build -o examples/build/$$(basename $$f|cut -d'.' -f1).qcow2 -p root -f $$f examples --force; \
 	  done

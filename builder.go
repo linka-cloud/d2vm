@@ -41,72 +41,10 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
 `
-	syslinuxCfgUbuntu = `DEFAULT linux
-  SAY Now booting the kernel from SYSLINUX...
- LABEL linux
-  KERNEL /boot/vmlinuz
-  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 %s
-`
-	syslinuxCfgDebian = `DEFAULT linux
-  SAY Now booting the kernel from SYSLINUX...
- LABEL linux
-  KERNEL /vmlinuz
-  APPEND ro root=UUID=%s initrd=/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 %s
-`
-	syslinuxCfgAlpine = `DEFAULT linux
-  SAY Now booting the kernel from SYSLINUX...
- LABEL linux
-  KERNEL /boot/vmlinuz-virt
-  APPEND ro root=UUID=%s rootfstype=ext4 initrd=/boot/initramfs-virt console=ttyS0,115200 %s
-`
-	syslinuxCfgCentOS = `DEFAULT linux
-  SAY Now booting the kernel from SYSLINUX...
- LABEL linux
-  KERNEL /boot/vmlinuz
-  APPEND ro root=UUID=%s initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8 %s
-`
-)
-
-var (
-	formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vmdk"}
-
-	mbrPaths = []string{
-		// debian path
-		"/usr/lib/syslinux/mbr/mbr.bin",
-		// ubuntu path
-		"/usr/lib/EXTLINUX/mbr.bin",
-		// alpine path
-		"/usr/share/syslinux/mbr.bin",
-		// centos path
-		"/usr/share/syslinux/mbr.bin",
-		// archlinux path
-		"/usr/lib/syslinux/bios/mbr.bin",
-	}
-)
-
-const (
 	perm os.FileMode = 0644
 )
 
-func sysconfig(osRelease OSRelease) (string, error) {
-	switch osRelease.ID {
-	case ReleaseUbuntu:
-		if osRelease.VersionID < "20.04" {
-			return syslinuxCfgDebian, nil
-		}
-		return syslinuxCfgUbuntu, nil
-	case ReleaseDebian:
-		return syslinuxCfgDebian, nil
-	case ReleaseKali:
-		return syslinuxCfgDebian, nil
-	case ReleaseAlpine:
-		return syslinuxCfgAlpine, nil
-	case ReleaseCentOS:
-		return syslinuxCfgCentOS, nil
-	default:
-		return "", fmt.Errorf("%s: distribution not supported", osRelease.ID)
-	}
-}
+var formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vmdk"}
 
 type Builder interface {
 	Build(ctx context.Context) (err error)
@@ -114,7 +52,9 @@ type Builder interface {
 }
 
 type builder struct {
-	osRelease OSRelease
+	osRelease  OSRelease
+	config     Config
+	bootloader Bootloader
 
 	src     string
 	img     *image
@@ -127,8 +67,6 @@ type builder struct {
 
 	splitBoot bool
 	bootSize  uint64
-
-	mbrPath string
 
 	loDevice        string
 	bootPart        string
@@ -145,7 +83,7 @@ type builder struct {
 	cmdLineExtra string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootSize uint64, luksPassword string) (Builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootSize uint64, luksPassword string, bootLoader string) (Builder, error) {
 	if err := checkDependencies(); err != nil {
 		return nil, err
 	}
@@ -176,16 +114,24 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		return nil, fmt.Errorf("boot partition size must be less than the disk size")
 	}
 
-	mbrBin := ""
-	for _, v := range mbrPaths {
-		if _, err := os.Stat(v); err == nil {
-			mbrBin = v
-			break
-		}
+	if bootLoader == "" {
+		bootLoader = "syslinux"
 	}
-	if mbrBin == "" {
-		return nil, fmt.Errorf("unable to find syslinux's mbr.bin path")
+
+	config, err := osRelease.Config()
+	if err != nil {
+		return nil, err
 	}
+
+	blp, err := BootloaderByName(bootLoader)
+	if err != nil {
+		return nil, err
+	}
+	bl, err := blp.New(config)
+	if err != nil {
+		return nil, err
+	}
+
 	if size == 0 {
 		size = 10 * uint64(datasize.GB)
 	}
@@ -207,12 +153,13 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	// }
 	b := &builder{
 		osRelease:    osRelease,
+		config:       config,
+		bootloader:   bl,
 		img:          img,
 		diskRaw:      filepath.Join(workdir, disk+".d2vm.raw"),
 		diskOut:      filepath.Join(workdir, disk+"."+format),
 		format:       f,
 		size:         size,
-		mbrPath:      mbrBin,
 		mntPoint:     filepath.Join(workdir, "/mnt"),
 		cmdLineExtra: cmdLineExtra,
 		splitBoot:    splitBoot,
@@ -257,9 +204,6 @@ func (b *builder) Build(ctx context.Context) (err error) {
 		return err
 	}
 	if err = b.unmountImg(ctx); err != nil {
-		return err
-	}
-	if err = b.setupMBR(ctx); err != nil {
 		return err
 	}
 	if err = b.convert2Img(ctx); err != nil {
@@ -490,45 +434,27 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 	}
 }
 
-func (b *builder) installKernel(ctx context.Context) error {
-	logrus.Infof("installing linux kernel")
-	if err := exec.Run(ctx, "extlinux", "--install", b.chPath("/boot")); err != nil {
-		return err
-	}
-	sysconfig, err := sysconfig(b.osRelease)
-	if err != nil {
-		return err
-	}
-	var cfg string
+func (b *builder) cmdline(_ context.Context) string {
 	if b.isLuksEnabled() {
 		switch b.osRelease.ID {
 		case ReleaseAlpine:
-			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptdm=root", b.cmdLineExtra))
-			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "cryptroot=UUID="+b.cryptUUID, 1)
+			return b.config.Cmdline(RootUUID(b.rootUUID), "root=/dev/mapper/root", "cryptdm=root", "cryptroot=UUID="+b.cryptUUID, b.cmdLineExtra)
 		case ReleaseCentOS:
-			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s rd.luks.name=UUID=%s rd.luks.uuid=%s rd.luks.crypttab=0", b.cmdLineExtra, b.rootUUID, b.cryptUUID))
+			return b.config.Cmdline(RootUUID(b.rootUUID), "rd.luks.name=UUID="+b.rootUUID+" rd.luks.uuid="+b.cryptUUID+" rd.luks.crypttab=0", b.cmdLineExtra)
 		default:
 			// for some versions of debian, the cryptopts parameter MUST contain all the following: target,source,key,opts...
 			// see https://salsa.debian.org/cryptsetup-team/cryptsetup/-/blob/debian/buster/debian/functions
 			// and https://cryptsetup-team.pages.debian.net/cryptsetup/README.initramfs.html
-			cfg = fmt.Sprintf(sysconfig, b.rootUUID, fmt.Sprintf("%s root=/dev/mapper/root cryptopts=target=root,source=UUID=%s,key=none,luks", b.cmdLineExtra, b.cryptUUID))
-			cfg = strings.Replace(cfg, "root=UUID="+b.rootUUID, "", 1)
+			return b.config.Cmdline(nil, "root=/dev/mapper/root", "cryptopts=target=root,source=UUID="+b.cryptUUID+",key=none,luks", b.cmdLineExtra)
 		}
 	} else {
-		cfg = fmt.Sprintf(sysconfig, b.rootUUID, b.cmdLineExtra)
+		return b.config.Cmdline(RootUUID(b.rootUUID), b.cmdLineExtra)
 	}
-	if err := b.chWriteFile("/boot/syslinux.cfg", cfg, perm); err != nil {
-		return err
-	}
-	return nil
 }
 
-func (b *builder) setupMBR(ctx context.Context) error {
-	logrus.Infof("writing MBR")
-	if err := exec.Run(ctx, "dd", fmt.Sprintf("if=%s", b.mbrPath), fmt.Sprintf("of=%s", b.diskRaw), "bs=440", "count=1", "conv=notrunc"); err != nil {
-		return err
-	}
-	return nil
+func (b *builder) installKernel(ctx context.Context) error {
+	logrus.Infof("installing linux kernel")
+	return b.bootloader.Setup(ctx, b.diskRaw, b.chPath("/boot"), b.cmdline(ctx))
 }
 
 func (b *builder) convert2Img(ctx context.Context) error {
