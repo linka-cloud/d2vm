@@ -2,6 +2,14 @@ FROM {{ .Image }}
 
 USER root
 
+{{- if eq .Release.VersionID "9" }}
+RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list && \
+    echo "deb-src http://archive.debian.org/debian stretch main" >> /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian stretch-backports main" >> /etc/apt/sources.list && \
+    echo "deb http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list && \
+    echo "deb-src http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list
+{{- end }}
+
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
       linux-image-amd64
