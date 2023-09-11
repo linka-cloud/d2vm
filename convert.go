@@ -51,7 +51,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	}
 
 	if !o.raw {
-		d, err := NewDockerfile(r, img, o.password, o.networkManager, o.luksPassword != "")
+		d, err := NewDockerfile(r, img, o.password, o.networkManager, o.luksPassword != "", o.bootLoader == "grub")
 		if err != nil {
 			return err
 		}
@@ -88,7 +88,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	if format == "" {
 		format = "raw"
 	}
-	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra, o.splitBoot, o.bootSize, o.luksPassword, "")
+	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra, o.splitBoot, o.bootSize, o.luksPassword, o.bootLoader)
 	if err != nil {
 		return err
 	}

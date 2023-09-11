@@ -66,6 +66,14 @@ func TestConvert(t *testing.T) {
 			name: "luks",
 			args: []string{"--luks-password=root"},
 		},
+		{
+			name: "grub",
+			args: []string{"--bootloader=grub"},
+		},
+		{
+			name: "grub-luks",
+			args: []string{"--bootloader=grub", "--luks-password=root"},
+		},
 	}
 
 	for _, tt := range tests {

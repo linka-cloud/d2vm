@@ -50,15 +50,16 @@ type syslinux struct {
 	mbrBin string
 }
 
-func (s syslinux) Setup(ctx context.Context, raw, path string, cmdline string) error {
-	if err := exec.Run(ctx, "extlinux", "--install", path); err != nil {
+func (s syslinux) Setup(ctx context.Context, dev, root string, cmdline string) error {
+	logrus.Infof("setting up syslinux bootloader")
+	if err := exec.Run(ctx, "extlinux", "--install", filepath.Join(root, "boot")); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(path, "syslinux.cfg"), []byte(fmt.Sprintf(syslinuxCfg, s.c.Kernel, cmdline)), perm); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "boot", "syslinux.cfg"), []byte(fmt.Sprintf(syslinuxCfg, s.c.Kernel, cmdline)), perm); err != nil {
 		return err
 	}
 	logrus.Infof("writing MBR")
-	if err := exec.Run(ctx, "dd", fmt.Sprintf("if=%s", s.mbrBin), fmt.Sprintf("of=%s", raw), "bs=440", "count=1", "conv=notrunc"); err != nil {
+	if err := exec.Run(ctx, "dd", fmt.Sprintf("if=%s", s.mbrBin), fmt.Sprintf("of=%s", dev), "bs=440", "count=1", "conv=notrunc"); err != nil {
 		return err
 	}
 	return nil
@@ -66,7 +67,7 @@ func (s syslinux) Setup(ctx context.Context, raw, path string, cmdline string) e
 
 type syslinuxProvider struct{}
 
-func (s syslinuxProvider) New(c Config) (Bootloader, error) {
+func (s syslinuxProvider) New(c Config, _ OSRelease) (Bootloader, error) {
 	mbrBin := ""
 	for _, v := range mbrPaths {
 		if _, err := os.Stat(v); err == nil {

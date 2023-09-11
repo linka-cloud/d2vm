@@ -36,3 +36,7 @@ RUN apk add --no-cache cryptsetup && \
     echo "features=\"${features} cryptsetup\"" > /etc/mkinitfs/mkinitfs.conf && \
     mkinitfs $(ls /lib/modules)
 {{- end }}
+
+{{- if .Grub }} \
+RUN apk add --no-cache grub grub-bios
+{{- end }}

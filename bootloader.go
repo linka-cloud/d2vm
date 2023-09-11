@@ -33,10 +33,10 @@ func BootloaderByName(name string) (BootloaderProvider, error) {
 }
 
 type BootloaderProvider interface {
-	New(c Config) (Bootloader, error)
+	New(c Config, r OSRelease) (Bootloader, error)
 	Name() string
 }
 
 type Bootloader interface {
-	Setup(ctx context.Context, raw, path, cmdline string) error
+	Setup(ctx context.Context, dev, root, cmdline string) error
 }

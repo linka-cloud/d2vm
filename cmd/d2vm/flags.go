@@ -33,6 +33,7 @@ var (
 	containerDiskTag = ""
 	push             bool
 	networkManager   string
+	bootloader       string
 	splitBoot        bool
 	bootSize         uint64
 	luksPassword     string
@@ -53,6 +54,7 @@ func buildFlags() *pflag.FlagSet {
 	flags.BoolVar(&push, "push", false, "Push the container disk image to the registry")
 	flags.BoolVar(&splitBoot, "split-boot", false, "Split the boot partition from the root partition")
 	flags.Uint64Var(&bootSize, "boot-size", 100, "Size of the boot partition in MB")
+	flags.StringVar(&bootloader, "bootloader", "syslinux", "Bootloader to use: syslinux, grub")
 	flags.StringVar(&luksPassword, "luks-password", "", "Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted")
 	flags.BoolVar(&keepCache, "keep-cache", false, "Keep the images after the build")
 	return flags

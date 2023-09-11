@@ -8,6 +8,9 @@ RUN apt-get update -y && \
   initramfs-tools \
   systemd-sysv \
   systemd \
+{{- if .Grub }}
+  grub2 \
+{{- end }}
   dbus \
   isc-dhcp-client \
   iproute2 \

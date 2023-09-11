@@ -38,6 +38,7 @@ RUN apt-get update && \
         mount \
         tar \
         extlinux \
+        grub2 \
         cryptsetup-bin \
         qemu-utils && \
     apt-get clean && \

@@ -38,7 +38,7 @@ func testConfig(t *testing.T, ctx context.Context, img string, config Config) {
 	r, err := FetchDockerImageOSRelease(ctx, img, tmpPath)
 	require.NoError(t, err)
 	defer docker.Remove(ctx, img)
-	d, err := NewDockerfile(r, img, "root", "", false)
+	d, err := NewDockerfile(r, img, "root", "", false, false)
 	require.NoError(t, err)
 	logrus.Infof("docker image based on %s", d.Release.Name)
 	p := filepath.Join(tmpPath, docker.FormatImgName(img))

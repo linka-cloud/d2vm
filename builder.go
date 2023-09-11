@@ -127,7 +127,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	if err != nil {
 		return nil, err
 	}
-	bl, err := blp.New(config)
+	bl, err := blp.New(config, osRelease)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (b *builder) Build(ctx context.Context) (err error) {
 	if err = b.setupRootFS(ctx); err != nil {
 		return err
 	}
-	if err = b.installKernel(ctx); err != nil {
+	if err = b.installBootloader(ctx); err != nil {
 		return err
 	}
 	if err = b.unmountImg(ctx); err != nil {
@@ -452,9 +452,9 @@ func (b *builder) cmdline(_ context.Context) string {
 	}
 }
 
-func (b *builder) installKernel(ctx context.Context) error {
-	logrus.Infof("installing linux kernel")
-	return b.bootloader.Setup(ctx, b.diskRaw, b.chPath("/boot"), b.cmdline(ctx))
+func (b *builder) installBootloader(ctx context.Context) error {
+	logrus.Infof("installing bootloader")
+	return b.bootloader.Setup(ctx, b.loDevice, b.mntPoint, b.cmdline(ctx))
 }
 
 func (b *builder) convert2Img(ctx context.Context) error {

@@ -11,6 +11,9 @@ RUN yum install -y \
     kernel \
     systemd \
     NetworkManager \
+{{- if .Grub }}
+    grub2 \
+{{- end }}
     e2fsprogs \
     sudo && \
     systemctl enable NetworkManager && \

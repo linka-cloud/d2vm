@@ -9,6 +9,9 @@ RUN apt-get -y update && \
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       systemd-sysv \
       systemd \
+    {{- if .Grub }}
+      grub2 \
+    {{- end }}
       dbus \
       iproute2 \
       isc-dhcp-client \

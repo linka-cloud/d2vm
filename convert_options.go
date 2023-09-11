@@ -22,6 +22,7 @@ type convertOptions struct {
 	output         string
 	cmdLineExtra   string
 	networkManager NetworkManager
+	bootLoader     string
 	raw            bool
 
 	splitBoot bool
@@ -59,6 +60,12 @@ func WithCmdLineExtra(cmdLineExtra string) ConvertOption {
 func WithNetworkManager(networkManager NetworkManager) ConvertOption {
 	return func(o *convertOptions) {
 		o.networkManager = networkManager
+	}
+}
+
+func WithBootLoader(bootLoader string) ConvertOption {
+	return func(o *convertOptions) {
+		o.bootLoader = bootLoader
 	}
 }
 
