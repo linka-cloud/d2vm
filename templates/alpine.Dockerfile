@@ -14,7 +14,8 @@ RUN apk update --no-cache && \
 {{- else }}
       busybox-initscripts \
 {{- end }}
-      openrc
+      openrc && \
+      find /boot -type l -exec rm {} \;
 
 RUN for s in bootmisc hostname hwclock modules networking swap sysctl urandom syslog; do rc-update add $s boot; done
 RUN for s in devfs dmesg hwdrivers mdev; do rc-update add $s sysinit; done

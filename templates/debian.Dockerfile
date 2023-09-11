@@ -12,7 +12,13 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
-      linux-image-amd64
+      linux-image-amd64 && \
+      find /boot -type l -exec rm {} \;
+
+{{- if not .Grub }}
+RUN mv $(find /boot -name 'vmlinuz-*') /boot/vmlinuz && \
+      mv $(find /boot -name 'initrd.img-*') /boot/initrd.img
+{{- end }}
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       systemd-sysv \

@@ -79,9 +79,8 @@ var (
 				}
 				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, in, out, cmd.Name(), os.Args[2:]...)
 			}
-			if luksPassword != "" && !splitBoot {
-				logrus.Warnf("luks password is set: enabling split boot")
-				splitBoot = true
+			if err := validateFlags(); err != nil {
+				return err
 			}
 			size, err := parseSize(size)
 			if err != nil {
@@ -89,14 +88,6 @@ var (
 			}
 			if file == "" {
 				file = filepath.Join(args[0], "Dockerfile")
-			}
-			if push && tag == "" {
-				return fmt.Errorf("tag is required when pushing container disk image")
-			}
-			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
-				if !force {
-					return fmt.Errorf("%s already exists", output)
-				}
 			}
 			logrus.Infof("building docker image from %s", file)
 			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
@@ -114,6 +105,7 @@ var (
 				d2vm.WithRaw(raw),
 				d2vm.WithSplitBoot(splitBoot),
 				d2vm.WithBootSize(bootSize),
+				d2vm.WithBootFS(d2vm.BootFS(bootFS)),
 				d2vm.WithLuksPassword(luksPassword),
 				d2vm.WithKeepCache(keepCache),
 			); err != nil {

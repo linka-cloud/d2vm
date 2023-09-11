@@ -35,6 +35,7 @@ RUN apt-get update && \
         parted \
         kpartx \
         e2fsprogs \
+        dosfstools \
         mount \
         tar \
         extlinux \

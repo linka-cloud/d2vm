@@ -18,10 +18,13 @@ RUN yum install -y \
     sudo && \
     systemctl enable NetworkManager && \
     systemctl unmask systemd-remount-fs.service && \
-    systemctl unmask getty.target && \
-    cd /boot && \
-    ln -s $(find . -name 'vmlinuz-*') vmlinuz && \
-    ln -s $(find . -name 'initramfs-*.img') initrd.img
+    systemctl unmask getty.target
+
+{{- if not .Grub }}
+RUN cd /boot && \
+        mv $(find . -name 'vmlinuz-*') /boot/vmlinuz && \
+        mv $(find . -name 'initramfs-*.img') /boot/initrd.img
+{{- end }}
 
 {{ if .Luks }}
 RUN yum install -y cryptsetup && \

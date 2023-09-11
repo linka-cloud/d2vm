@@ -14,7 +14,13 @@ RUN apt-get update -y && \
   dbus \
   isc-dhcp-client \
   iproute2 \
-  iputils-ping
+  iputils-ping && \
+  find /boot -type l -exec rm {} \;
+
+{{- if not .Grub }}
+RUN mv $(find /boot -name 'vmlinuz-*') /boot/vmlinuz && \
+      mv $(find /boot -name 'initrd.img-*') /boot/initrd.img
+{{- end }}
 
 RUN systemctl preset-all
 

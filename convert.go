@@ -88,7 +88,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	if format == "" {
 		format = "raw"
 	}
-	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra, o.splitBoot, o.bootSize, o.luksPassword, o.bootLoader)
+	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra, o.splitBoot, o.bootFS, o.bootSize, o.luksPassword, o.bootLoader)
 	if err != nil {
 		return err
 	}

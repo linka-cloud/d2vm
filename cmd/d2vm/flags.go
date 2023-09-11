@@ -15,8 +15,11 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 
 	"go.linka.cloud/d2vm"
@@ -36,10 +39,34 @@ var (
 	bootloader       string
 	splitBoot        bool
 	bootSize         uint64
+	bootFS           string
 	luksPassword     string
 
 	keepCache bool
 )
+
+func validateFlags() error {
+	if luksPassword != "" && !splitBoot {
+		logrus.Warnf("luks password is set: enabling split boot")
+		splitBoot = true
+	}
+	if bootFS := d2vm.BootFS(bootFS); bootFS != "" && !bootFS.IsSupported() {
+		return fmt.Errorf("invalid boot filesystem: %s", bootFS)
+	}
+	if bootFS != "" && !splitBoot {
+		logrus.Warnf("boot filesystem is set: enabling split boot")
+		splitBoot = true
+	}
+	if push && tag == "" {
+		return fmt.Errorf("tag is required when pushing container disk image")
+	}
+	if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
+		if !force {
+			return fmt.Errorf("%s already exists", output)
+		}
+	}
+	return nil
+}
 
 func buildFlags() *pflag.FlagSet {
 	flags := pflag.NewFlagSet("build", pflag.ExitOnError)
@@ -54,6 +81,7 @@ func buildFlags() *pflag.FlagSet {
 	flags.BoolVar(&push, "push", false, "Push the container disk image to the registry")
 	flags.BoolVar(&splitBoot, "split-boot", false, "Split the boot partition from the root partition")
 	flags.Uint64Var(&bootSize, "boot-size", 100, "Size of the boot partition in MB")
+	flags.StringVar(&bootFS, "boot-fs", "", "Filesystem to use for the boot partition, ext4 or fat32")
 	flags.StringVar(&bootloader, "bootloader", "syslinux", "Bootloader to use: syslinux, grub")
 	flags.StringVar(&luksPassword, "luks-password", "", "Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted")
 	flags.BoolVar(&keepCache, "keep-cache", false, "Keep the images after the build")

@@ -25,8 +25,8 @@ var (
 		Initrd: "/boot/initrd.img",
 	}
 	configDebian = Config{
-		Kernel: "/vmlinuz",
-		Initrd: "/initrd.img",
+		Kernel: "/boot/vmlinuz",
+		Initrd: "/boot/initrd.img",
 	}
 	configAlpine = Config{
 		Kernel: "/boot/vmlinuz-virt",

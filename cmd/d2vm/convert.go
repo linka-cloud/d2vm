@@ -15,11 +15,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/c2h5oh/datasize"
 	"github.com/sirupsen/logrus"
@@ -51,28 +49,14 @@ var (
 				}
 				return docker.RunD2VM(cmd.Context(), d2vm.Image, d2vm.Version, out, out, cmd.Name(), dargs...)
 			}
-			if luksPassword != "" && !splitBoot {
-				logrus.Warnf("luks password is set: enabling split boot")
-				splitBoot = true
+			if err := validateFlags(); err != nil {
+				return err
 			}
-			img := args[0]
-			tag := "latest"
-			if parts := strings.Split(img, ":"); len(parts) > 1 {
-				img, tag = parts[0], parts[1]
-			}
-			img = fmt.Sprintf("%s:%s", img, tag)
 			size, err := parseSize(size)
 			if err != nil {
 				return err
 			}
-			if push && tag == "" {
-				return fmt.Errorf("tag is required when pushing container disk image")
-			}
-			if _, err := os.Stat(output); err == nil || !os.IsNotExist(err) {
-				if !force {
-					return fmt.Errorf("%s already exists", output)
-				}
-			}
+			img := args[0]
 			found := false
 			if !pull {
 				imgs, err := docker.ImageList(cmd.Context(), img)
@@ -102,6 +86,7 @@ var (
 				d2vm.WithRaw(raw),
 				d2vm.WithSplitBoot(splitBoot),
 				d2vm.WithBootSize(bootSize),
+				d2vm.WithBootFS(d2vm.BootFS(bootFS)),
 				d2vm.WithLuksPassword(luksPassword),
 				d2vm.WithKeepCache(keepCache),
 			); err != nil {

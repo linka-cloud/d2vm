@@ -27,6 +27,7 @@ type convertOptions struct {
 
 	splitBoot bool
 	bootSize  uint64
+	bootFS    BootFS
 
 	luksPassword string
 
@@ -84,6 +85,12 @@ func WithSplitBoot(b bool) ConvertOption {
 func WithBootSize(bootSize uint64) ConvertOption {
 	return func(o *convertOptions) {
 		o.bootSize = bootSize
+	}
+}
+
+func WithBootFS(bootFS BootFS) ConvertOption {
+	return func(o *convertOptions) {
+		o.bootFS = bootFS
 	}
 }
 
