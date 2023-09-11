@@ -57,9 +57,11 @@ Obviously, **Distroless** images are not supported.
 - udev
 - parted
 - e2fsprogs
+- dosfstools (when using fat32)
 - mount
 - tar
-- extlinux
+- extlinux (when using syslinux)
+- grub2 (when using grub)
 - qemu-utils
 - cryptsetup (when using LUKS)
 - [QEMU](https://www.qemu.org/download/#linux) (optional)
@@ -157,6 +159,7 @@ Usage:
 
 Flags:
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
       --bootloader string          Bootloader to use: syslinux, grub (default "syslinux")
       --force                      Override output qcow2 image
@@ -313,6 +316,7 @@ Usage:
 
 Flags:
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
       --bootloader string          Bootloader to use: syslinux, grub (default "syslinux")
       --build-arg stringArray      Set build-time variables
