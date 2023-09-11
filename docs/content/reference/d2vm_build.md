@@ -11,6 +11,7 @@ d2vm build [context directory] [flags]
 ```
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
       --boot-size uint             Size of the boot partition in MB (default 100)
+      --bootloader string          Bootloader to use: syslinux, grub (default "syslinux")
       --build-arg stringArray      Set build-time variables
   -f, --file string                Name of the Dockerfile
       --force                      Override output qcow2 image
