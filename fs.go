@@ -21,8 +21,8 @@ import (
 type BootFS string
 
 const (
-	FSExt4  BootFS = "ext4"
-	FSFat32 BootFS = "fat32"
+	BootFSExt4  BootFS = "ext4"
+	BootFSFat32 BootFS = "fat32"
 )
 
 func (f BootFS) String() string {
@@ -30,11 +30,11 @@ func (f BootFS) String() string {
 }
 
 func (f BootFS) IsExt() bool {
-	return f == FSExt4
+	return f == BootFSExt4
 }
 
 func (f BootFS) IsFat() bool {
-	return f == FSFat32
+	return f == BootFSFat32
 }
 
 func (f BootFS) IsSupported() bool {
@@ -50,7 +50,7 @@ func (f BootFS) Validate() error {
 
 func (f BootFS) linux() string {
 	switch f {
-	case FSFat32:
+	case BootFSFat32:
 		return "vfat"
 	default:
 		return "ext4"

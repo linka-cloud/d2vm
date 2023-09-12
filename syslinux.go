@@ -50,6 +50,10 @@ type syslinux struct {
 	mbrBin string
 }
 
+func (s syslinux) Validate(_ BootFS) error {
+	return nil
+}
+
 func (s syslinux) Setup(ctx context.Context, dev, root string, cmdline string) error {
 	logrus.Infof("setting up syslinux bootloader")
 	if err := exec.Run(ctx, "extlinux", "--install", filepath.Join(root, "boot")); err != nil {

@@ -10,21 +10,23 @@ RUN echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.
     echo "deb-src http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list
 {{- end }}
 
-RUN apt-get -y update && \
+RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
       linux-image-amd64 && \
       find /boot -type l -exec rm {} \;
-
-{{- if not .Grub }}
-RUN mv $(find /boot -name 'vmlinuz-*') /boot/vmlinuz && \
-      mv $(find /boot -name 'initrd.img-*') /boot/initrd.img
-{{- end }}
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       systemd-sysv \
       systemd \
     {{- if .Grub }}
-      grub2 \
+      grub-common \
+      grub2-common \
+    {{- end }}
+    {{- if .GrubBIOS }}
+      grub-pc-bin \
+    {{- end }}
+    {{- if .GrubEFI }}
+      grub-efi-amd64-bin \
     {{- end }}
       dbus \
       iproute2 \
@@ -64,4 +66,10 @@ iface eth0 inet dhcp\n\
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cryptsetup-initramfs && \
     echo "CRYPTSETUP=y" >> /etc/cryptsetup-initramfs/conf-hook && \
     update-initramfs -u -v
+{{- end }}
+
+# needs to be after update-initramfs
+{{- if not .Grub }}
+RUN mv $(find /boot -name 'vmlinuz-*') /boot/vmlinuz && \
+      mv $(find /boot -name 'initrd.img-*') /boot/initrd.img
 {{- end }}

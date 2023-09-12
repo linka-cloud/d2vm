@@ -45,9 +45,17 @@ jobs:
     - name: Run tests
       run: git --no-pager diff --exit-code HEAD~1 HEAD **/**.go templates/ || make tests
 
-  e2e-tests:
-    name: End to end Tests
+  templates-tests:
+    name: Test Templates
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+        - ubuntu
+        - debian
+        - kalilinux
+        - alpine
+        - centos
 
     steps:
     - name: Checkout
@@ -76,12 +84,59 @@ jobs:
         path: |
           ~/go/pkg/mod
           /tmp/.buildx-cache
+        key: ${{ runner.os }}-tests-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-tests-
+
+    - name: Run tests
+      run: git --no-pager diff --exit-code HEAD~1 HEAD **/**.go templates/ || IMAGE=${{ matrix.image }} make test-templates
+
+
+  e2e-tests:
+    name: End to end Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+        - alpine:3.17
+        - ubuntu:20.04
+        - ubuntu:22.04
+        - debian:10
+        - debian:11
+        - centos:8
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        # fetching all tags is required for the Makefile to compute the right version
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: "1.20"
+
+    - name: Set up QEMU dependency
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Setup dependencies
+      run: sudo apt update && sudo apt install -y util-linux udev parted e2fsprogs mount tar extlinux qemu-utils qemu-system ovmf
+
+    - name: Share cache with other actions
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/go/pkg/mod
+          /tmp/.buildx-cache
         key: ${{ runner.os }}-e2e-tests-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-tests-
 
     - name: Run end-to-end tests
-      run: make e2e
+      run: E2E_IMAGES=${{ matrix.image }} make e2e
 
   docs-up-to-date:
     name: Docs up to date
@@ -224,6 +279,7 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags/v')
     needs:
     - tests
+    - templates-tests
     - docs-up-to-date
     - build
     - e2e-tests

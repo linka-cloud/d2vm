@@ -41,7 +41,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	defer os.RemoveAll(tmpPath)
 
 	logrus.Infof("inspecting image %s", img)
-	r, err := FetchDockerImageOSRelease(ctx, img, tmpPath)
+	r, err := FetchDockerImageOSRelease(ctx, img)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	}
 
 	if !o.raw {
-		d, err := NewDockerfile(r, img, o.password, o.networkManager, o.luksPassword != "", o.bootLoader == "grub")
+		d, err := NewDockerfile(r, img, o.password, o.networkManager, o.luksPassword != "", o.hasGrubBIOS(), o.hasGrubEFI())
 		if err != nil {
 			return err
 		}

@@ -16,12 +16,8 @@ package d2vm
 
 import (
 	"context"
-	"fmt"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -107,40 +103,8 @@ func ParseOSRelease(s string) (OSRelease, error) {
 	return o, nil
 }
 
-const (
-	osReleaseDockerfile = `
-FROM {{ . }}
-
-ENTRYPOINT [""]
-
-CMD ["/bin/cat", "/etc/os-release"]
-`
-)
-
-var (
-	osReleaseDockerfileTemplate = template.Must(template.New("osrelease.Dockerfile").Parse(osReleaseDockerfile))
-)
-
-func FetchDockerImageOSRelease(ctx context.Context, img string, tmpPath string) (OSRelease, error) {
-	d := filepath.Join(tmpPath, "osrelease.Dockerfile")
-	f, err := os.Create(d)
-	if err != nil {
-		return OSRelease{}, err
-	}
-	defer f.Close()
-	if err := osReleaseDockerfileTemplate.Execute(f, img); err != nil {
-		return OSRelease{}, err
-	}
-	imgTag := fmt.Sprintf("os-release-%s", img)
-	if err := docker.Cmd(ctx, "image", "build", "-t", imgTag, "-f", d, tmpPath); err != nil {
-		return OSRelease{}, err
-	}
-	defer func() {
-		if err := docker.Cmd(ctx, "image", "rm", imgTag); err != nil {
-			logrus.WithError(err).Error("failed to cleanup OSRelease Docker Image")
-		}
-	}()
-	o, _, err := docker.CmdOut(ctx, "run", "--rm", "-i", imgTag)
+func FetchDockerImageOSRelease(ctx context.Context, img string) (OSRelease, error) {
+	o, _, err := docker.CmdOut(ctx, "run", "--rm", "-i", "--entrypoint", "cat", img, "/etc/os-release")
 	if err != nil {
 		return OSRelease{}, err
 	}

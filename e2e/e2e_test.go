@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"flag"
 	"io"
 	"os"
 	"path/filepath"
@@ -36,6 +37,7 @@ import (
 type test struct {
 	name string
 	args []string
+	efi  bool
 }
 
 type img struct {
@@ -43,14 +45,24 @@ type img struct {
 	luks string
 }
 
-var images = []img{
-	{name: "alpine:3.17", luks: "Enter passphrase for /dev/sda2:"},
-	{name: "ubuntu:20.04", luks: "Please unlock disk root:"},
-	{name: "ubuntu:22.04", luks: "Please unlock disk root:"},
-	{name: "debian:10", luks: "Please unlock disk root:"},
-	{name: "debian:11", luks: "Please unlock disk root:"},
-	{name: "centos:8", luks: "Please enter passphrase for disk"},
-}
+var (
+	images = []img{
+		{name: "alpine:3.17", luks: "Enter passphrase for /dev/sda2:"},
+		{name: "ubuntu:20.04", luks: "Please unlock disk root:"},
+		{name: "ubuntu:22.04", luks: "Please unlock disk root:"},
+		{name: "debian:10", luks: "Please unlock disk root:"},
+		{name: "debian:11", luks: "Please unlock disk root:"},
+		{name: "centos:8", luks: "Please enter passphrase for disk"},
+	}
+	imgNames = func() []string {
+		var imgs []string
+		for _, img := range images {
+			imgs = append(imgs, img.name)
+		}
+		return imgs
+	}()
+	imgs = flag.String("images", "", "comma separated list of images to test, must be one of: "+strings.Join(imgNames, ","))
+)
 
 func TestConvert(t *testing.T) {
 	require := require2.New(t)
@@ -63,17 +75,38 @@ func TestConvert(t *testing.T) {
 			args: []string{"--split-boot"},
 		},
 		{
+			name: "fat32",
+			args: []string{"--split-boot", "--boot-fs=fat32"},
+		},
+		{
 			name: "luks",
 			args: []string{"--luks-password=root"},
 		},
 		{
 			name: "grub",
 			args: []string{"--bootloader=grub"},
+			efi:  true,
 		},
 		{
 			name: "grub-luks",
 			args: []string{"--bootloader=grub", "--luks-password=root"},
+			efi:  true,
 		},
+	}
+
+	var testImgs []img
+imgs:
+	for _, v := range strings.Split(*imgs, ",") {
+		for _, img := range images {
+			if img.name == v {
+				testImgs = append(testImgs, img)
+				continue imgs
+			}
+		}
+		t.Fatalf("invalid image: %q, valid images: %s", v, strings.Join(imgNames, ","))
+	}
+	if len(testImgs) == 0 {
+		testImgs = images
 	}
 
 	for _, tt := range tests {
@@ -83,7 +116,7 @@ func TestConvert(t *testing.T) {
 			require.NoError(os.MkdirAll(dir, os.ModePerm))
 
 			defer os.RemoveAll(dir)
-			for _, img := range images {
+			for _, img := range testImgs {
 				t.Run(img.name, func(t *testing.T) {
 					ctx, cancel := context.WithCancel(context.Background())
 					defer cancel()
@@ -161,7 +194,11 @@ func TestConvert(t *testing.T) {
 							cancel()
 						}
 					}()
-					if err := qemu.Run(ctx, out, qemu.WithStdin(inr), qemu.WithStdout(io.MultiWriter(outw, os.Stdout)), qemu.WithStderr(io.Discard), qemu.WithMemory(2048)); err != nil && !success.Load() {
+					opts := []qemu.Option{qemu.WithStdin(inr), qemu.WithStdout(io.MultiWriter(outw, os.Stdout)), qemu.WithStderr(io.Discard), qemu.WithMemory(2048), qemu.WithCPUs(2)}
+					if tt.efi {
+						opts = append(opts, qemu.WithBios("/usr/share/ovmf/OVMF.fd"))
+					}
+					if err := qemu.Run(ctx, out, opts...); err != nil && !success.Load() {
 						t.Fatalf("failed to run qemu: %v", err)
 					}
 				})

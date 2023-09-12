@@ -12,7 +12,7 @@ d2vm convert [docker image] [flags]
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
       --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
-      --bootloader string          Bootloader to use: syslinux, grub (default "syslinux")
+      --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi (default "syslinux")
       --force                      Override output qcow2 image
   -h, --help                       help for convert
       --keep-cache                 Keep the images after the build

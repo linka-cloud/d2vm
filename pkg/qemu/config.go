@@ -44,6 +44,7 @@ type config struct {
 	arch           string
 	cpus           uint
 	memory         uint
+	bios           string
 	accel          string
 	detached       bool
 	qemuBinPath    string
@@ -89,6 +90,12 @@ func WithCPUs(cpus uint) Option {
 func WithMemory(memory uint) Option {
 	return func(c *config) {
 		c.memory = memory
+	}
+}
+
+func WithBios(bios string) Option {
+	return func(c *config) {
+		c.bios = bios
 	}
 }
 

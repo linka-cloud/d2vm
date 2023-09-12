@@ -197,6 +197,10 @@ func (c *config) buildQemuCmdline() ([]string, error) {
 	qemuArgs = append(qemuArgs, "-m", fmt.Sprintf("%d", c.memory))
 	qemuArgs = append(qemuArgs, "-uuid", c.uuid.String())
 
+	if c.bios != "" {
+		qemuArgs = append(qemuArgs, "-bios", c.bios)
+	}
+
 	// Need to specify the vcpu type when running qemu on arm64 platform, for security reason,
 	// the vcpu should be "host" instead of other names such as "cortex-a53"...
 	if c.arch == "aarch64" {

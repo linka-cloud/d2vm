@@ -130,7 +130,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	}
 
 	if bootFS == "" {
-		bootFS = FSExt4
+		bootFS = BootFSExt4
 	}
 
 	if err := bootFS.Validate(); err != nil {
@@ -143,6 +143,10 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	}
 	bl, err := blp.New(config, osRelease)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := bl.Validate(bootFS); err != nil {
 		return nil, err
 	}
 

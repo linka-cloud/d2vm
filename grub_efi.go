@@ -21,21 +21,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type grub struct {
+type grubEFI struct {
 	*grubCommon
 }
 
-func (g grub) Validate(fs BootFS) error {
+func (g grubEFI) Validate(fs BootFS) error {
 	switch fs {
 	case BootFSFat32:
 		return nil
 	default:
-		return fmt.Errorf("grub only supports fat32 boot filesystem due to grub-efi")
+		return fmt.Errorf("grub-efi only supports fat32 boot filesystem")
 	}
 }
 
-func (g grub) Setup(ctx context.Context, dev, root string, cmdline string) error {
-	logrus.Infof("setting up grub bootloader")
+func (g grubEFI) Setup(ctx context.Context, dev, root string, cmdline string) error {
+	logrus.Infof("setting up grub-efi bootloader")
 	clean, err := g.prepare(ctx, dev, root, cmdline)
 	if err != nil {
 		return err
@@ -44,27 +44,24 @@ func (g grub) Setup(ctx context.Context, dev, root string, cmdline string) error
 	if err := g.install(ctx, "--target=x86_64-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy"); err != nil {
 		return err
 	}
-	if err := g.install(ctx, "--target=i386-pc", "--boot-directory=/boot", dev); err != nil {
-		return err
-	}
 	if err := g.mkconfig(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-type grubProvider struct {
+type grubEFIProvider struct {
 	config Config
 }
 
-func (g grubProvider) New(c Config, r OSRelease) (Bootloader, error) {
-	return grub{grubCommon: newGrubCommon(c, r)}, nil
+func (g grubEFIProvider) New(c Config, r OSRelease) (Bootloader, error) {
+	return grubEFI{grubCommon: newGrubCommon(c, r)}, nil
 }
 
-func (g grubProvider) Name() string {
-	return "grub"
+func (g grubEFIProvider) Name() string {
+	return "grub-efi"
 }
 
 func init() {
-	RegisterBootloaderProvider(grubProvider{})
+	RegisterBootloaderProvider(grubEFIProvider{})
 }

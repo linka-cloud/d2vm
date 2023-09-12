@@ -7,24 +7,23 @@ RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
 
 RUN yum update -y
 
+# See https://bugzilla.redhat.com/show_bug.cgi?id=1917213
 RUN yum install -y \
     kernel \
     systemd \
     NetworkManager \
-{{- if .Grub }}
+{{- if .GrubBIOS }}
     grub2 \
+{{- end }}
+{{- if .GrubEFI }}
+    grub2 grub2-efi-x64 grub2-efi-x64-modules \
 {{- end }}
     e2fsprogs \
     sudo && \
     systemctl enable NetworkManager && \
     systemctl unmask systemd-remount-fs.service && \
-    systemctl unmask getty.target
-
-{{- if not .Grub }}
-RUN cd /boot && \
-        mv $(find . -name 'vmlinuz-*') /boot/vmlinuz && \
-        mv $(find . -name 'initramfs-*.img') /boot/initrd.img
-{{- end }}
+    systemctl unmask getty.target && \
+    find /boot -type l -exec rm {} \;
 
 {{ if .Luks }}
 RUN yum install -y cryptsetup && \
@@ -34,3 +33,9 @@ RUN dracut --no-hostonly --regenerate-all --force
 {{ end }}
 
 {{ if .Password }}RUN echo "root:{{ .Password }}" | chpasswd {{ end }}
+
+{{- if not .Grub }}
+RUN cd /boot && \
+        mv $(find . -name 'vmlinuz-*') /boot/vmlinuz && \
+        mv $(find . -name 'initramfs-*.img') /boot/initrd.img
+{{- end }}

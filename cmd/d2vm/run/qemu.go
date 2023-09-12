@@ -28,6 +28,7 @@ var (
 	arch         string
 	cpus         uint
 	mem          uint
+	bios         string
 	qemuCmd      string
 	qemuDetached bool
 	networking   string
@@ -71,6 +72,8 @@ func init() {
 	flags.UintVar(&cpus, "cpus", 1, "Number of CPUs")
 	flags.UintVar(&mem, "mem", 1024, "Amount of memory in MB")
 
+	flags.StringVar(&bios, "bios", "", "Path to the optional bios binary")
+
 	// Backend configuration
 	flags.StringVar(&qemuCmd, "qemu", "", "Path to the qemu binary (otherwise look in $PATH)")
 	flags.BoolVar(&qemuDetached, "detached", false, "Set qemu container to run in the background")
@@ -105,6 +108,7 @@ func Qemu(cmd *cobra.Command, args []string) {
 		qemu.WithStdin(os.Stdin),
 		qemu.WithStdout(os.Stdout),
 		qemu.WithStderr(os.Stderr),
+		qemu.WithBios(bios),
 	}
 	if enableGUI {
 		opts = append(opts, qemu.WithGUI())

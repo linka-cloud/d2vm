@@ -2,8 +2,7 @@ FROM {{ .Image }}
 
 USER root
 
-RUN apk update --no-cache && \
-    apk add \
+RUN apk add --no-cache \
       util-linux \
       linux-virt \
 {{- if ge .Release.VersionID "3.17" }}
@@ -31,13 +30,21 @@ iface eth0 inet dhcp\n\
 ' > /etc/network/interfaces
 {{ end }}
 
-{{- if .Luks }}
+{{ if .Luks }}
 RUN apk add --no-cache cryptsetup && \
     source /etc/mkinitfs/mkinitfs.conf && \
     echo "features=\"${features} cryptsetup\"" > /etc/mkinitfs/mkinitfs.conf && \
     mkinitfs $(ls /lib/modules)
 {{- end }}
 
-{{- if .Grub }} \
-RUN apk add --no-cache grub grub-bios
+# we need to keep that at the end, because after it, we can't install packages without error anymore due to grub hooks
+{{- if .Grub }}
+RUN apk add --no-cache  \
+{{- if .GrubBIOS }}
+    grub-bios \
+{{- end }}
+{{- if .GrubEFI }}
+    grub-efi \
+{{- end }}
+    grub
 {{- end }}

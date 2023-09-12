@@ -64,10 +64,15 @@ docker-run:
 .PHONY: tests
 tests:
 	@go generate ./...
-	@go list .| xargs go test -exec sudo -count=1 -timeout 20m -v
+	@go list .| xargs go test -exec sudo -count=1 -timeout 60m -v -skip TestConfig
+
+.PHONY: test-templates
+test-templates:
+	@go generate ./...
+	@go test -exec sudo -count=1 -timeout 60m -v -run TestConfig/$(IMAGE)
 
 e2e: docker-build .build
-	@go test -v -exec sudo -count=1 -timeout 60m -ldflags "-X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./e2e
+	@go test -v -exec sudo -count=1 -timeout 60m -ldflags "-X '$(MODULE).Version=$(VERSION)' -X '$(MODULE).BuildDate=$(shell date)'" ./e2e -args -images $(E2E_IMAGES)
 
 docs-up-to-date:
 	@$(MAKE) cli-docs

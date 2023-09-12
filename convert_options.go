@@ -34,6 +34,14 @@ type convertOptions struct {
 	keepCache bool
 }
 
+func (o *convertOptions) hasGrubBIOS() bool {
+	return o.bootLoader == "grub" || o.bootLoader == "grub-bios"
+}
+
+func (o *convertOptions) hasGrubEFI() bool {
+	return o.bootLoader == "grub" || o.bootLoader == "grub-efi"
+}
+
 func WithSize(size uint64) ConvertOption {
 	return func(o *convertOptions) {
 		o.size = size

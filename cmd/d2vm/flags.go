@@ -57,6 +57,18 @@ func validateFlags() error {
 		logrus.Warnf("boot filesystem is set: enabling split boot")
 		splitBoot = true
 	}
+	efi := bootloader == "grub-efi" || bootloader == "grub"
+	if efi && !splitBoot {
+		logrus.Warnf("grub-efi bootloader is set: enabling split boot")
+		splitBoot = true
+	}
+	if efi && bootFS != "" && bootFS != "fat32" {
+		return fmt.Errorf("grub-efi bootloader only supports fat32 boot filesystem")
+	}
+	if efi && bootFS == "" {
+		logrus.Warnf("grub-efi bootloader is set: enabling fat32 boot filesystem")
+		bootFS = "fat32"
+	}
 	if push && tag == "" {
 		return fmt.Errorf("tag is required when pushing container disk image")
 	}
@@ -82,7 +94,7 @@ func buildFlags() *pflag.FlagSet {
 	flags.BoolVar(&splitBoot, "split-boot", false, "Split the boot partition from the root partition")
 	flags.Uint64Var(&bootSize, "boot-size", 100, "Size of the boot partition in MB")
 	flags.StringVar(&bootFS, "boot-fs", "", "Filesystem to use for the boot partition, ext4 or fat32")
-	flags.StringVar(&bootloader, "bootloader", "syslinux", "Bootloader to use: syslinux, grub")
+	flags.StringVar(&bootloader, "bootloader", "syslinux", "Bootloader to use: syslinux, grub, grub-bios, grub-efi")
 	flags.StringVar(&luksPassword, "luks-password", "", "Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted")
 	flags.BoolVar(&keepCache, "keep-cache", false, "Keep the images after the build")
 	return flags
