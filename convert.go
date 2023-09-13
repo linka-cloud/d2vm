@@ -67,7 +67,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 			return err
 		}
 		logrus.Infof("building kernel enabled image")
-		if err := docker.Build(ctx, imgUUID, p, dir); err != nil {
+		if err := docker.Build(ctx, o.pull, imgUUID, p, dir, o.platform); err != nil {
 			return err
 		}
 		if !o.keepCache {
@@ -88,7 +88,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	if format == "" {
 		format = "raw"
 	}
-	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra, o.splitBoot, o.bootFS, o.bootSize, o.luksPassword, o.bootLoader)
+	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra, o.splitBoot, o.bootFS, o.bootSize, o.luksPassword, o.bootLoader, o.platform)
 	if err != nil {
 		return err
 	}

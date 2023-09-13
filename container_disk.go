@@ -36,7 +36,7 @@ ADD --chown=%[1]d:%[1]d %[2]s /disk/
 `
 )
 
-func MakeContainerDisk(ctx context.Context, path string, tag string) error {
+func MakeContainerDisk(ctx context.Context, path string, tag string, platform string) error {
 	tmpPath := filepath.Join(os.TempDir(), "d2vm", uuid.New().String())
 	if err := os.MkdirAll(tmpPath, os.ModePerm); err != nil {
 		return err
@@ -60,7 +60,7 @@ func MakeContainerDisk(ctx context.Context, path string, tag string) error {
 	if err := os.WriteFile(dockerfile, []byte(dockerfileContent), os.ModePerm); err != nil {
 		return fmt.Errorf("failed to write dockerfile: %w", err)
 	}
-	if err := docker.Build(ctx, tag, dockerfile, tmpPath); err != nil {
+	if err := docker.Build(ctx, false, tag, dockerfile, tmpPath, platform); err != nil {
 		return fmt.Errorf("failed to build container disk: %w", err)
 	}
 	return nil

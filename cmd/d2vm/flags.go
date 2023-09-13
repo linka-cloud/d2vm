@@ -43,9 +43,26 @@ var (
 	luksPassword     string
 
 	keepCache bool
+	platform  string
 )
 
 func validateFlags() error {
+	switch platform {
+	case "linux/amd64":
+		if bootloader == "" {
+			bootloader = "syslinux"
+		}
+	case "linux/arm64", "linux/aarch64":
+		platform = "linux/arm64"
+		if bootloader == "" {
+			bootloader = "grub-efi"
+		}
+		if bootloader != "grub-efi" {
+			return fmt.Errorf("unsupported bootloader for platform %s: %s, only grub-efi is supported", platform, bootloader)
+		}
+	default:
+		return fmt.Errorf("unexpected platform: %s, supported platforms: linux/amd64, linux/arm64", platform)
+	}
 	if luksPassword != "" && !splitBoot {
 		logrus.Warnf("luks password is set: enabling split boot")
 		splitBoot = true
@@ -94,8 +111,10 @@ func buildFlags() *pflag.FlagSet {
 	flags.BoolVar(&splitBoot, "split-boot", false, "Split the boot partition from the root partition")
 	flags.Uint64Var(&bootSize, "boot-size", 100, "Size of the boot partition in MB")
 	flags.StringVar(&bootFS, "boot-fs", "", "Filesystem to use for the boot partition, ext4 or fat32")
-	flags.StringVar(&bootloader, "bootloader", "syslinux", "Bootloader to use: syslinux, grub, grub-bios, grub-efi")
+	flags.StringVar(&bootloader, "bootloader", "", "Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64")
 	flags.StringVar(&luksPassword, "luks-password", "", "Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted")
 	flags.BoolVar(&keepCache, "keep-cache", false, "Keep the images after the build")
+	flags.StringVar(&platform, "platform", d2vm.Arch, "Platform to use for the container disk image, linux/arm64 and linux/arm64 are supported")
+	flags.BoolVar(&pull, "pull", false, "Always pull docker image")
 	return flags
 }

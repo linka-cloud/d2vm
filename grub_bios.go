@@ -16,6 +16,7 @@ package d2vm
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 )
@@ -48,7 +49,10 @@ type grubBiosProvider struct {
 	config Config
 }
 
-func (g grubBiosProvider) New(c Config, r OSRelease) (Bootloader, error) {
+func (g grubBiosProvider) New(c Config, r OSRelease, arch string) (Bootloader, error) {
+	if arch != "x86_64" {
+		return nil, fmt.Errorf("grub-bios is only supported for amd64")
+	}
 	return grubBios{grubCommon: newGrubCommon(c, r)}, nil
 }
 

@@ -15,7 +15,8 @@ RUN apt-get update && \
       linux-image-amd64 && \
       find /boot -type l -exec rm {} \;
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       systemd-sysv \
       systemd \
     {{- if .Grub }}
@@ -26,7 +27,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       grub-pc-bin \
     {{- end }}
     {{- if .GrubEFI }}
-      grub-efi-amd64-bin \
+      grub-efi-${ARCH}-bin \
     {{- end }}
       dbus \
       iproute2 \

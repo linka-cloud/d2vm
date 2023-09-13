@@ -38,7 +38,7 @@ RUN apt-get update && \
         dosfstools \
         mount \
         tar \
-        extlinux \
+        "$([ "$(uname -m)" = "x86_64" ] && echo extlinux)" \
         cryptsetup-bin \
         qemu-utils && \
     apt-get clean && \

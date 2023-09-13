@@ -50,11 +50,14 @@ func CmdOut(ctx context.Context, args ...string) (string, string, error) {
 	return exec.RunOut(ctx, "docker", args...)
 }
 
-func Build(ctx context.Context, tag, dockerfile, dir string, buildArgs ...string) error {
+func Build(ctx context.Context, pull bool, tag, dockerfile, dir, platform string, buildArgs ...string) error {
 	if dockerfile == "" {
 		dockerfile = filepath.Join(dir, "Dockerfile")
 	}
-	args := []string{"image", "build", "-t", tag, "-f", dockerfile}
+	args := []string{"image", "build", "-t", tag, "-f", dockerfile, "--platform", platform}
+	if pull {
+		args = append(args, "--pull")
+	}
 	for _, v := range buildArgs {
 		args = append(args, "--build-arg", v)
 	}
@@ -96,8 +99,8 @@ func ImageSave(ctx context.Context, tag, file string) error {
 	return Cmd(ctx, "image", "save", "-o", file, tag)
 }
 
-func Pull(ctx context.Context, tag string) error {
-	return Cmd(ctx, "image", "pull", tag)
+func Pull(ctx context.Context, platform, tag string) error {
+	return Cmd(ctx, "image", "pull", "--platform", platform, tag)
 }
 
 func Push(ctx context.Context, tag string) error {

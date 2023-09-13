@@ -71,7 +71,10 @@ func (s syslinux) Setup(ctx context.Context, dev, root string, cmdline string) e
 
 type syslinuxProvider struct{}
 
-func (s syslinuxProvider) New(c Config, _ OSRelease) (Bootloader, error) {
+func (s syslinuxProvider) New(c Config, _ OSRelease, arch string) (Bootloader, error) {
+	if arch != "x86_64" {
+		return nil, fmt.Errorf("syslinux is only supported for amd64")
+	}
 	mbrBin := ""
 	for _, v := range mbrPaths {
 		if _, err := os.Stat(v); err == nil {

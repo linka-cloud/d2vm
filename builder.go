@@ -82,11 +82,18 @@ type builder struct {
 	luksPassword string
 
 	cmdLineExtra string
+	arch         string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string) (Builder, error) {
-	if err := checkDependencies(); err != nil {
-		return nil, err
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform string) (Builder, error) {
+	var arch string
+	switch platform {
+	case "linux/amd64":
+		arch = "x86_64"
+	case "linux/arm64", "linux/aarch64":
+		arch = "arm64"
+	default:
+		return nil, fmt.Errorf("unexpected platform: %s, supported platforms: linux/amd64, linux/arm64", platform)
 	}
 	if luksPassword != "" {
 		if !splitBoot {
@@ -141,7 +148,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	if err != nil {
 		return nil, err
 	}
-	bl, err := blp.New(config, osRelease)
+	bl, err := blp.New(config, osRelease, arch)
 	if err != nil {
 		return nil, err
 	}
@@ -184,6 +191,10 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		bootSize:     bootSize,
 		bootFS:       bootFS,
 		luksPassword: luksPassword,
+		arch:         arch,
+	}
+	if err := b.checkDependencies(); err != nil {
+		return nil, err
 	}
 	if err := os.MkdirAll(b.mntPoint, os.ModePerm); err != nil {
 		return nil, err
@@ -490,9 +501,13 @@ func block(path string, size uint64) error {
 	return f.Truncate(int64(size))
 }
 
-func checkDependencies() error {
+func (b *builder) checkDependencies() error {
 	var merr error
-	for _, v := range []string{"mount", "blkid", "tar", "losetup", "parted", "kpartx", "qemu-img", "extlinux", "dd", "mkfs.ext4", "cryptsetup"} {
+	deps := []string{"mount", "blkid", "tar", "losetup", "parted", "kpartx", "qemu-img", "dd", "mkfs.ext4", "cryptsetup"}
+	if _, ok := b.bootloader.(*syslinux); ok {
+		deps = append(deps, "extlinux")
+	}
+	for _, v := range deps {
 		if _, err := exec2.LookPath(v); err != nil {
 			merr = multierr.Append(merr, err)
 		}

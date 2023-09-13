@@ -2,7 +2,8 @@ FROM {{ .Image }}
 
 USER root
 
-RUN apt-get update && \
+RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
+  apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
   linux-image-virtual \
   initramfs-tools \
@@ -16,7 +17,7 @@ RUN apt-get update && \
   grub-pc-bin \
 {{- end }}
 {{- if .GrubEFI }}
-  grub-efi-amd64-bin \
+  grub-efi-${ARCH}-bin \
 {{- end }}
   dbus \
   isc-dhcp-client \

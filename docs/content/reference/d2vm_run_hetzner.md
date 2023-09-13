@@ -9,12 +9,14 @@ d2vm run hetzner [options] image-path [flags]
 ### Options
 
 ```
-  -h, --help             help for hetzner
-  -n, --name string      d2vm server name (default "d2vm")
-      --rm               remove server when done
-  -i, --ssh-key string   d2vm image identity key
-      --token string     Hetzner Cloud API token [$HETZNER_TOKEN]
-  -u, --user string      d2vm image ssh user (default "root")
+  -h, --help              help for hetzner
+  -l, --location string   d2vm server location (default "hel1-dc2")
+  -n, --name string       d2vm server name (default "d2vm")
+      --rm                remove server when done
+  -i, --ssh-key string    d2vm image identity key
+      --token string      Hetzner Cloud API token [$HETZNER_TOKEN]
+  -t, --type string       d2vm server type (default "cx11")
+  -u, --user string       d2vm image ssh user (default "root")
 ```
 
 ### Options inherited from parent commands

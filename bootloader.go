@@ -33,7 +33,7 @@ func BootloaderByName(name string) (BootloaderProvider, error) {
 }
 
 type BootloaderProvider interface {
-	New(c Config, r OSRelease) (Bootloader, error)
+	New(c Config, r OSRelease, arch string) (Bootloader, error)
 	Name() string
 }
 

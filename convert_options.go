@@ -32,6 +32,8 @@ type convertOptions struct {
 	luksPassword string
 
 	keepCache bool
+	platform  string
+	pull      bool
 }
 
 func (o *convertOptions) hasGrubBIOS() bool {
@@ -111,5 +113,17 @@ func WithLuksPassword(password string) ConvertOption {
 func WithKeepCache(b bool) ConvertOption {
 	return func(o *convertOptions) {
 		o.keepCache = b
+	}
+}
+
+func WithPlatform(platform string) ConvertOption {
+	return func(o *convertOptions) {
+		o.platform = platform
+	}
+}
+
+func WithPull(b bool) ConvertOption {
+	return func(o *convertOptions) {
+		o.pull = b
 	}
 }

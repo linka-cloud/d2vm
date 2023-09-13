@@ -29,7 +29,7 @@ func maybeMakeContainerDisk(ctx context.Context) error {
 		return nil
 	}
 	logrus.Infof("creating container disk image %s", containerDiskTag)
-	if err := d2vm.MakeContainerDisk(ctx, output, containerDiskTag); err != nil {
+	if err := d2vm.MakeContainerDisk(ctx, output, containerDiskTag, platform); err != nil {
 		return err
 	}
 	if !push {

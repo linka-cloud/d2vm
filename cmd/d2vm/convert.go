@@ -70,7 +70,7 @@ var (
 			}
 			if pull || !found {
 				logrus.Infof("pulling image %s", img)
-				if err := docker.Pull(cmd.Context(), img); err != nil {
+				if err := docker.Pull(cmd.Context(), platform, img); err != nil {
 					return err
 				}
 			}
@@ -89,6 +89,8 @@ var (
 				d2vm.WithBootFS(d2vm.BootFS(bootFS)),
 				d2vm.WithLuksPassword(luksPassword),
 				d2vm.WithKeepCache(keepCache),
+				d2vm.WithPlatform(platform),
+				d2vm.WithPull(pull),
 			); err != nil {
 				return err
 			}
@@ -112,7 +114,6 @@ func parseSize(s string) (uint64, error) {
 }
 
 func init() {
-	convertCmd.Flags().BoolVar(&pull, "pull", false, "Always pull docker image")
 	convertCmd.Flags().AddFlagSet(buildFlags())
 	rootCmd.AddCommand(convertCmd)
 }

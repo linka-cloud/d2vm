@@ -30,7 +30,7 @@ import (
 )
 
 func testConfig(t *testing.T, ctx context.Context, name, img string, config Config, luks, grubBIOS, grubEFI bool) {
-	require.NoError(t, docker.Pull(ctx, img))
+	require.NoError(t, docker.Pull(ctx, Arch, img))
 	tmpPath := filepath.Join(os.TempDir(), "d2vm-tests", strings.NewReplacer(":", "-", ".", "-").Replace(name))
 	require.NoError(t, os.MkdirAll(tmpPath, 0755))
 	defer os.RemoveAll(tmpPath)
@@ -52,7 +52,7 @@ func testConfig(t *testing.T, ctx context.Context, name, img string, config Conf
 	require.NoError(t, d.Render(f))
 	imgUUID := uuid.New().String()
 	logrus.Infof("building kernel enabled image")
-	require.NoError(t, docker.Build(ctx, imgUUID, p, dir))
+	require.NoError(t, docker.Build(ctx, false, imgUUID, p, dir, Arch))
 	defer docker.Remove(ctx, imgUUID)
 	// we don't need to test the kernel location if grub is enabled
 	if grubBIOS || grubEFI {

@@ -140,7 +140,7 @@ RUN rm -rf /etc/apk
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "hostname"), []byte("d2vm-flatten-test"), perm))
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "resolv.conf"), []byte("nameserver 8.8.8.8"), perm))
 	require.NoError(t, os.WriteFile(filepath.Join(tmp, "Dockerfile"), []byte(dockerfile), perm))
-	require.NoError(t, docker.Build(ctx, img, "", tmp))
+	require.NoError(t, docker.Build(ctx, false, img, "", tmp, "linux/amd64"))
 	defer docker.Remove(ctx, img)
 
 	imgTmp := filepath.Join(tmp, "image")

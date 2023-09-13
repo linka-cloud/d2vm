@@ -90,7 +90,7 @@ var (
 				file = filepath.Join(args[0], "Dockerfile")
 			}
 			logrus.Infof("building docker image from %s", file)
-			if err := docker.Build(cmd.Context(), tag, file, args[0], buildArgs...); err != nil {
+			if err := docker.Build(cmd.Context(), pull, tag, file, args[0], platform, buildArgs...); err != nil {
 				return err
 			}
 			if err := d2vm.Convert(
@@ -108,6 +108,8 @@ var (
 				d2vm.WithBootFS(d2vm.BootFS(bootFS)),
 				d2vm.WithLuksPassword(luksPassword),
 				d2vm.WithKeepCache(keepCache),
+				d2vm.WithPlatform(platform),
+				d2vm.WithPull(false),
 			); err != nil {
 				return err
 			}

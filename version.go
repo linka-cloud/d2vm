@@ -15,10 +15,14 @@
 package d2vm
 
 import (
+	"fmt"
+	"runtime"
+
 	"go.linka.cloud/d2vm/pkg/qemu_img"
 )
 
 var (
+	Arch      = fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
 	Version   = ""
 	BuildDate = ""
 	Image     = "linkacloud/d2vm"

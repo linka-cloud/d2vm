@@ -57,7 +57,10 @@ type grubProvider struct {
 	config Config
 }
 
-func (g grubProvider) New(c Config, r OSRelease) (Bootloader, error) {
+func (g grubProvider) New(c Config, r OSRelease, arch string) (Bootloader, error) {
+	if arch != "x86_64" {
+		return nil, fmt.Errorf("grub is only supported for amd64")
+	}
 	if r.ID == ReleaseCentOS {
 		return nil, fmt.Errorf("grub (efi) is not supported for CentOS, use grub-bios instead")
 	}

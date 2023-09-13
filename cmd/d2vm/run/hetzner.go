@@ -70,6 +70,8 @@ func init() {
 	HetznerCmd.Flags().StringVarP(&hetznerSSHKeyPath, "ssh-key", "i", "", "d2vm image identity key")
 	HetznerCmd.Flags().BoolVar(&hetznerRemove, "rm", false, "remove server when done")
 	HetznerCmd.Flags().StringVarP(&hetznerServerName, "name", "n", "d2vm", "d2vm server name")
+	HetznerCmd.Flags().StringVarP(&hetznerVMType, "type", "t", hetznerVMType, "d2vm server type")
+	HetznerCmd.Flags().StringVarP(&hetznerDatacenter, "location", "l", hetznerDatacenter, "d2vm server location")
 }
 
 func Hetzner(cmd *cobra.Command, args []string) {
@@ -113,9 +115,22 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	if err != nil {
 		return err
 	}
-	img, _, err := c.Image.GetByName(ctx, serverImg)
+	arch := "amd64"
+	harch := hcloud.ArchitectureX86
+	if strings.HasPrefix(strings.ToLower(hetznerVMType), "cax") {
+		harch = hcloud.ArchitectureARM
+		arch = "arm64"
+	}
+	sparsecatBin, err := Sparsecat(arch)
 	if err != nil {
 		return err
+	}
+	imgs, _, err := c.Image.List(ctx, hcloud.ImageListOpts{Name: serverImg, Architecture: []hcloud.Architecture{harch}})
+	if err != nil {
+		return err
+	}
+	if len(imgs) == 0 {
+		return fmt.Errorf("no image found with name %s", serverImg)
 	}
 	l, _, err := c.Location.Get(ctx, hetznerDatacenter)
 	if err != nil {
@@ -125,9 +140,9 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 	sres, _, err := c.Server.Create(ctx, hcloud.ServerCreateOpts{
 		Name:             hetznerServerName,
 		ServerType:       st,
-		Image:            img,
+		Image:            imgs[0],
 		Location:         l,
-		StartAfterCreate: hcloud.Bool(false),
+		StartAfterCreate: hcloud.Ptr(false),
 	})
 	if err != nil {
 		return err
@@ -186,7 +201,7 @@ func runHetzner(ctx context.Context, imgPath string, stdin io.Reader, stderr io.
 		return err
 	}
 	defer f.Close()
-	if _, err := io.Copy(f, bytes.NewReader(sparsecatBinary)); err != nil {
+	if _, err := io.Copy(f, bytes.NewReader(sparsecatBin)); err != nil {
 		return err
 	}
 	if err := f.Close(); err != nil {

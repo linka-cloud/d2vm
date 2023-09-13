@@ -1,4 +1,5 @@
 //go:generate env GOOS=linux GOARCH=amd64 go build -o sparsecat-linux-amd64 github.com/svenwiltink/sparsecat/cmd/sparsecat
+//go:generate env GOOS=linux GOARCH=arm64 go build -o sparsecat-linux-arm64 github.com/svenwiltink/sparsecat/cmd/sparsecat
 
 // Copyright 2022 Linka Cloud  All rights reserved.
 //
@@ -33,7 +34,21 @@ import (
 )
 
 //go:embed sparsecat-linux-amd64
-var sparsecatBinary []byte
+var sparsecatAmdBinary []byte
+
+//go:embed sparsecat-linux-arm64
+var sparsecatArmBinary []byte
+
+func Sparsecat(arch string) ([]byte, error) {
+	switch arch {
+	case "amd64":
+		return sparsecatAmdBinary, nil
+	case "arm64":
+		return sparsecatArmBinary, nil
+	default:
+		return nil, fmt.Errorf("unsupported architecture: %s", arch)
+	}
+}
 
 // Handle flags with multiple occurrences
 type MultipleFlag []string
