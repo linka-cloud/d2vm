@@ -117,6 +117,9 @@ imgs:
 
 			defer os.RemoveAll(dir)
 			for _, img := range testImgs {
+				if strings.Contains(img.name, "centos") && tt.efi {
+					t.Skip("efi not supported for CentOS")
+				}
 				t.Run(img.name, func(t *testing.T) {
 					ctx, cancel := context.WithCancel(context.Background())
 					defer cancel()
