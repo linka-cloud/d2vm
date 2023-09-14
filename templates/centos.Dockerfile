@@ -39,3 +39,6 @@ RUN cd /boot && \
         mv $(find . -name 'vmlinuz-*') /boot/vmlinuz && \
         mv $(find . -name 'initramfs-*.img') /boot/initrd.img
 {{- end }}
+
+RUN yum clean all && \
+    rm -rf /var/cache/yum

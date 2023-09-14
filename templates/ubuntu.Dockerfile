@@ -63,3 +63,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cr
 RUN mv $(find /boot -name 'vmlinuz-*') /boot/vmlinuz && \
       mv $(find /boot -name 'initrd.img-*') /boot/initrd.img
 {{- end }}
+
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
