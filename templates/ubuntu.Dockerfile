@@ -32,18 +32,11 @@ RUN systemctl preset-all
 {{ if eq .NetworkManager "netplan" }}
 RUN apt install -y netplan.io
 RUN mkdir -p /etc/netplan && printf '\
+# Let NetworkManager manage all devices on this system\n\
 network:\n\
   version: 2\n\
-  renderer: networkd\n\
-  ethernets:\n\
-    eth0:\n\
-      dhcp4: true\n\
-      dhcp-identifier: mac\n\
-      nameservers:\n\
-        addresses:\n\
-        - 8.8.8.8\n\
-        - 8.8.4.4\n\
-' > /etc/netplan/00-netcfg.yaml
+  renderer: NetworkManager\n\
+' > /etc/netplan/01-network-manager-all.yaml
 {{ else if eq .NetworkManager "ifupdown"}}
 RUN if [ -z "$(apt-cache madison ifupdown-ng 2> /dev/nul)" ]; then apt install -y ifupdown; else apt install -y ifupdown-ng; fi
 RUN mkdir -p /etc/network && printf '\
