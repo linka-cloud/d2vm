@@ -81,7 +81,7 @@ alias d2vm="docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --p
 ```
 
 ```bash
-wich d2vm
+which d2vm
 
 d2vm: aliased to docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v $PWD:/d2vm -w /d2vm linkacloud/d2vm:latest
 ```
