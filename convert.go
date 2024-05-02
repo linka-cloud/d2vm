@@ -87,6 +87,8 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	format := strings.TrimPrefix(filepath.Ext(o.output), ".")
 	if format == "" {
 		format = "raw"
+	} else if format == "vhd" {
+		format = "vpc"
 	}
 	b, err := NewBuilder(ctx, tmpPath, imgUUID, "", o.size, r, format, o.cmdLineExtra, o.splitBoot, o.bootFS, o.bootSize, o.luksPassword, o.bootLoader, o.platform)
 	if err != nil {

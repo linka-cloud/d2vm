@@ -44,7 +44,7 @@ ff02::3 ip6-allhosts
 	perm os.FileMode = 0644
 )
 
-var formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vmdk"}
+var formats = []string{"qcow2", "qed", "raw", "vdi", "vhdx", "vhd", "vmdk"}
 
 type Builder interface {
 	Build(ctx context.Context) (err error)
