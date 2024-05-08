@@ -20,7 +20,7 @@ d2vm build [context directory] [flags]
       --keep-cache                 Keep the images after the build
       --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown
-  -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default "disk0.qcow2")
+  -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vhd vhdx vmdk (default "disk0.qcow2")
   -p, --password string            Optional root user password
       --platform string            Platform to use for the container disk image, linux/arm64 and linux/arm64 are supported (default "linux/amd64")
       --pull                       Always pull docker image
