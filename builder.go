@@ -44,7 +44,7 @@ ff02::3 ip6-allhosts
 	perm os.FileMode = 0644
 )
 
-var formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vmdk"}
+var formats = []string{"qcow2", "qed", "raw", "vdi", "vhd", "vhd", "vhdx", "vmdk"}
 
 type Builder interface {
 	Build(ctx context.Context) (err error)
@@ -112,6 +112,9 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	}
 	if !valid {
 		return nil, fmt.Errorf("invalid format: %s valid formats are: %s", f, strings.Join(formats, " "))
+	}
+	if f == "vhd" {
+		f = "vpc"
 	}
 
 	if splitBoot && bootSize < 50 {
