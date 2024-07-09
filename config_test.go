@@ -120,6 +120,10 @@ func TestConfig(t *testing.T) {
 			image:  "centos:latest",
 			config: configCentOS,
 		},
+		{
+			image:  "quay.io/centos/centos:stream9",
+			config: configCentOS,
+		},
 	}
 	exec.SetDebug(true)
 

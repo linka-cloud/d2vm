@@ -203,12 +203,10 @@ func (c *config) buildQemuCmdline() ([]string, error) {
 
 	// Need to specify the vcpu type when running qemu on arm64 platform, for security reason,
 	// the vcpu should be "host" instead of other names such as "cortex-a53"...
-	if c.arch == "aarch64" {
-		if runtime.GOARCH == "arm64" {
-			qemuArgs = append(qemuArgs, "-cpu", "host")
-		} else {
-			qemuArgs = append(qemuArgs, "-cpu", "cortex-a57")
-		}
+	if c.arch == "aarch64" && runtime.GOARCH != "arm64" {
+		qemuArgs = append(qemuArgs, "-cpu", "cortex-a57")
+	} else {
+		qemuArgs = append(qemuArgs, "-cpu", "host")
 	}
 
 	// goArch is the GOARCH equivalent of config.Arch

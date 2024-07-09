@@ -18,6 +18,7 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
+	"strconv"
 	"text/template"
 
 	"github.com/sirupsen/logrus"
@@ -36,10 +37,10 @@ var alpineDockerfile string
 var centOSDockerfile string
 
 var (
-	ubuntuDockerfileTemplate = template.Must(template.New("ubuntu.Dockerfile").Parse(ubuntuDockerfile))
-	debianDockerfileTemplate = template.Must(template.New("debian.Dockerfile").Parse(debianDockerfile))
-	alpineDockerfileTemplate = template.Must(template.New("alpine.Dockerfile").Parse(alpineDockerfile))
-	centOSDockerfileTemplate = template.Must(template.New("centos.Dockerfile").Parse(centOSDockerfile))
+	ubuntuDockerfileTemplate = template.Must(template.New("ubuntu.Dockerfile").Funcs(tplFuncs).Parse(ubuntuDockerfile))
+	debianDockerfileTemplate = template.Must(template.New("debian.Dockerfile").Funcs(tplFuncs).Parse(debianDockerfile))
+	alpineDockerfileTemplate = template.Must(template.New("alpine.Dockerfile").Funcs(tplFuncs).Parse(alpineDockerfile))
+	centOSDockerfileTemplate = template.Must(template.New("centos.Dockerfile").Funcs(tplFuncs).Parse(centOSDockerfile))
 )
 
 type NetworkManager string
@@ -116,4 +117,8 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 		return Dockerfile{}, err
 	}
 	return d, nil
+}
+
+var tplFuncs = template.FuncMap{
+	"atoi": strconv.Atoi,
 }

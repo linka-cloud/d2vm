@@ -2,8 +2,12 @@ FROM {{ .Image }}
 
 USER root
 
+{{ $version := atoi .Release.Version }}
+
+{{ if le $version 8 }}
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
     sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+{{ end }}
 
 RUN yum update -y
 
@@ -36,7 +40,7 @@ RUN dracut --no-hostonly --regenerate-all --force
 
 {{- if not .Grub }}
 RUN cd /boot && \
-        mv $(find . -name 'vmlinuz-*') /boot/vmlinuz && \
+        mv $(find {{ if le $version 8 }}.{{ else }}/{{ end }} -name 'vmlinuz*') /boot/vmlinuz && \
         mv $(find . -name 'initramfs-*.img') /boot/initrd.img
 {{- end }}
 

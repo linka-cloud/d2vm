@@ -53,6 +53,7 @@ var (
 		{name: "debian:10", luks: "Please unlock disk root:"},
 		{name: "debian:11", luks: "Please unlock disk root:"},
 		{name: "centos:8", luks: "Please enter passphrase for disk"},
+		{name: "quay.io/centos/centos:stream9", luks: "Please enter passphrase for disk"},
 	}
 	imgNames = func() []string {
 		var imgs []string
@@ -126,7 +127,7 @@ imgs:
 
 					require := require2.New(t)
 
-					out := filepath.Join(dir, strings.NewReplacer(":", "-", ".", "-").Replace(img.name)+".qcow2")
+					out := filepath.Join(dir, strings.NewReplacer(":", "-", ".", "-", "/", "-").Replace(img.name)+".qcow2")
 
 					if _, err := os.Stat(out); err == nil {
 						require.NoError(os.Remove(out))
