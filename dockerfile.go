@@ -91,7 +91,11 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 		net = NetworkManagerIfupdown2
 	case ReleaseUbuntu:
 		d.tmpl = ubuntuDockerfileTemplate
-		net = NetworkManagerNetplan
+		if release.VersionID < "18.04" {
+			net = NetworkManagerIfupdown2
+		} else {
+			net = NetworkManagerNetplan
+		}
 	case ReleaseAlpine:
 		d.tmpl = alpineDockerfileTemplate
 		net = NetworkManagerIfupdown2
