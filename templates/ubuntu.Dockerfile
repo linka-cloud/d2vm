@@ -25,7 +25,9 @@ RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
   iputils-ping && \
   find /boot -type l -exec rm {} \;
 
+{{ if gt .Release.VersionID "16.04" }}
 RUN systemctl preset-all
+{{ end }}
 
 {{ if .Password }}RUN echo "root:{{ .Password }}" | chpasswd {{ end }}
 
