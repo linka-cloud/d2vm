@@ -280,6 +280,13 @@ func (b *builder) makeImg(ctx context.Context) error {
 }
 
 func (b *builder) mountImg(ctx context.Context) error {
+	var mkfsExt4Opts []string
+	r := ctx.Value("release").(OSRelease)
+	if r.ID == ReleaseUbuntu {
+		if strings.HasPrefix(r.VersionID, "12.") {
+			mkfsExt4Opts = append(mkfsExt4Opts, "-O", "^has_journal")
+		}
+	}
 	logrus.Infof("mounting raw image")
 	o, _, err := exec.RunOut(ctx, "losetup", "--show", "-f", b.diskRaw)
 	if err != nil {
@@ -315,7 +322,7 @@ func (b *builder) mountImg(ctx context.Context) error {
 		b.rootPart = "/dev/mapper/root"
 		b.mappedCryptRoot = filepath.Join("/dev/mapper", b.cryptRoot)
 		logrus.Infof("creating raw image file system")
-		if err := exec.Run(ctx, "mkfs.ext4", b.mappedCryptRoot); err != nil {
+		if err := exec.Run(ctx, "mkfs.ext4", append(mkfsExt4Opts, b.mappedCryptRoot)...); err != nil {
 			return err
 		}
 		if err := exec.Run(ctx, "mount", b.mappedCryptRoot, b.mntPoint); err != nil {
@@ -323,7 +330,7 @@ func (b *builder) mountImg(ctx context.Context) error {
 		}
 	} else {
 		logrus.Infof("creating raw image file system")
-		if err := exec.Run(ctx, "mkfs.ext4", b.rootPart); err != nil {
+		if err := exec.Run(ctx, "mkfs.ext4", append(mkfsExt4Opts, b.rootPart)...); err != nil {
 			return err
 		}
 		if err := exec.Run(ctx, "mount", b.rootPart, b.mntPoint); err != nil {
@@ -339,7 +346,7 @@ func (b *builder) mountImg(ctx context.Context) error {
 	if b.bootFS.IsFat() {
 		err = exec.Run(ctx, "mkfs.fat", "-F32", b.bootPart)
 	} else {
-		err = exec.Run(ctx, "mkfs.ext4", b.bootPart)
+		err = exec.Run(ctx, "mkfs.ext4", append(mkfsExt4Opts, b.bootPart)...)
 	}
 	if err != nil {
 		return err
