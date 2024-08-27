@@ -284,7 +284,7 @@ func (b *builder) mountImg(ctx context.Context) error {
 	r := ctx.Value("release").(OSRelease)
 	if r.ID == ReleaseUbuntu {
 		if strings.HasPrefix(r.VersionID, "12.") {
-			mkfsExt4Opts = append(mkfsExt4Opts, "-O", "^has_journal")
+			mkfsExt4Opts = append(mkfsExt4Opts, "-O", "^has_journal,^metadata_csum")
 		}
 	}
 	logrus.Infof("mounting raw image")

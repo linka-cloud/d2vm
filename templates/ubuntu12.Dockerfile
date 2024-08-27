@@ -2,6 +2,12 @@ FROM {{ .Image }}
 
 USER root
 
+# restore initctl
+RUN rm /sbin/initctl && dpkg-divert --rename --remove /sbin/initctl
+
+# setup ttyS0
+RUN cp /etc/init/tty1.conf /etc/init/ttyS0.conf && sed -i s/tty1/ttyS0/g /etc/init/ttyS0.conf
+
 RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
   apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
