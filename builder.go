@@ -286,6 +286,9 @@ func (b *builder) mountImg(ctx context.Context) error {
 		if strings.HasPrefix(r.VersionID, "12.") {
 			mkfsExt4Opts = append(mkfsExt4Opts, "-O", "^has_journal,^metadata_csum")
 		}
+		if strings.HasPrefix(r.VersionID, "14.") {
+			mkfsExt4Opts = append(mkfsExt4Opts, "-O", "^metadata_csum")
+		}
 	}
 	logrus.Infof("mounting raw image")
 	o, _, err := exec.RunOut(ctx, "losetup", "--show", "-f", b.diskRaw)

@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	"strings"
 	"text/template"
 
 	"github.com/sirupsen/logrus"
@@ -27,9 +26,6 @@ import (
 
 //go:embed templates/ubuntu.Dockerfile
 var ubuntuDockerfile string
-
-//go:embed templates/ubuntu12.Dockerfile
-var ubuntu12Dockerfile string
 
 //go:embed templates/debian.Dockerfile
 var debianDockerfile string
@@ -41,11 +37,10 @@ var alpineDockerfile string
 var centOSDockerfile string
 
 var (
-	ubuntuDockerfileTemplate   = template.Must(template.New("ubuntu.Dockerfile").Funcs(tplFuncs).Parse(ubuntuDockerfile))
-	ubuntu12DockerfileTemplate = template.Must(template.New("ubuntu12.Dockerfile").Funcs(tplFuncs).Parse(ubuntu12Dockerfile))
-	debianDockerfileTemplate   = template.Must(template.New("debian.Dockerfile").Funcs(tplFuncs).Parse(debianDockerfile))
-	alpineDockerfileTemplate   = template.Must(template.New("alpine.Dockerfile").Funcs(tplFuncs).Parse(alpineDockerfile))
-	centOSDockerfileTemplate   = template.Must(template.New("centos.Dockerfile").Funcs(tplFuncs).Parse(centOSDockerfile))
+	ubuntuDockerfileTemplate = template.Must(template.New("ubuntu.Dockerfile").Funcs(tplFuncs).Parse(ubuntuDockerfile))
+	debianDockerfileTemplate = template.Must(template.New("debian.Dockerfile").Funcs(tplFuncs).Parse(debianDockerfile))
+	alpineDockerfileTemplate = template.Must(template.New("alpine.Dockerfile").Funcs(tplFuncs).Parse(alpineDockerfile))
+	centOSDockerfileTemplate = template.Must(template.New("centos.Dockerfile").Funcs(tplFuncs).Parse(centOSDockerfile))
 )
 
 type NetworkManager string
@@ -95,11 +90,7 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 		d.tmpl = debianDockerfileTemplate
 		net = NetworkManagerIfupdown2
 	case ReleaseUbuntu:
-		if strings.HasPrefix(release.VersionID, "12.") {
-			d.tmpl = ubuntu12DockerfileTemplate
-		} else {
-			d.tmpl = ubuntuDockerfileTemplate
-		}
+		d.tmpl = ubuntuDockerfileTemplate
 		if release.VersionID < "18.04" {
 			net = NetworkManagerIfupdown2
 		} else {
