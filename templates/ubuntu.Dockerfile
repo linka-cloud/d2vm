@@ -29,19 +29,22 @@ RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
   iputils-ping && \
   find /boot -type l -exec rm {} \;
 
-{{ if gt .Release.VersionID "14.04" }}
+{{ if ge .Release.VersionID "14.04" }}
 RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
   apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
-  iproute2 \
+  iproute2
 {{ end }}
 
-{{ if gt .Release.VersionID "16.04" }}
+{{ if ge .Release.VersionID "16.04" }}
 RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
   apt-get update && \
   DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
   systemd-sysv \
   systemd
+{{ end }}
+
+{{ if gt .Release.VersionID "16.04" }}
 RUN systemctl preset-all
 {{ end }}
 
