@@ -62,8 +62,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cr
 
 # needs to be after update-initramfs
 {{- if not .Grub }}
-RUN mv $(find /boot -name 'vmlinuz-*') /boot/vmlinuz && \
-      mv $(find /boot -name 'initrd.img-*') /boot/initrd.img
+RUN mv $(ls -t /boot/vmlinuz-* | head -n 1) /boot/vmlinuz && \
+      mv $(ls -t /boot/initrd.img-* | head -n 1) /boot/initrd.img
 {{- end }}
 
 RUN apt-get clean && \
