@@ -469,6 +469,9 @@ func (b *builder) installBootloader(ctx context.Context) error {
 
 func (b *builder) convert2Img(ctx context.Context) error {
 	logrus.Infof("converting to %s", b.format)
+	if b.format == "raw" {
+		return MoveFile(b.diskRaw, b.diskOut)
+	}
 	return exec.Run(ctx, "qemu-img", "convert", b.diskRaw, "-O", b.format, b.diskOut)
 }
 
