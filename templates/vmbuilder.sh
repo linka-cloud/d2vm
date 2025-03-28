@@ -90,7 +90,7 @@ DEFAULT linux
   SAY Now booting the kernel from EXTLINUX...
  LABEL linux
   KERNEL /boot/vmlinuz
-  APPEND ro root=/dev/sda1 initrd=/boot/initrd.img net.ifnames=0 console=tty0 console=ttyS0,115200n8
+  APPEND ro root=/dev/sda1 initrd=/boot/initrd.img console=tty0 console=ttyS0,115200n8
 EOF
 }
 
