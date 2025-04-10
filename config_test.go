@@ -117,10 +117,6 @@ func TestConfig(t *testing.T) {
 			config: configCentOS,
 		},
 		{
-			image:  "centos:latest",
-			config: configCentOS,
-		},
-		{
 			image:  "quay.io/centos/centos:stream9",
 			config: configCentOS,
 		},
