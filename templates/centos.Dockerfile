@@ -2,7 +2,7 @@ FROM {{ .Image }}
 
 USER root
 
-{{ $version := atoi .Release.Version }}
+{{ $version := atoi .Release.VersionID }}
 
 {{ if le $version 8 }}
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
