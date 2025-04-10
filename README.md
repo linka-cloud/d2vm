@@ -66,6 +66,14 @@ Obviously, **Distroless** images are not supported.
 - [QEMU](https://www.qemu.org/download/#linux) (optional)
 - [VirtualBox](https://www.virtualbox.org/wiki/Linux_Downloads) (optional)
 
+#### sudo or root privileges
+
+*sudo* or root privileges are required for `d2vm` to performs operations that require root-level permissions, in particular:
+
+- mounting disk images and loopback devices requires [elevated privileges](https://linux.die.net/man/2/mount)
+- invoke `docker` commands, which require root-level permissions by default
+
+
 ## Getting started
 
 ### Install
@@ -249,7 +257,7 @@ Welcome to Ubuntu 20.04.4 LTS!
 
 Ubuntu 20.04.4 LTS localhost ttyS0
 
-localhost login: 
+localhost login:
 ```
 
 Log in using the *root* user and the password configured at build time.
@@ -354,7 +362,7 @@ sudo d2vm build -p MyP4Ssw0rd -f ubuntu.Dockerfile -o ubuntu.vdi .
 
 ### KubeVirt Container Disk Images
 
-Using the `--tag` flag with the `build` and `convert` commands, you can create a 
+Using the `--tag` flag with the `build` and `convert` commands, you can create a
 [Container Disk Image](https://kubevirt.io/user-guide/virtual_machines/disks_and_volumes/#containerdisk) for [KubeVirt](https://kubevirt.io/).
 
 The `--push` flag will push the image to the registry.
