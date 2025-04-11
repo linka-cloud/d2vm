@@ -42,6 +42,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-tests-
 
+    - name: Run linter
+      run: make vet
+
     - name: Run tests
       run: git --no-pager diff --exit-code HEAD~1 HEAD **/**.go templates/ || make tests
 
