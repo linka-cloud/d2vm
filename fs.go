@@ -43,7 +43,7 @@ func (f BootFS) IsSupported() bool {
 
 func (f BootFS) Validate() error {
 	if !f.IsSupported() {
-		fmt.Errorf("invalid boot filesystem: %s valid filesystems are: fat32, ext4", f)
+		return fmt.Errorf("invalid boot filesystem: %s valid filesystems are: fat32, ext4", f)
 	}
 	return nil
 }
