@@ -12,6 +12,7 @@ d2vm build [context directory] [flags]
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
       --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
+      --root-fs string             Filesystem to use for root partition [ext4, btrfs] (default: ext4)
       --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64
       --build-arg stringArray      Set build-time variables
   -f, --file string                Name of the Dockerfile

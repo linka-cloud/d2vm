@@ -19,10 +19,16 @@ import (
 )
 
 type BootFS string
+type RootFS string
 
 const (
 	BootFSExt4  BootFS = "ext4"
 	BootFSFat32 BootFS = "fat32"
+)
+
+const (
+	RootFSExt4  RootFS = "ext4"
+	RootFSBtrfs RootFS = "btrfs"
 )
 
 func (f BootFS) String() string {

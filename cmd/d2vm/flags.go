@@ -40,6 +40,7 @@ var (
 	splitBoot        bool
 	bootSize         uint64
 	bootFS           string
+	rootFS           string = "ext4"
 	luksPassword     string
 
 	keepCache bool
@@ -86,6 +87,17 @@ func validateFlags() error {
 		logrus.Warnf("grub-efi bootloader is set: enabling fat32 boot filesystem")
 		bootFS = "fat32"
 	}
+
+	switch rootFS {
+	case "btrfs":
+		rootFS = "btrfs"
+	case "ext4":
+	case "":
+		rootFS = "ext4"
+	default:
+		return fmt.Errorf("invalid root filesystem: %s", rootFS)
+	}
+
 	if push && tag == "" {
 		return fmt.Errorf("tag is required when pushing container disk image")
 	}
@@ -110,8 +122,9 @@ func buildFlags() *pflag.FlagSet {
 	flags.BoolVar(&push, "push", false, "Push the container disk image to the registry")
 	flags.BoolVar(&splitBoot, "split-boot", false, "Split the boot partition from the root partition")
 	flags.Uint64Var(&bootSize, "boot-size", 100, "Size of the boot partition in MB")
-	flags.StringVar(&bootFS, "boot-fs", "", "Filesystem to use for the boot partition, ext4 or fat32")
+	flags.StringVar(&bootFS, "boot-fs", "ext4", "Filesystem to use for the boot partition, ext4 or fat32")
 	flags.StringVar(&bootloader, "bootloader", "", "Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64")
+	flags.StringVar(&rootFS, "root-fs", rootFS, "Filesystem to use for the root partition [ext4, btrfs], (default: ext4)")
 	flags.StringVar(&luksPassword, "luks-password", "", "Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted")
 	flags.BoolVar(&keepCache, "keep-cache", false, "Keep the images after the build")
 	flags.StringVar(&platform, "platform", d2vm.Arch, "Platform to use for the container disk image, linux/arm64 and linux/arm64 are supported")
