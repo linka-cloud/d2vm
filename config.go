@@ -59,12 +59,12 @@ type Config struct {
 	Initrd string
 }
 
-func (c Config) Cmdline(root Root, args ...string) string {
+func (c Config) Cmdline(root Root, rootFS RootFS, args ...string) string {
 	var r string
 	if root != nil {
 		r = fmt.Sprintf("root=%s", root.String())
 	}
-	return fmt.Sprintf("ro initrd=%s %s net.ifnames=0 rootfstype=ext4 console=tty0 console=ttyS0,115200n8 %s", c.Initrd, r, strings.Join(args, " "))
+	return fmt.Sprintf("ro initrd=%s %s net.ifnames=0 rootfstype=%s console=tty0 console=ttyS0,115200n8 %s", c.Initrd, r, rootFS, strings.Join(args, " "))
 }
 
 func (r OSRelease) Config() (Config, error) {

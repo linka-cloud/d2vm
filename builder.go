@@ -68,6 +68,7 @@ type builder struct {
 	splitBoot bool
 	bootSize  uint64
 	bootFS    BootFS
+	rootFS    RootFS
 
 	loDevice        string
 	bootPart        string
@@ -85,7 +86,7 @@ type builder struct {
 	arch         string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform string) (Builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, rootFS RootFS, luksPassword string, bootLoader string, platform string) (Builder, error) {
 	var arch string
 	switch platform {
 	case "linux/amd64":
@@ -193,6 +194,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		splitBoot:    splitBoot,
 		bootSize:     bootSize,
 		bootFS:       bootFS,
+		rootFS:       rootFS,
 		luksPassword: luksPassword,
 		arch:         arch,
 	}
@@ -211,7 +213,7 @@ func (b *builder) Build(ctx context.Context) (err error) {
 			return
 		}
 		logrus.WithError(err).Error("Build failed")
-		if err := b.unmountImg(context.Background()); err != nil {
+		if err := b.unmountImg(context.Background(), false); err != nil {
 			logrus.WithError(err).Error("failed to unmount")
 		}
 		if err := b.cleanUp(context.Background()); err != nil {
@@ -236,7 +238,7 @@ func (b *builder) Build(ctx context.Context) (err error) {
 	if err = b.installBootloader(ctx); err != nil {
 		return err
 	}
-	if err = b.unmountImg(ctx); err != nil {
+	if err = b.unmountImg(ctx, true); err != nil {
 		return err
 	}
 	if err = b.convert2Img(ctx); err != nil {
@@ -279,6 +281,18 @@ func (b *builder) makeImg(ctx context.Context) error {
 	return nil
 }
 
+func makeRootFS(ctx context.Context, rootFS RootFS, bootPart string) error {
+	switch rootFS {
+	default:
+	case RootFSExt4:
+		return exec.Run(ctx, "mkfs.ext4", bootPart)
+	case RootFSBtrfs:
+		return exec.Run(ctx, "mkfs.btrfs", bootPart)
+	}
+
+	return nil
+}
+
 func (b *builder) mountImg(ctx context.Context) error {
 	logrus.Infof("mounting raw image")
 	o, _, err := exec.RunOut(ctx, "losetup", "--show", "-f", b.diskRaw)
@@ -314,16 +328,16 @@ func (b *builder) mountImg(ctx context.Context) error {
 		b.cryptPart = b.rootPart
 		b.rootPart = "/dev/mapper/root"
 		b.mappedCryptRoot = filepath.Join("/dev/mapper", b.cryptRoot)
-		logrus.Infof("creating raw image file system")
-		if err := exec.Run(ctx, "mkfs.ext4", b.mappedCryptRoot); err != nil {
+		logrus.Infof("creating raw image file system (%s)", b.rootFS)
+		if err := makeRootFS(ctx, b.rootFS, b.mappedCryptRoot); err != nil {
 			return err
 		}
 		if err := exec.Run(ctx, "mount", b.mappedCryptRoot, b.mntPoint); err != nil {
 			return err
 		}
 	} else {
-		logrus.Infof("creating raw image file system")
-		if err := exec.Run(ctx, "mkfs.ext4", b.rootPart); err != nil {
+		logrus.Infof("creating raw image file system (%s)", b.rootFS)
+		if err := makeRootFS(ctx, b.rootFS, b.rootPart); err != nil {
 			return err
 		}
 		if err := exec.Run(ctx, "mount", b.rootPart, b.mntPoint); err != nil {
@@ -350,13 +364,23 @@ func (b *builder) mountImg(ctx context.Context) error {
 	return nil
 }
 
-func (b *builder) unmountImg(ctx context.Context) error {
+func (b *builder) unmountImg(ctx context.Context, success bool) error {
 	logrus.Infof("unmounting raw image")
 	var merr error
 	if b.splitBoot {
 		merr = multierr.Append(merr, exec.Run(ctx, "umount", filepath.Join(b.mntPoint, "boot")))
 	}
+
+	// Try to cleanup the filesystem empty space before unmounting (success only)
+	if success {
+		logrus.Infof("triming root filesystem")
+		if err := exec.Run(ctx, "fstrim", b.mntPoint); err != nil {
+			logrus.Errorf("ERROR: failed to trim filesystem: %s", err)
+		}
+	}
+
 	merr = multierr.Append(merr, exec.Run(ctx, "umount", b.mntPoint))
+
 	if b.isLuksEnabled() {
 		merr = multierr.Append(merr, exec.Run(ctx, "cryptsetup", "close", b.mappedCryptRoot))
 	}
@@ -383,6 +407,31 @@ func diskUUID(ctx context.Context, disk string) (string, error) {
 	return strings.TrimSuffix(o, "\n"), nil
 }
 
+func (b *builder) fstabEntry() (string, error) {
+	rootOpts := "defaults"
+	var sb strings.Builder
+
+	switch b.rootFS {
+	case RootFSExt4:
+		rootOpts += ",errors=remount-ro"
+	default:
+	}
+
+	if _, err := fmt.Fprintf(&sb, "UUID=%s / %s %s 0 1\n", b.rootUUID, b.rootFS, rootOpts); err != nil {
+		return "", err
+	}
+
+	if !b.splitBoot {
+		return sb.String(), nil
+	}
+
+	if _, err := fmt.Fprintf(&sb, "UUID=%s /boot %s errors=remount-ro 0 2\n", b.bootUUID, b.bootFS.linux()); err != nil {
+		return "", err
+	}
+
+	return sb.String(), nil
+}
+
 func (b *builder) setupRootFS(ctx context.Context) (err error) {
 	logrus.Infof("setting up rootfs")
 	b.rootUUID, err = diskUUID(ctx, ifElse(b.isLuksEnabled(), b.mappedCryptRoot, b.rootPart))
@@ -401,11 +450,13 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 				return err
 			}
 		}
-		fstab = fmt.Sprintf("UUID=%s / ext4 errors=remount-ro 0 1\nUUID=%s /boot %s errors=remount-ro 0 2\n", b.rootUUID, b.bootUUID, b.bootFS.linux())
 	} else {
 		b.bootUUID = b.rootUUID
-		fstab = fmt.Sprintf("UUID=%s / ext4 errors=remount-ro 0 1\n", b.bootUUID)
 	}
+	if fstab, err = b.fstabEntry(); err != nil {
+		return err
+	}
+
 	if err := b.chWriteFile("/etc/fstab", fstab, perm); err != nil {
 		return err
 	}
@@ -447,18 +498,18 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 
 func (b *builder) cmdline(_ context.Context) string {
 	if !b.isLuksEnabled() {
-		return b.config.Cmdline(RootUUID(b.rootUUID), b.cmdLineExtra)
+		return b.config.Cmdline(RootUUID(b.rootUUID), b.rootFS, b.cmdLineExtra)
 	}
 	switch b.osRelease.ID {
 	case ReleaseAlpine:
-		return b.config.Cmdline(RootUUID(b.rootUUID), "root=/dev/mapper/root", "cryptdm=root", "cryptroot=UUID="+b.cryptUUID, b.cmdLineExtra)
+		return b.config.Cmdline(RootUUID(b.rootUUID), b.rootFS, "root=/dev/mapper/root", "cryptdm=root", "cryptroot=UUID="+b.cryptUUID, b.cmdLineExtra)
 	case ReleaseCentOS:
-		return b.config.Cmdline(RootUUID(b.rootUUID), "rd.luks.name=UUID="+b.rootUUID+" rd.luks.uuid="+b.cryptUUID+" rd.luks.crypttab=0", b.cmdLineExtra)
+		return b.config.Cmdline(RootUUID(b.rootUUID), b.rootFS, "rd.luks.name=UUID="+b.rootUUID+" rd.luks.uuid="+b.cryptUUID+" rd.luks.crypttab=0", b.cmdLineExtra)
 	default:
 		// for some versions of debian, the cryptopts parameter MUST contain all the following: target,source,key,opts...
 		// see https://salsa.debian.org/cryptsetup-team/cryptsetup/-/blob/debian/buster/debian/functions
 		// and https://cryptsetup-team.pages.debian.net/cryptsetup/README.initramfs.html
-		return b.config.Cmdline(nil, "root=/dev/mapper/root", "cryptopts=target=root,source=UUID="+b.cryptUUID+",key=none,luks", b.cmdLineExtra)
+		return b.config.Cmdline(nil, b.rootFS, "root=/dev/mapper/root", "cryptopts=target=root,source=UUID="+b.cryptUUID+",key=none,luks", b.cmdLineExtra)
 	}
 }
 

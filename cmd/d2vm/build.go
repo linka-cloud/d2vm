@@ -106,6 +106,7 @@ var (
 				d2vm.WithSplitBoot(splitBoot),
 				d2vm.WithBootSize(bootSize),
 				d2vm.WithBootFS(d2vm.BootFS(bootFS)),
+				d2vm.WithRootFS(d2vm.RootFS(rootFS)),
 				d2vm.WithLuksPassword(luksPassword),
 				d2vm.WithKeepCache(keepCache),
 				d2vm.WithPlatform(platform),
