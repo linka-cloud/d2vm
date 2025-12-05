@@ -11,7 +11,7 @@ require (
 	github.com/hetznercloud/hcloud-go v1.50.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/sftp v1.10.1
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.4
