@@ -92,6 +92,8 @@ var (
 				d2vm.WithPlatform(platform),
 				d2vm.WithPull(pull),
 				d2vm.WithHostname(hostname),
+				d2vm.WithDNS(dns),
+				d2vm.WithDNSSearch(dnsSearch),
 			); err != nil {
 				return err
 			}

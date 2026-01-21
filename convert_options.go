@@ -35,7 +35,9 @@ type convertOptions struct {
 	platform  string
 	pull      bool
 
-	hostname string
+	hostname  string
+	dns       []string
+	dnsSearch []string
 }
 
 func (o *convertOptions) hasGrubBIOS() bool {
@@ -133,5 +135,17 @@ func WithPull(b bool) ConvertOption {
 func WithHostname(hostname string) ConvertOption {
 	return func(o *convertOptions) {
 		o.hostname = hostname
+	}
+}
+
+func WithDNS(dns []string) ConvertOption {
+	return func(o *convertOptions) {
+		o.dns = dns
+	}
+}
+
+func WithDNSSearch(dnsSearch []string) ConvertOption {
+	return func(o *convertOptions) {
+		o.dnsSearch = dnsSearch
 	}
 }

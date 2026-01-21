@@ -84,10 +84,12 @@ type builder struct {
 	cmdLineExtra string
 	arch         string
 
-	hostname string
+	hostname  string
+	dns       []string
+	dnsSearch []string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform, hostname string) (Builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform, hostname string, dns, dnsSearch []string) (Builder, error) {
 	var arch string
 	switch platform {
 	case "linux/amd64":
@@ -184,6 +186,9 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	if hostname == "" {
 		hostname = "localhost"
 	}
+	if len(dns) == 0 {
+		dns = []string{"8.8.8.8"}
+	}
 	b := &builder{
 		osRelease:    osRelease,
 		config:       config,
@@ -201,6 +206,8 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		luksPassword: luksPassword,
 		arch:         arch,
 		hostname:     hostname,
+		dns:          dns,
+		dnsSearch:    dnsSearch,
 	}
 	if err := b.checkDependencies(); err != nil {
 		return nil, err
@@ -415,7 +422,7 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 	if err := b.chWriteFile("/etc/fstab", fstab, perm); err != nil {
 		return err
 	}
-	if err := b.chWriteFileIfNotExist("/etc/resolv.conf", "nameserver 8.8.8.8", 0644); err != nil {
+	if err := b.chWriteFile("/etc/resolv.conf", b.resolvConf(), 0644); err != nil {
 		return err
 	}
 	if err := b.chWriteFile("/etc/hostname", b.hostname+"\n", perm); err != nil {
@@ -498,6 +505,21 @@ func (b *builder) chPath(path string) string {
 
 func (b *builder) isLuksEnabled() bool {
 	return b.luksPassword != ""
+}
+
+func (b *builder) resolvConf() string {
+	var sb strings.Builder
+	for _, v := range b.dns {
+		sb.WriteString("nameserver ")
+		sb.WriteString(v)
+		sb.WriteString("\n")
+	}
+	if len(b.dnsSearch) > 0 {
+		sb.WriteString("search ")
+		sb.WriteString(strings.Join(b.dnsSearch, " "))
+		sb.WriteString("\n")
+	}
+	return sb.String()
 }
 
 func (b *builder) Close() error {
