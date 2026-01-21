@@ -44,6 +44,8 @@ var (
 
 	keepCache bool
 	platform  string
+
+	hostname string
 )
 
 func validateFlags() error {
@@ -116,5 +118,6 @@ func buildFlags() *pflag.FlagSet {
 	flags.BoolVar(&keepCache, "keep-cache", false, "Keep the images after the build")
 	flags.StringVar(&platform, "platform", d2vm.Arch, "Platform to use for the container disk image, linux/arm64 and linux/arm64 are supported")
 	flags.BoolVar(&pull, "pull", false, "Always pull docker image")
+	flags.StringVar(&hostname, "hostname", "localhost", "Hostname to set in the generated image")
 	return flags
 }
