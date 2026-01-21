@@ -171,6 +171,7 @@ Flags:
       --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64
       --force                      Override output qcow2 image
   -h, --help                       help for convert
+      --hostname string            Hostname to set in the generated image (default "localhost")
       --keep-cache                 Keep the images after the build
       --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown
@@ -331,6 +332,7 @@ Flags:
   -f, --file string                Name of the Dockerfile
       --force                      Override output qcow2 image
   -h, --help                       help for build
+      --hostname string            Hostname to set in the generated image (default "localhost")
       --keep-cache                 Keep the images after the build
       --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
       --network-manager string     Network manager to use for the image: none, netplan, ifupdown

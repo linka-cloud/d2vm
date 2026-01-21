@@ -83,9 +83,11 @@ type builder struct {
 
 	cmdLineExtra string
 	arch         string
+
+	hostname string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform string) (Builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform, hostname string) (Builder, error) {
 	var arch string
 	switch platform {
 	case "linux/amd64":
@@ -179,6 +181,9 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	// 	logrus.Warnf("%s is smaller than rootfs size, using %s", datasize.ByteSize(size), s)
 	// 	size = int64(s)
 	// }
+	if hostname == "" {
+		hostname = "localhost"
+	}
 	b := &builder{
 		osRelease:    osRelease,
 		config:       config,
@@ -195,6 +200,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		bootFS:       bootFS,
 		luksPassword: luksPassword,
 		arch:         arch,
+		hostname:     hostname,
 	}
 	if err := b.checkDependencies(); err != nil {
 		return nil, err
@@ -412,7 +418,7 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 	if err := b.chWriteFileIfNotExist("/etc/resolv.conf", "nameserver 8.8.8.8", 0644); err != nil {
 		return err
 	}
-	if err := b.chWriteFileIfNotExist("/etc/hostname", "localhost", perm); err != nil {
+	if err := b.chWriteFile("/etc/hostname", b.hostname+"\n", perm); err != nil {
 		return err
 	}
 	if err := b.chWriteFileIfNotExist("/etc/hosts", hosts, perm); err != nil {

@@ -34,6 +34,8 @@ type convertOptions struct {
 	keepCache bool
 	platform  string
 	pull      bool
+
+	hostname string
 }
 
 func (o *convertOptions) hasGrubBIOS() bool {
@@ -125,5 +127,11 @@ func WithPlatform(platform string) ConvertOption {
 func WithPull(b bool) ConvertOption {
 	return func(o *convertOptions) {
 		o.pull = b
+	}
+}
+
+func WithHostname(hostname string) ConvertOption {
+	return func(o *convertOptions) {
+		o.hostname = hostname
 	}
 }
