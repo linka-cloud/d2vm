@@ -47,13 +47,13 @@ type img struct {
 
 var (
 	images = []img{
-		{name: "alpine:3.17", luks: "Enter passphrase for /dev/sda2:"},
-		{name: "ubuntu:20.04", luks: "Please unlock disk root:"},
+		{name: "alpine:3.23", luks: "Enter passphrase for /dev/sda2:"},
 		{name: "ubuntu:22.04", luks: "Please unlock disk root:"},
-		{name: "debian:10", luks: "Please unlock disk root:"},
-		{name: "debian:11", luks: "Please unlock disk root:"},
+		{name: "ubuntu:24.04", luks: "Please unlock disk root:"},
+		{name: "debian:12", luks: "Please unlock disk root:"},
+		{name: "debian:13", luks: "Please unlock disk root:"},
 		{name: "centos:8", luks: "Please enter passphrase for disk"},
-		{name: "quay.io/centos/centos:stream9", luks: "Please enter passphrase for disk"},
+		{name: "quay.io/centos/centos:stream10", luks: "Please enter passphrase for disk"},
 	}
 	imgNames = func() []string {
 		var imgs []string
@@ -147,6 +147,8 @@ imgs:
 						login := []byte("login:")
 						password := []byte("Password:")
 						s := bufio.NewScanner(outr)
+						// fix failed to scan output: bufio.Scanner: token too long
+						s.Buffer(make([]byte, 0, 64*1024), 10*1024*1024)
 						s.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 							if i := bytes.Index(data, []byte(img.luks)); i >= 0 {
 								return i + len(img.luks), []byte(img.luks), nil

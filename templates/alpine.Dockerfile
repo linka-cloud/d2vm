@@ -46,5 +46,5 @@ RUN apk add --no-cache  \
 {{- if .GrubEFI }}
     grub-efi \
 {{- end }}
-    grub
+    grub || true
 {{- end }}

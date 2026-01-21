@@ -2,7 +2,6 @@ name: Tests and Build
 
 on:
   push:
-    branches: [ "*" ]
     tags: [ "v*" ]
   pull_request:
     branches: [ main ]
@@ -59,7 +58,7 @@ jobs:
         - kalilinux
         - alpine
         - centos
-        - quay.io/centos/centos:stream9
+        - quay.io/centos/centos:stream
 
     steps:
     - name: Checkout
@@ -102,13 +101,13 @@ jobs:
     strategy:
       matrix:
         image:
-        - alpine:3.17
-        - ubuntu:20.04
+        - alpine:3.23
         - ubuntu:22.04
-        - debian:10
-        - debian:11
+        - ubuntu:24.04
+        - debian:12
+        - debian:13
         - centos:8
-        - quay.io/centos/centos:stream9
+        - quay.io/centos/centos:stream10
     steps:
     - name: Checkout
       uses: actions/checkout@v3

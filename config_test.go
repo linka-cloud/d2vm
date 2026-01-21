@@ -69,10 +69,6 @@ func TestConfig(t *testing.T) {
 		config Config
 	}{
 		{
-			image:  "ubuntu:18.04",
-			config: configDebian,
-		},
-		{
 			image:  "ubuntu:20.04",
 			config: configUbuntu,
 		},
@@ -81,19 +77,23 @@ func TestConfig(t *testing.T) {
 			config: configUbuntu,
 		},
 		{
+			image:  "ubuntu:24.04",
+			config: configUbuntu,
+		},
+		{
 			image:  "ubuntu:latest",
 			config: configUbuntu,
 		},
 		{
-			image:  "debian:9",
-			config: configDebian,
-		},
-		{
-			image:  "debian:10",
-			config: configDebian,
-		},
-		{
 			image:  "debian:11",
+			config: configDebian,
+		},
+		{
+			image:  "debian:12",
+			config: configDebian,
+		},
+		{
+			image:  "debian:13",
 			config: configDebian,
 		},
 		{
@@ -105,7 +105,7 @@ func TestConfig(t *testing.T) {
 			config: configDebian,
 		},
 		{
-			image:  "alpine:3.16",
+			image:  "alpine:3.20",
 			config: configAlpine,
 		},
 		{
@@ -118,6 +118,10 @@ func TestConfig(t *testing.T) {
 		},
 		{
 			image:  "quay.io/centos/centos:stream9",
+			config: configCentOS,
+		},
+		{
+			image:  "quay.io/centos/centos:stream10",
 			config: configCentOS,
 		},
 	}
