@@ -9,8 +9,6 @@ RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
     sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 {{ end }}
 
-RUN yum update -y
-
 # See https://bugzilla.redhat.com/show_bug.cgi?id=1917213
 RUN yum install -y \
     kernel \
