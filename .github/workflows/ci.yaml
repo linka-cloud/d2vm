@@ -20,7 +20,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Set up QEMU dependency
       uses: docker/setup-qemu-action@v1
@@ -74,7 +74,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Set up QEMU dependency
       uses: docker/setup-qemu-action@v1
@@ -125,7 +125,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Set up QEMU dependency
       uses: docker/setup-qemu-action@v1
@@ -163,7 +163,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Share cache with other actions
       uses: actions/cache@v3
@@ -192,7 +192,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Set up QEMU dependency
       uses: docker/setup-qemu-action@v1
@@ -252,7 +252,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Set up QEMU dependency
       uses: docker/setup-qemu-action@v1
@@ -305,7 +305,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Share cache with other actions
       uses: actions/cache@v3
@@ -354,7 +354,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: "1.20"
+        go-version: "1.25"
 
     - name: Set up QEMU dependency
       uses: docker/setup-qemu-action@v1
