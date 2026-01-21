@@ -19,20 +19,21 @@ RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       systemd-sysv \
       systemd \
-    {{- if .Grub }}
-      grub-common \
-      grub2-common \
-    {{- end }}
-    {{- if .GrubBIOS }}
-      grub-pc-bin \
-    {{- end }}
-    {{- if .GrubEFI }}
-      grub-efi-${ARCH}-bin \
-    {{- end }}
       dbus \
       iproute2 \
       isc-dhcp-client \
       iputils-ping
+
+{{- if .Grub }}
+RUN DEBIAN_FRONTEND=noninteractive apt install -y grub-common grub2-common
+{{- end }}
+{{- if .GrubBIOS }}
+RUN DEBIAN_FRONTEND=noninteractive apt install -y grub-pc-bin
+{{- end }}
+{{- if .GrubEFI }}
+RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
+    DEBIAN_FRONTEND=noninteractive apt install -y grub-efi-${ARCH}-bin
+{{- end }}
 
 RUN systemctl preset-all
 

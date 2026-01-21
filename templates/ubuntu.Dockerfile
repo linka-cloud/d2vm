@@ -9,21 +9,22 @@ RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
   initramfs-tools \
   systemd-sysv \
   systemd \
-{{- if .Grub }}
-  grub-common \
-  grub2-common \
-{{- end }}
-{{- if .GrubBIOS }}
-  grub-pc-bin \
-{{- end }}
-{{- if .GrubEFI }}
-  grub-efi-${ARCH}-bin \
-{{- end }}
   dbus \
   isc-dhcp-client \
   iproute2 \
   iputils-ping && \
   find /boot -type l -exec rm {} \;
+
+{{- if .Grub }}
+RUN DEBIAN_FRONTEND=noninteractive apt install -y grub-common grub2-common
+{{- end }}
+{{- if .GrubBIOS }}
+RUN DEBIAN_FRONTEND=noninteractive apt install -y grub-pc-bin
+{{- end }}
+{{- if .GrubEFI }}
+RUN ARCH="$([ "$(uname -m)" = "x86_64" ] && echo amd64 || echo arm64)"; \
+    DEBIAN_FRONTEND=noninteractive apt install -y grub-efi-${ARCH}-bin
+{{- end }}
 
 {{ if gt .Release.VersionID "16.04" }}
 RUN systemctl preset-all
