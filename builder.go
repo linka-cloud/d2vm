@@ -87,9 +87,10 @@ type builder struct {
 	hostname  string
 	dns       []string
 	dnsSearch []string
+	hosts     string
 }
 
-func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform, hostname string, dns, dnsSearch []string) (Builder, error) {
+func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, osRelease OSRelease, format string, cmdLineExtra string, splitBoot bool, bootFS BootFS, bootSize uint64, luksPassword string, bootLoader string, platform, hostname string, dns, dnsSearch []string, extraHosts map[string]string) (Builder, error) {
 	var arch string
 	switch platform {
 	case "linux/amd64":
@@ -189,6 +190,10 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 	if len(dns) == 0 {
 		dns = []string{"8.8.8.8"}
 	}
+	hosts := hosts
+	for k, v := range extraHosts {
+		hosts += fmt.Sprintf("%s %s\n", v, k)
+	}
 	b := &builder{
 		osRelease:    osRelease,
 		config:       config,
@@ -208,6 +213,7 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		hostname:     hostname,
 		dns:          dns,
 		dnsSearch:    dnsSearch,
+		hosts:        hosts,
 	}
 	if err := b.checkDependencies(); err != nil {
 		return nil, err
@@ -428,7 +434,7 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 	if err := b.chWriteFile("/etc/hostname", b.hostname+"\n", perm); err != nil {
 		return err
 	}
-	if err := b.chWriteFileIfNotExist("/etc/hosts", hosts, perm); err != nil {
+	if err := b.chWriteFile("/etc/hosts", b.hosts, perm); err != nil {
 		return err
 	}
 	// TODO(adphi): is it the righ fix ?

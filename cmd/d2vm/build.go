@@ -113,6 +113,7 @@ var (
 				d2vm.WithHostname(hostname),
 				d2vm.WithDNS(dns),
 				d2vm.WithDNSSearch(dnsSearch),
+				d2vm.WithExtraHosts(extraHosts),
 			); err != nil {
 				return err
 			}
