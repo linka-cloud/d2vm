@@ -16,18 +16,19 @@ RUN yum install -y \
     kernel \
     systemd \
     NetworkManager \
-{{- if .GrubBIOS }}
-    grub2 \
-{{- end }}
-{{- if .GrubEFI }}
-    grub2 grub2-efi-x64 grub2-efi-x64-modules \
-{{- end }}
     e2fsprogs \
     sudo && \
     systemctl enable NetworkManager && \
     systemctl unmask systemd-remount-fs.service && \
     systemctl unmask getty.target && \
     find /boot -type l -exec rm {} \;
+
+{{- if .GrubBIOS }}
+RUN yum install -y grub2
+{{- end }}
+{{- if .GrubEFI }}
+RUN yum install -y grub2 grub2-efi-x64 grub2-efi-x64-modules
+{{- end }}
 
 {{ if .Luks }}
 RUN yum install -y cryptsetup && \

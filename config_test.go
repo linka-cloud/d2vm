@@ -24,12 +24,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/multierr"
 
 	"go.linka.cloud/d2vm/pkg/docker"
 	"go.linka.cloud/d2vm/pkg/exec"
 )
 
-func testConfig(t *testing.T, ctx context.Context, name, img string, config Config, luks, grubBIOS, grubEFI bool) {
+func testConfig(t *testing.T, ctx context.Context, name, img string, config Config, luks, grubBIOS, grubEFI bool) func() error {
 	require.NoError(t, docker.Pull(ctx, Arch, img))
 	tmpPath := filepath.Join(os.TempDir(), "d2vm-tests", strings.NewReplacer(":", "-", ".", "-").Replace(name))
 	require.NoError(t, os.MkdirAll(tmpPath, 0755))
@@ -37,7 +38,16 @@ func testConfig(t *testing.T, ctx context.Context, name, img string, config Conf
 	logrus.Infof("inspecting image %s", img)
 	r, err := FetchDockerImageOSRelease(ctx, img)
 	require.NoError(t, err)
-	defer docker.Remove(ctx, img)
+	var fns []func() error
+	clean := func() (err error) {
+		for _, v := range fns {
+			err = multierr.Append(err, v())
+		}
+		return err
+	}
+	fns = append(fns, func() error {
+		return docker.Remove(ctx, img)
+	})
 	if !r.SupportsLUKS() && luks {
 		t.Skipf("LUKS not supported for %s", r.Version)
 	}
@@ -53,13 +63,16 @@ func testConfig(t *testing.T, ctx context.Context, name, img string, config Conf
 	imgUUID := uuid.New().String()
 	logrus.Infof("building kernel enabled image")
 	require.NoError(t, docker.Build(ctx, false, imgUUID, p, dir, Arch))
-	defer docker.Remove(ctx, imgUUID)
+	fns = append(fns, func() error {
+		return docker.Remove(ctx, imgUUID)
+	})
 	// we don't need to test the kernel location if grub is enabled
 	if grubBIOS || grubEFI {
-		return
+		return clean
 	}
 	require.NoError(t, docker.RunAndRemove(ctx, imgUUID, "test", "-f", config.Kernel))
 	require.NoError(t, docker.RunAndRemove(ctx, imgUUID, "test", "-f", config.Initrd))
+	return clean
 }
 
 func TestConfig(t *testing.T) {
@@ -147,12 +160,17 @@ func TestConfig(t *testing.T) {
 							}
 						}
 						name := strings.Join(n, "-")
+						var clean func() error
 						t.Run(name, func(t *testing.T) {
-							t.Parallel()
 							ctx, cancel := context.WithCancel(context.Background())
 							defer cancel()
-							testConfig(t, ctx, name, test.image, test.config, luks, grubBIOS, grubEFI)
+							clean = testConfig(t, ctx, name, test.image, test.config, luks, grubBIOS, grubEFI)
 						})
+						defer func() {
+							if clean != nil {
+								_ = clean()
+							}
+						}()
 					}
 				}
 			}
