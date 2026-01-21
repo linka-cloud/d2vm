@@ -9,8 +9,6 @@ RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
     sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 {{ end }}
 
-RUN yum update -y
-
 # See https://bugzilla.redhat.com/show_bug.cgi?id=1917213
 RUN yum install -y \
     kernel \
@@ -41,8 +39,8 @@ RUN dracut --no-hostonly --regenerate-all --force
 
 {{- if not .Grub }}
 RUN cd /boot && \
-        mv $(find {{ if le $version 8 }}.{{ else }}/{{ end }} -name 'vmlinuz*') /boot/vmlinuz && \
-        mv $(find . -name 'initramfs-*.img') /boot/initrd.img
+        mv $(find / -name 'vmlinuz*') /boot/vmlinuz && \
+        mv $(find . -name 'initramfs-*.img' -o -name initrd) /boot/initrd.img
 {{- end }}
 
 RUN yum clean all && \
