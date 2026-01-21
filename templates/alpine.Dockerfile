@@ -1,4 +1,4 @@
-FROM {{ .Image }}
+FROM {{ .Image }} AS rootfs
 
 USER root
 
@@ -48,3 +48,7 @@ RUN apk add --no-cache  \
 {{- end }}
     grub || true
 {{- end }}
+
+FROM scratch
+
+COPY --from=rootfs / /

@@ -1,4 +1,4 @@
-FROM {{ .Image }}
+FROM {{ .Image }} AS rootfs
 
 USER root
 
@@ -46,3 +46,7 @@ RUN cd /boot && \
 
 RUN yum clean all && \
     rm -rf /var/cache/yum
+
+FROM scratch
+
+COPY --from=rootfs / /

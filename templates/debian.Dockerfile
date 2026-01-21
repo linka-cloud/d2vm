@@ -1,4 +1,4 @@
-FROM {{ .Image }}
+FROM {{ .Image }} AS rootfs
 
 USER root
 
@@ -77,3 +77,7 @@ RUN mv $(ls -t /boot/vmlinuz-* | head -n 1) /boot/vmlinuz && \
 
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+FROM scratch
+
+COPY --from=rootfs / /
