@@ -169,6 +169,8 @@ Flags:
       --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
       --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64
+      --dns strings                DNS servers to set in the generated image
+      --dns-search strings         DNS search domains to set in the generated image
       --force                      Override output qcow2 image
   -h, --help                       help for convert
       --hostname string            Hostname to set in the generated image (default "localhost")
@@ -328,6 +330,8 @@ Flags:
       --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
       --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64
+      --dns strings                DNS servers to set in the generated image
+      --dns-search strings         DNS search domains to set in the generated image
       --build-arg stringArray      Set build-time variables
   -f, --file string                Name of the Dockerfile
       --force                      Override output qcow2 image
