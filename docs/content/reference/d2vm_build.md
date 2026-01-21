@@ -9,6 +9,7 @@ d2vm build [context directory] [flags]
 ### Options
 
 ```
+      --add-host strings           Add a custom host-to-IP mapping (host:ip) to the /etc/hosts file in the generated image
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
       --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)

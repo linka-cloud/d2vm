@@ -166,6 +166,7 @@ Usage:
 
 Flags:
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --add-host strings           Add a custom host-to-IP mapping (host:ip) to the /etc/hosts file in the generated image
       --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
       --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64
@@ -327,6 +328,7 @@ Usage:
 
 Flags:
       --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --add-host strings           Add a custom host-to-IP mapping (host:ip) to the /etc/hosts file in the generated image
       --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
       --boot-size uint             Size of the boot partition in MB (default 100)
       --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64

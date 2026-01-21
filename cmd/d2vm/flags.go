@@ -48,9 +48,12 @@ var (
 	hostname  string
 	dns       []string
 	dnsSearch []string
+	hosts     []string
+
+	extraHosts map[string]string
 )
 
-func validateFlags() error {
+func validateFlags() (err error) {
 	switch platform {
 	case "linux/amd64":
 		if bootloader == "" {
@@ -98,6 +101,10 @@ func validateFlags() error {
 			return fmt.Errorf("%s already exists", output)
 		}
 	}
+	extraHosts, err = validateHosts(hosts...)
+	if err != nil {
+		return fmt.Errorf("invalid --add-host value: %w", err)
+	}
 	return nil
 }
 
@@ -123,5 +130,19 @@ func buildFlags() *pflag.FlagSet {
 	flags.StringVar(&hostname, "hostname", "localhost", "Hostname to set in the generated image")
 	flags.StringSliceVar(&dns, "dns", []string{}, "DNS servers to set in the generated image")
 	flags.StringSliceVar(&dnsSearch, "dns-search", []string{}, "DNS search domains to set in the generated image")
+	flags.StringSliceVar(&hosts, "add-host", []string{}, "Add a custom host-to-IP mapping (host:ip) to the /etc/hosts file in the generated image")
 	return flags
+}
+
+func validateHosts(vals ...string) (map[string]string, error) {
+	out := make(map[string]string)
+	for _, val := range vals {
+		// allow for IPv6 addresses in extra hosts by only splitting on first ":"
+		k, v, ok := strings.Cut(val, ":")
+		if !ok || k == "" {
+			return nil, fmt.Errorf("bad format for add-host: %q", val)
+		}
+		out[k] = v
+	}
+	return out, nil
 }

@@ -38,6 +38,7 @@ type convertOptions struct {
 	hostname  string
 	dns       []string
 	dnsSearch []string
+	hosts     map[string]string
 }
 
 func (o *convertOptions) hasGrubBIOS() bool {
@@ -147,5 +148,11 @@ func WithDNS(dns []string) ConvertOption {
 func WithDNSSearch(dnsSearch []string) ConvertOption {
 	return func(o *convertOptions) {
 		o.dnsSearch = dnsSearch
+	}
+}
+
+func WithExtraHosts(hosts map[string]string) ConvertOption {
+	return func(o *convertOptions) {
+		o.hosts = hosts
 	}
 }
