@@ -1,0 +1,1268 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="assets/d2vm-favicon.png">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.14">
+    
+    
+      
+        <title></title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.1f8bad67.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.4f2bb93b.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#d2vm-docker-to-virtual-machine" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="https://github.com/linka-cloud/d2vm" title="" class="md-header__button md-logo" aria-label="" data-md-component="logo">
+      
+  <img src="assets/d2vm-light-tr.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Getting Started
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/linka-cloud/d2vm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://github.com/linka-cloud/d2vm" title="" class="md-nav__button md-logo" aria-label="" data-md-component="logo">
+      
+  <img src="assets/d2vm-light-tr.png" alt="logo">
+
+    </a>
+    
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/linka-cloud/d2vm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Getting Started
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        Getting Started
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-environments" class="md-nav__link">
+    Supported Environments:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-vm-linux-distributions" class="md-nav__link">
+    Supported VM Linux distributions:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#osx" class="md-nav__link">
+    osx
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    Linux
+  </a>
+  
+    <nav class="md-nav" aria-label="Linux">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sudo-or-root-privileges" class="md-nav__link">
+    sudo or root privileges
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    Getting started
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    Install
+  </a>
+  
+    <nav class="md-nav" aria-label="Install">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-docker" class="md-nav__link">
+    With Docker
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-homebrew" class="md-nav__link">
+    With Homebrew
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-release" class="md-nav__link">
+    From release
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-source" class="md-nav__link">
+    From source
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-shell-completion" class="md-nav__link">
+    Generate shell completion
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-an-existing-docker-image-to-vm-image" class="md-nav__link">
+    Converting an existing Docker Image to VM image:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-a-vm-image-from-a-dockerfile" class="md-nav__link">
+    Building a VM Image from a Dockerfile
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubevirt-container-disk-images" class="md-nav__link">
+    KubeVirt Container Disk Images
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    Complete example
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-dockerfile-templates" class="md-nav__link">
+    Internal Dockerfile templates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#todo-questions" class="md-nav__link">
+    TODO / Questions:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    Acknowledgments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="full-example/" class="md-nav__link">
+        Complete Example
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3">
+          Command Line
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Command Line" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Command Line
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm/" class="md-nav__link">
+        d2vm
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_build/" class="md-nav__link">
+        build
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_convert/" class="md-nav__link">
+        convert
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_4" type="checkbox" id="__nav_3_4" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_4">
+          run
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="run" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_4">
+          <span class="md-nav__icon md-icon"></span>
+          run
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_run_hetzner/" class="md-nav__link">
+        hetzner
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_run_qemu/" class="md-nav__link">
+        qemu
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_run_vbox/" class="md-nav__link">
+        virtualbox
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_3_5" type="checkbox" id="__nav_3_5" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_5">
+          completion
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="completion" data-md-level="2">
+        <label class="md-nav__title" for="__nav_3_5">
+          <span class="md-nav__icon md-icon"></span>
+          completion
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_completion_bash/" class="md-nav__link">
+        bash
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_completion_fish/" class="md-nav__link">
+        fish
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_completion_powershell/" class="md-nav__link">
+        powershell
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_completion_zsh/" class="md-nav__link">
+        zsh
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reference/d2vm_version/" class="md-nav__link">
+        version
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-environments" class="md-nav__link">
+    Supported Environments:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supported-vm-linux-distributions" class="md-nav__link">
+    Supported VM Linux distributions:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#osx" class="md-nav__link">
+    osx
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    Linux
+  </a>
+  
+    <nav class="md-nav" aria-label="Linux">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sudo-or-root-privileges" class="md-nav__link">
+    sudo or root privileges
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    Getting started
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    Install
+  </a>
+  
+    <nav class="md-nav" aria-label="Install">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-docker" class="md-nav__link">
+    With Docker
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#with-homebrew" class="md-nav__link">
+    With Homebrew
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-release" class="md-nav__link">
+    From release
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-source" class="md-nav__link">
+    From source
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate-shell-completion" class="md-nav__link">
+    Generate shell completion
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#converting-an-existing-docker-image-to-vm-image" class="md-nav__link">
+    Converting an existing Docker Image to VM image:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#building-a-vm-image-from-a-dockerfile" class="md-nav__link">
+    Building a VM Image from a Dockerfile
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kubevirt-container-disk-images" class="md-nav__link">
+    KubeVirt Container Disk Images
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    Complete example
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#internal-dockerfile-templates" class="md-nav__link">
+    Internal Dockerfile templates
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#todo-questions" class="md-nav__link">
+    TODO / Questions:
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acknowledgments" class="md-nav__link">
+    Acknowledgments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+  <a href="https://github.com/linka-cloud/d2vm/edit/docs/docs/content/index.md" title="Edit this page" class="md-content__button md-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+
+<h1 id="d2vm-docker-to-virtual-machine">d2vm (Docker to Virtual Machine)</h1>
+<p><a href="https://golang.org/"><img alt="Language: Go" src="https://img.shields.io/badge/lang-Go-6ad7e5.svg?style=flat-square&amp;logo=go" /></a>
+<a href="https://pkg.go.dev/go.linka.cloud/d2vm"><img alt="Go Reference" src="https://pkg.go.dev/badge/go.linka.cloud/d2vm.svg" /></a>
+<a href="https://matrix.to/#/#d2vm:linka.cloud"><img alt="Chat" src="https://img.shields.io/badge/chat-matrix-blue.svg?style=flat-square&amp;logo=matrix" /></a></p>
+<p><em>Build virtual machine image from Docker images</em></p>
+<p>The project is heavily inspired by the <a href="https://iximiuz.com/en/posts/from-docker-container-to-bootable-linux-disk-image/">article</a> and the work done by <a href="https://github.com/iximiuz">iximiuz</a> on <a href="https://github.com/iximiuz/docker-to-linux">docker-to-linux</a>.</p>
+<p>Many thanks to him.</p>
+<p><strong>Status</strong>: <em>alpha</em></p>
+<p><a href="https://asciinema.org/a/520132"><img alt="asciicast" src="https://asciinema.org/a/520132.svg" /></a></p>
+<h2 id="supported-environments">Supported Environments:</h2>
+<p><strong>Only building Linux Virtual Machine images is supported.</strong></p>
+<p>Starting from v0.1.0, <strong>d2vm</strong> automatically run build and convert commands inside Docker when not running on linux
+or when running without <em>root</em> privileges.</p>
+<p><em>Note: windows should be working, but is totally untested.</em></p>
+<h2 id="supported-vm-linux-distributions">Supported VM Linux distributions:</h2>
+<p>Working and tested:</p>
+<ul class="task-list">
+<li class="task-list-item"><input type="checkbox" disabled checked/> Ubuntu (18.04+)
+  Luks support is available only on Ubuntu 20.04+</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> Debian (stretch+)
+  Luks support is available only on Debian buster+</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> Alpine</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> CentOS (8+)</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> Rocky Linux</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> AlmaLinux</li>
+</ul>
+<p>Unsupported:</p>
+<ul class="task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> RHEL</li>
+</ul>
+<p>The program uses the <code>/etc/os-release</code> file to discover the Linux distribution and install the Kernel,
+if the file is missing, the build cannot succeed.</p>
+<p>Obviously, <strong>Distroless</strong> images are not supported.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<h3 id="osx">osx</h3>
+<ul>
+<li><a href="https://docs.docker.com/get-docker/">Docker</a></li>
+<li><a href="https://www.qemu.org/download/#macos">QEMU</a> (optional)</li>
+<li><a href="https://www.virtualbox.org/wiki/Downloads">VirtualBox</a> (optional)</li>
+</ul>
+<h3 id="linux">Linux</h3>
+<ul>
+<li><a href="https://docs.docker.com/get-docker/">Docker</a></li>
+<li>util-linux</li>
+<li>udev</li>
+<li>parted</li>
+<li>e2fsprogs</li>
+<li>dosfstools (when using fat32)</li>
+<li>mount</li>
+<li>tar</li>
+<li>extlinux (when using syslinux)</li>
+<li>qemu-utils</li>
+<li>cryptsetup (when using LUKS)</li>
+<li><a href="https://www.qemu.org/download/#linux">QEMU</a> (optional)</li>
+<li><a href="https://www.virtualbox.org/wiki/Linux_Downloads">VirtualBox</a> (optional)</li>
+</ul>
+<h4 id="sudo-or-root-privileges">sudo or root privileges</h4>
+<p><em>sudo</em> or root privileges are required for <code>d2vm</code> to performs operations that require root-level permissions, in particular:</p>
+<ul>
+<li>mounting disk images and loopback devices requires <a href="https://linux.die.net/man/2/mount">elevated privileges</a></li>
+<li>invoke <code>docker</code> commands, which require root-level permissions by default</li>
+</ul>
+<h2 id="getting-started">Getting started</h2>
+<h3 id="install">Install</h3>
+<h4 id="with-docker">With Docker</h4>
+<p><em>Note: this will only work if both the source context (and Dockerfile) and the output directory are somewhere inside
+the directory where you run the command.</em></p>
+<div class="highlight"><pre><span></span><code>docker pull linkacloud/d2vm:latest
+<span class="nb">alias</span> <span class="nv">d2vm</span><span class="o">=</span><span class="s2">&quot;docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v \$PWD:/d2vm -w /d2vm linkacloud/d2vm:latest&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>which d2vm
+
+d2vm: aliased to docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock --privileged -v <span class="nv">$PWD</span>:/d2vm -w /d2vm linkacloud/d2vm:latest
+</code></pre></div>
+<h4 id="with-homebrew">With Homebrew</h4>
+<div class="highlight"><pre><span></span><code>brew install linka-cloud/tap/d2vm
+</code></pre></div>
+<h4 id="from-release">From release</h4>
+<p>Download the latest release for your platform from the <a href="https://github.com/linka-cloud/d2vm/releases/latest">release page</a>.</p>
+<p>Extract the tarball, then move the extracted <em>d2vm</em> binary to somewhere in your <code>$PATH</code> (<code>/usr/local/bin</code> for most users).</p>
+<div class="highlight"><pre><span></span><code><span class="nv">VERSION</span><span class="o">=</span><span class="k">$(</span>git ls-remote --tags https://github.com/linka-cloud/d2vm <span class="p">|</span>cut -d<span class="s1">&#39;/&#39;</span> -f <span class="m">3</span><span class="p">|</span>tail -n <span class="m">1</span><span class="k">)</span>
+<span class="nv">OS</span><span class="o">=</span><span class="k">$(</span>uname -s <span class="p">|</span> tr <span class="s1">&#39;[:upper:]&#39;</span> <span class="s1">&#39;[:lower:]&#39;</span><span class="k">)</span>
+<span class="nv">ARCH</span><span class="o">=</span><span class="k">$(</span><span class="o">[</span> <span class="s2">&quot;</span><span class="k">$(</span>uname -m<span class="k">)</span><span class="s2">&quot;</span> <span class="o">=</span> <span class="s2">&quot;x86_64&quot;</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">&quot;amd64&quot;</span> <span class="o">||</span> <span class="nb">echo</span> <span class="s2">&quot;arm64&quot;</span><span class="k">)</span>
+curl -sL <span class="s2">&quot;https://github.com/linka-cloud/d2vm/releases/download/</span><span class="si">${</span><span class="nv">VERSION</span><span class="si">}</span><span class="s2">/d2vm_</span><span class="si">${</span><span class="nv">VERSION</span><span class="si">}</span><span class="s2">_</span><span class="si">${</span><span class="nv">OS</span><span class="si">}</span><span class="s2">_</span><span class="si">${</span><span class="nv">ARCH</span><span class="si">}</span><span class="s2">.tar.gz&quot;</span> <span class="p">|</span> tar -xvz d2vm
+sudo mv d2vm /usr/local/bin/
+</code></pre></div>
+<h4 id="from-source">From source</h4>
+<p>Clone the git repository:</p>
+<div class="highlight"><pre><span></span><code>git clone https://github.com/linka-cloud/d2vm <span class="o">&amp;&amp;</span> <span class="nb">cd</span> d2vm
+</code></pre></div>
+<p>Install using the <em>make</em>, <em>docker</em> and the Go tool chain:</p>
+<div class="highlight"><pre><span></span><code>make install
+</code></pre></div>
+<p>The <em>d2vm</em> binary is installed in the <code>$GOBIN</code> directory.</p>
+<div class="highlight"><pre><span></span><code>which d2vm
+
+/go/bin/d2vm
+</code></pre></div>
+<h3 id="generate-shell-completion">Generate shell completion</h3>
+<p>The <em>d2vm</em> program supports shell completion for <em>bash</em>, <em>zsh</em> and <em>fish</em>.</p>
+<p>It can be enabled by running the following command:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">source</span> &lt;<span class="o">(</span>d2vm completion <span class="k">$(</span>basename <span class="nv">$SHELL</span><span class="k">)</span><span class="o">)</span>
+</code></pre></div>
+<p>Or you can install the completion file in the shell completion directory by following the instructions:</p>
+<div class="highlight"><pre><span></span><code>d2vm completion <span class="k">$(</span>basename <span class="nv">$SHELL</span><span class="k">)</span> --help
+</code></pre></div>
+<h3 id="converting-an-existing-docker-image-to-vm-image">Converting an existing Docker Image to VM image:</h3>
+<p><div class="highlight"><pre><span></span><code>d2vm convert --help
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Convert Docker image to vm image
+
+Usage:
+  d2vm convert [docker image] [flags]
+
+Flags:
+      --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --add-host strings           Add a custom host-to-IP mapping (host:ip) to the /etc/hosts file in the generated image
+      --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
+      --boot-size uint             Size of the boot partition in MB (default 100)
+      --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64
+      --dns strings                DNS servers to set in the generated image
+      --dns-search strings         DNS search domains to set in the generated image
+      --force                      Override output qcow2 image
+  -h, --help                       help for convert
+      --hostname string            Hostname to set in the generated image (default &quot;localhost&quot;)
+      --keep-cache                 Keep the images after the build
+      --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
+      --network-manager string     Network manager to use for the image: none, netplan, ifupdown
+  -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default &quot;disk0.qcow2&quot;)
+  -p, --password string            Optional root user password
+      --platform string            Platform to use for the container disk image, linux/arm64 and linux/arm64 are supported (default &quot;linux/amd64&quot;)
+      --pull                       Always pull docker image
+      --push                       Push the container disk image to the registry
+      --raw                        Just convert the container to virtual machine image without installing anything more
+  -s, --size string                The output image size (default &quot;10G&quot;)
+      --split-boot                 Split the boot partition from the root partition
+  -t, --tag string                 Container disk Docker image tag
+
+Global Flags:
+      --time string   Enable formated timed output, valide formats: &#39;relative (rel | r)&#39;, &#39;full (f)&#39; (default &quot;none&quot;)
+  -v, --verbose       Enable Verbose output
+</code></pre></div></p>
+<p>Create an image based on the <strong>ubuntu</strong> official image:</p>
+<p><div class="highlight"><pre><span></span><code>sudo d2vm convert ubuntu -o ubuntu.qcow2 -p MyP4Ssw0rd
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Pulling image ubuntu
+Inspecting image ubuntu
+No network manager specified, using distribution defaults: netplan
+Docker image based on Ubuntu 22.04.1 LTS (Jammy Jellyfish)
+Building kernel enabled image
+Creating vm image
+Creating raw image
+Mounting raw image
+Creating raw image file system
+Copying rootfs to raw image
+Setting up rootfs
+Installing linux kernel
+Unmounting raw image
+Writing MBR
+Converting to qcow2
+</code></pre></div></p>
+<p>You can now run your ubuntu image using the created <code>ubuntu.qcow2</code> image with <strong>qemu</strong>:</p>
+<p><div class="highlight"><pre><span></span><code>d2vm run qemu ubuntu.qcow2
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>SeaBIOS (version 1.13.0-1ubuntu1.1)
+
+
+iPXE (http://ipxe.org) 00:03.0 CA00 PCI2.10 PnP PMM+BFF8C920+BFECC920 CA00
+
+
+
+Booting from Hard Disk...
+
+SYSLINUX 6.04 EDD 20191223 Copyright (C) 1994-2015 H. Peter Anvin et al
+Now booting the kernel from SYSLINUX...
+Loading /boot/vmlinuz... ok
+Loading /boot/initrd.img...ok
+[    0.000000] Linux version 5.4.0-109-generic (buildd@ubuntu) (gcc version 9)
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz ro root=UUID=b117d206-b8
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000]   AMD AuthenticAMD
+[    0.000000]   Hygon HygonGenuine
+[    0.000000]   Centaur CentaurHauls
+[    0.000000]   zhaoxin   Shanghai
+
+...
+
+Welcome to Ubuntu 20.04.4 LTS!
+
+[    3.610631] systemd[1]: Set hostname to &lt;localhost&gt;.
+[    3.838984] systemd[1]: Created slice system-getty.slice.
+[  OK  ] Created slice system-getty.slice.
+[    3.845038] systemd[1]: Created slice system-modprobe.slice.
+[  OK  ] Created slice system-modprobe.slice.
+[    3.852054] systemd[1]: Created slice system-serial\x2dgetty.slice.
+[  OK  ] Created slice system-serial\x2dgetty.slice.
+
+...
+
+Ubuntu 20.04.4 LTS localhost ttyS0
+
+localhost login:
+</code></pre></div></p>
+<p>Log in using the <em>root</em> user and the password configured at build time.</p>
+<div class="highlight"><pre><span></span><code>localhost login: root
+Password:
+
+
+Welcome to Ubuntu 20.04.4 LTS (GNU/Linux 5.4.0-109-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+This system has been minimized by removing packages and content that are
+not required on a system that users do not log into.
+
+To restore this content, you can run the &#39;unminimize&#39; command.
+
+The programs included with the Ubuntu system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Ubuntu comes with ABSOLUTELY NO WARRANTY, to the extent permitted by
+applicable law.
+
+root@localhost:~#
+</code></pre></div>
+<p>Type <code>poweroff</code> to shut down the vm.</p>
+<h3 id="building-a-vm-image-from-a-dockerfile">Building a VM Image from a Dockerfile</h3>
+<p>The example directory contains very minimalistic examples:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> examples
+</code></pre></div>
+<p><em>ubuntu.Dockerfile</em> :</p>
+<div class="highlight"><pre><span></span><code><span class="k">FROM</span><span class="w"> </span><span class="s">ubuntu</span>
+
+<span class="k">RUN</span><span class="w"> </span>apt update <span class="o">&amp;&amp;</span> apt install -y openssh-server <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    <span class="nb">echo</span> <span class="s2">&quot;PermitRootLogin yes&quot;</span> &gt;&gt; /etc/ssh/sshd_config
+</code></pre></div>
+<p>Build the vm image:</p>
+<p>The <em>build</em> command take most of its flags and arguments from the <em>docker build</em> command.</p>
+<div class="highlight"><pre><span></span><code>d2vm build --help
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>Build a vm image from Dockerfile
+
+Usage:
+  d2vm build [context directory] [flags]
+
+Flags:
+      --append-to-cmdline string   Extra kernel cmdline arguments to append to the generated one
+      --add-host strings           Add a custom host-to-IP mapping (host:ip) to the /etc/hosts file in the generated image
+      --boot-fs string             Filesystem to use for the boot partition, ext4 or fat32
+      --boot-size uint             Size of the boot partition in MB (default 100)
+      --bootloader string          Bootloader to use: syslinux, grub, grub-bios, grub-efi, defaults to syslinux on amd64 and grub-efi on arm64
+      --dns strings                DNS servers to set in the generated image
+      --dns-search strings         DNS search domains to set in the generated image
+      --build-arg stringArray      Set build-time variables
+  -f, --file string                Name of the Dockerfile
+      --force                      Override output qcow2 image
+  -h, --help                       help for build
+      --hostname string            Hostname to set in the generated image (default &quot;localhost&quot;)
+      --keep-cache                 Keep the images after the build
+      --luks-password string       Password to use for the LUKS encrypted root partition. If not set, the root partition will not be encrypted
+      --network-manager string     Network manager to use for the image: none, netplan, ifupdown
+  -o, --output string              The output image, the extension determine the image format, raw will be used if none. Supported formats: qcow2 qed raw vdi vhd vmdk (default &quot;disk0.qcow2&quot;)
+  -p, --password string            Optional root user password
+      --platform string            Platform to use for the container disk image, linux/arm64 and linux/arm64 are supported (default &quot;linux/amd64&quot;)
+      --pull                       Always pull docker image
+      --push                       Push the container disk image to the registry
+      --raw                        Just convert the container to virtual machine image without installing anything more
+  -s, --size string                The output image size (default &quot;10G&quot;)
+      --split-boot                 Split the boot partition from the root partition
+  -t, --tag string                 Container disk Docker image tag
+
+Global Flags:
+      --time string   Enable formated timed output, valide formats: &#39;relative (rel | r)&#39;, &#39;full (f)&#39; (default &quot;none&quot;)
+  -v, --verbose       Enable Verbose output
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>sudo d2vm build -p MyP4Ssw0rd -f ubuntu.Dockerfile -o ubuntu.qcow2 .
+</code></pre></div>
+<p>Or if you want to create a VirtualBox image:</p>
+<div class="highlight"><pre><span></span><code>sudo d2vm build -p MyP4Ssw0rd -f ubuntu.Dockerfile -o ubuntu.vdi .
+</code></pre></div>
+<h3 id="kubevirt-container-disk-images">KubeVirt Container Disk Images</h3>
+<p>Using the <code>--tag</code> flag with the <code>build</code> and <code>convert</code> commands, you can create a
+<a href="https://kubevirt.io/user-guide/virtual_machines/disks_and_volumes/#containerdisk">Container Disk Image</a> for <a href="https://kubevirt.io/">KubeVirt</a>.</p>
+<p>The <code>--push</code> flag will push the image to the registry.</p>
+<h3 id="complete-example">Complete example</h3>
+<p>A complete example setting up a ZSH workstation is available in the <a href="examples/full/README.md">examples/full</a> directory.</p>
+<h3 id="internal-dockerfile-templates">Internal Dockerfile templates</h3>
+<p>You can find the Dockerfiles used to install the Kernel in the <a href="templates">templates</a> directory.</p>
+<h3 id="todo-questions">TODO / Questions:</h3>
+<ul class="task-list">
+<li class="task-list-item"><input type="checkbox" disabled/> Create service from <code>ENTRYPOINT</code> <code>CMD</code> <code>WORKDIR</code> and <code>ENV</code> instructions ?</li>
+<li class="task-list-item"><input type="checkbox" disabled/> Inject Image <code>ENV</code> variables into <code>.bashrc</code> or other service environment file ?</li>
+<li class="task-list-item"><input type="checkbox" disabled checked/> Use image layers to create <em>rootfs</em> instead of container ?</li>
+</ul>
+<h3 id="acknowledgments">Acknowledgments</h3>
+<p>The <em>run</em> commands are adapted from <a href="https://github.com/docker/linuxkit">linuxkit</a>.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+      
+        
+        <a href="full-example/" class="md-footer__link md-footer__link--next" aria-label="Next: Complete Example" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Complete Example
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2022 Linka Cloud
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+      
+      
+    
+    <a href="https://github.com/linka-cloud" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://hub.docker.com/r/linkacloud" target="_blank" rel="noopener" title="hub.docker.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M349.9 236.3h-66.1v-59.4h66.1v59.4zm0-204.3h-66.1v60.7h66.1V32zm78.2 144.8H362v59.4h66.1v-59.4zm-156.3-72.1h-66.1v60.1h66.1v-60.1zm78.1 0h-66.1v60.1h66.1v-60.1zm276.8 100c-14.4-9.7-47.6-13.2-73.1-8.4-3.3-24-16.7-44.9-41.1-63.7l-14-9.3-9.3 14c-18.4 27.8-23.4 73.6-3.7 103.8-8.7 4.7-25.8 11.1-48.4 10.7H2.4c-8.7 50.8 5.8 116.8 44 162.1 37.1 43.9 92.7 66.2 165.4 66.2 157.4 0 273.9-72.5 328.4-204.2 21.4.4 67.6.1 91.3-45.2 1.5-2.5 6.6-13.2 8.5-17.1l-13.3-8.9zm-511.1-27.9h-66v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm78.1 0h-66.1v59.4h66.1v-59.4zm-78.1-72.1h-66.1v60.1h66.1v-60.1z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.2a1c317c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="assets/javascripts/bundle.a6c66575.min.js"></script>
+      
+    
+  </body>
+</html>
