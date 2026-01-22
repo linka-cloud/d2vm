@@ -137,7 +137,8 @@ serve-docs:
 
 .PHONY: build-docs
 build-docs: clean-docs cli-docs
-	@docker run --rm -v $(PWD):/docs linkacloud/mkdocs-material build -f /docs/docs/mkdocs.yml -d build
+	@docker run --rm -v $(PWD):/docs --user $$(id -u):$$(id -u) linkacloud/mkdocs-material build -f /docs/docs/mkdocs.yml -d build
+	@cp docs/CNAME docs/build/CNAME
 
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
