@@ -61,8 +61,8 @@ func (g grubProvider) New(c Config, r OSRelease, arch string) (Bootloader, error
 	if arch != "x86_64" {
 		return nil, fmt.Errorf("grub is only supported for amd64")
 	}
-	if r.ID == ReleaseCentOS {
-		return nil, fmt.Errorf("grub (efi) is not supported for CentOS, use grub-bios instead")
+	if r.ID == ReleaseCentOS || r.ID == ReleaseRocky || r.ID == ReleaseAlmaLinux {
+		return nil, fmt.Errorf("grub (efi) is not supported for CentOS / Rocky / AlmaLinux, use grub-bios instead")
 	}
 	return grub{grubCommon: newGrubCommon(c, r)}, nil
 }

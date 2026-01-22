@@ -34,6 +34,8 @@ Working and tested:
   Luks support is available only on Debian buster+
 - [x] Alpine
 - [x] CentOS (8+)
+- [x] Rocky Linux
+- [x] AlmaLinux
 
 Unsupported:
 

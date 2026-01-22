@@ -56,7 +56,7 @@ type grubEFIProvider struct {
 }
 
 func (g grubEFIProvider) New(c Config, r OSRelease, arch string) (Bootloader, error) {
-	if r.ID == ReleaseCentOS {
+	if r.ID == ReleaseCentOS || r.ID == ReleaseRocky || r.ID == ReleaseAlmaLinux {
 		return nil, fmt.Errorf("grub-efi is not supported for CentOS, use grub-bios instead")
 	}
 	return grubEFI{grubCommon: newGrubCommon(c, r), arch: arch}, nil

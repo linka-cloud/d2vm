@@ -54,6 +54,8 @@ var (
 		{name: "debian:13", luks: "Please unlock disk root:"},
 		{name: "centos:8", luks: "Please enter passphrase for disk"},
 		{name: "quay.io/centos/centos:stream10", luks: "Please enter passphrase for disk"},
+		{name: "almalinux:10", luks: "Please enter passphrase for disk"},
+		{name: "rockylinux:9", luks: "Please enter passphrase for disk"},
 	}
 	imgNames = func() []string {
 		var imgs []string
@@ -118,7 +120,7 @@ imgs:
 
 			defer os.RemoveAll(dir)
 			for _, img := range testImgs {
-				if strings.Contains(img.name, "centos") && tt.efi {
+				if (strings.Contains(img.name, "centos") || strings.Contains(img.name, "almalinux") || strings.Contains(img.name, "rocky")) && tt.efi {
 					t.Skip("efi not supported for CentOS")
 				}
 				t.Run(img.name, func(t *testing.T) {

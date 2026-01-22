@@ -137,6 +137,14 @@ func TestConfig(t *testing.T) {
 			image:  "quay.io/centos/centos:stream10",
 			config: configCentOS,
 		},
+		{
+			image:  "almalinux:10",
+			config: configCentOS,
+		},
+		{
+			image:  "rockylinux:9",
+			config: configCentOS,
+		},
 	}
 	exec.SetDebug(true)
 

@@ -102,7 +102,7 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 		if networkManager == NetworkManagerNetplan {
 			return d, fmt.Errorf("netplan is not supported on alpine")
 		}
-	case ReleaseCentOS:
+	case ReleaseCentOS, ReleaseRocky, ReleaseAlmaLinux:
 		d.tmpl = centOSDockerfileTemplate
 		net = NetworkManagerNone
 		if networkManager != "" && networkManager != NetworkManagerNone {
@@ -112,7 +112,7 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 		return Dockerfile{}, fmt.Errorf("unsupported distribution: %s", release.ID)
 	}
 	if d.NetworkManager == "" {
-		if release.ID != ReleaseCentOS {
+		if release.ID != ReleaseCentOS && release.ID != ReleaseRocky && release.ID != ReleaseAlmaLinux {
 			logrus.Warnf("no network manager specified, using distribution defaults: %s", net)
 		}
 		d.NetworkManager = net

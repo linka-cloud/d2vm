@@ -59,6 +59,8 @@ jobs:
         - alpine
         - centos
         - quay.io/centos/centos:stream
+        - almalinux
+        - rockylinux
 
     steps:
     - name: Free Disk Space (Ubuntu)
@@ -112,6 +114,8 @@ jobs:
         - debian:13
         - centos:8
         - quay.io/centos/centos:stream10
+        - almalinux:10
+        - rockylinux:9
     steps:
     - name: Free Disk Space (Ubuntu)
       uses: linka-cloud/free-disk-space@main

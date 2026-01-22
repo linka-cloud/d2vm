@@ -2,9 +2,7 @@ FROM {{ .Image }} AS rootfs
 
 USER root
 
-{{ $version := atoi .Release.VersionID }}
-
-{{ if le $version 8 }}
+{{ if and (eq .Release.ID "centos") (le (atoi .Release.VersionID) 8) }}
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
     sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 {{ end }}
@@ -19,6 +17,7 @@ RUN yum install -y \
     systemctl enable NetworkManager && \
     systemctl unmask systemd-remount-fs.service && \
     systemctl unmask getty.target && \
+    mkdir -p /boot && \
     find /boot -type l -exec rm {} \;
 
 {{- if .GrubBIOS }}

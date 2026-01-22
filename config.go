@@ -80,7 +80,7 @@ func (r OSRelease) Config() (Config, error) {
 		return configDebian, nil
 	case ReleaseAlpine:
 		return configAlpine, nil
-	case ReleaseCentOS:
+	case ReleaseCentOS, ReleaseRocky, ReleaseAlmaLinux:
 		return configCentOS, nil
 	default:
 		return Config{}, fmt.Errorf("%s: distribution not supported", r.ID)
