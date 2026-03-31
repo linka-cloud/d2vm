@@ -42,9 +42,13 @@ type grubCommon struct {
 	dev  string
 }
 
+func isRhelFamily(r Release) bool {
+	return r == ReleaseCentOS || r == ReleaseRocky || r == ReleaseAlmaLinux || r == ReleaseRHEL
+}
+
 func newGrubCommon(c Config, r OSRelease) *grubCommon {
 	name := "grub"
-	if r.ID == "centos" {
+	if isRhelFamily(r.ID) {
 		name = "grub2"
 	}
 	return &grubCommon{

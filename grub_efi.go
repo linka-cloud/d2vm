@@ -17,8 +17,12 @@ package d2vm
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
+
+	"go.linka.cloud/d2vm/pkg/exec"
 )
 
 type grubEFI struct {
@@ -45,9 +49,41 @@ func (g grubEFI) Setup(ctx context.Context, dev, root string, cmdline string) er
 	if err := g.install(ctx, "--target="+g.arch+"-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy"); err != nil {
 		return err
 	}
+	if isRhelFamily(g.r.ID) {
+		if err := g.copyEfiBinary(ctx, root); err != nil {
+			return err
+		}
+	}
 	if err := g.mkconfig(ctx); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (g grubEFI) copyEfiBinary(ctx context.Context, root string) error {
+	efiDir := filepath.Join(root, "boot", "efi", "EFI")
+	distroDirs := []string{"rocky", "almalinux", "centos", "rhel"}
+	var srcPath string
+	for _, d := range distroDirs {
+		p := filepath.Join(efiDir, d, "grub"+g.arch+".efi")
+		if _, err := os.Stat(p); err == nil {
+			srcPath = p
+			break
+		}
+	}
+	if srcPath == "" {
+		logrus.Warnf("could not find distro-specific EFI binary, skipping removable boot copy")
+		return nil
+	}
+	dstDir := filepath.Join(efiDir, "BOOT")
+	dstPath := filepath.Join(dstDir, "BOOT"+g.arch+".EFI")
+	if err := os.MkdirAll(dstDir, os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create EFI boot directory: %w", err)
+	}
+	if err := exec.Run(ctx, "cp", srcPath, dstPath); err != nil {
+		return fmt.Errorf("failed to copy EFI binary to removable boot path: %w", err)
+	}
+	logrus.Infof("copied EFI binary to %s", dstPath)
 	return nil
 }
 
@@ -56,9 +92,6 @@ type grubEFIProvider struct {
 }
 
 func (g grubEFIProvider) New(c Config, r OSRelease, arch string) (Bootloader, error) {
-	if r.ID == ReleaseCentOS || r.ID == ReleaseRocky || r.ID == ReleaseAlmaLinux {
-		return nil, fmt.Errorf("grub-efi is not supported for CentOS, use grub-bios instead")
-	}
 	return grubEFI{grubCommon: newGrubCommon(c, r), arch: arch}, nil
 }
 
