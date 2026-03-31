@@ -46,7 +46,7 @@ func (g grubEFI) Setup(ctx context.Context, dev, root string, cmdline string) er
 		return err
 	}
 	defer clean()
-	if err := g.install(ctx, "--target="+g.arch+"-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy"); err != nil {
+	if err := g.install(ctx, "--target="+g.arch+"-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy", "--force"); err != nil {
 		return err
 	}
 	if isRhelFamily(g.r.ID) {

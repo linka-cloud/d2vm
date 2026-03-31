@@ -41,7 +41,7 @@ func (g grub) Setup(ctx context.Context, dev, root string, cmdline string) error
 		return err
 	}
 	defer clean()
-	if err := g.install(ctx, "--target=x86_64-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy"); err != nil {
+	if err := g.install(ctx, "--target=x86_64-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy", "--force"); err != nil {
 		return err
 	}
 	if err := g.install(ctx, "--target=i386-pc", "--boot-directory=/boot", dev); err != nil {
