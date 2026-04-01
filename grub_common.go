@@ -35,14 +35,6 @@ GRUB_CMDLINE_LINUX="root=LABEL=rootfs"
 GRUB_TERMINAL=console
 `
 
-const grubCfgRhel = `GRUB_DEFAULT=0
-GRUB_TIMEOUT=0
-GRUB_CMDLINE_LINUX="root=LABEL=rootfs %s"
-GRUB_TERMINAL=console
-GRUB_ENABLE_BLSCFG=false
-GRUB_DISABLE_LINUX_UUID=true
-`
-
 type grubCommon struct {
 	name string
 	c    Config
@@ -71,11 +63,7 @@ func (g *grubCommon) prepare(ctx context.Context, dev, root, cmdline string) (cl
 	g.dev = dev
 	g.root = root
 
-	cfg := grubCfg
-	if isRhelFamily(g.r.ID) {
-		cfg = grubCfgRhel
-	}
-	if err = os.WriteFile(filepath.Join(root, "etc", "default", "grub"), []byte(fmt.Sprintf(cfg, cmdline)), perm); err != nil {
+	if err = os.WriteFile(filepath.Join(root, "etc", "default", "grub"), []byte(fmt.Sprintf(grubCfg, cmdline)), perm); err != nil {
 		return
 	}
 
