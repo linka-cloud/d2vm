@@ -55,8 +55,10 @@ func (r RootPath) String() string {
 }
 
 type Config struct {
-	Kernel string
-	Initrd string
+	Kernel    string
+	Initrd    string
+	SplitBoot bool
+	BootFS    BootFS
 }
 
 func (c Config) Cmdline(root Root, args ...string) string {

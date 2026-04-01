@@ -144,6 +144,9 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		config.Initrd = strings.TrimPrefix(config.Initrd, "/boot")
 	}
 
+	config.SplitBoot = splitBoot
+	config.BootFS = bootFS
+
 	if bootFS == "" {
 		bootFS = BootFSExt4
 	}
