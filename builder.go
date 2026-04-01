@@ -334,7 +334,7 @@ func (b *builder) mountImg(ctx context.Context) error {
 		b.rootPart = "/dev/mapper/root"
 		b.mappedCryptRoot = filepath.Join("/dev/mapper", b.cryptRoot)
 		logrus.Infof("creating raw image file system")
-		if err := exec.Run(ctx, "mkfs.ext4", b.mappedCryptRoot); err != nil {
+		if err := exec.Run(ctx, "mkfs.ext4", "-L", "rootfs", b.mappedCryptRoot); err != nil {
 			return err
 		}
 		if err := exec.Run(ctx, "mount", b.mappedCryptRoot, b.mntPoint); err != nil {
@@ -342,7 +342,7 @@ func (b *builder) mountImg(ctx context.Context) error {
 		}
 	} else {
 		logrus.Infof("creating raw image file system")
-		if err := exec.Run(ctx, "mkfs.ext4", b.rootPart); err != nil {
+		if err := exec.Run(ctx, "mkfs.ext4", "-L", "rootfs", b.rootPart); err != nil {
 			return err
 		}
 		if err := exec.Run(ctx, "mount", b.rootPart, b.mntPoint); err != nil {
@@ -356,9 +356,9 @@ func (b *builder) mountImg(ctx context.Context) error {
 		return err
 	}
 	if b.bootFS.IsFat() {
-		err = exec.Run(ctx, "mkfs.fat", "-F32", b.bootPart)
+		err = exec.Run(ctx, "mkfs.fat", "-F32", "-n", "boot", b.bootPart)
 	} else {
-		err = exec.Run(ctx, "mkfs.ext4", b.bootPart)
+		err = exec.Run(ctx, "mkfs.ext4", "-L", "boot", b.bootPart)
 	}
 	if err != nil {
 		return err

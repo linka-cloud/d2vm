@@ -30,8 +30,16 @@ GRUB_HIDDEN_TIMEOUT=0
 GRUB_HIDDEN_TIMEOUT_QUIET=true
 GRUB_TIMEOUT=0
 GRUB_CMDLINE_LINUX_DEFAULT="%s"
-GRUB_CMDLINE_LINUX=""
+GRUB_CMDLINE_LINUX="root=LABEL=rootfs"
 GRUB_TERMINAL=console
+`
+
+const grubCfgRhel = `GRUB_DEFAULT=0
+GRUB_TIMEOUT=0
+GRUB_CMDLINE_LINUX="root=LABEL=rootfs %s"
+GRUB_TERMINAL=console
+GRUB_ENABLE_BLSCFG=false
+GRUB_DISABLE_LINUX_UUID=true
 `
 
 type grubCommon struct {
@@ -61,8 +69,25 @@ func newGrubCommon(c Config, r OSRelease) *grubCommon {
 func (g *grubCommon) prepare(ctx context.Context, dev, root, cmdline string) (clean func(), err error) {
 	g.dev = dev
 	g.root = root
-	if err = os.WriteFile(filepath.Join(root, "etc", "default", "grub"), []byte(fmt.Sprintf(grubCfg, cmdline)), perm); err != nil {
+
+	cfg := grubCfg
+	if isRhelFamily(g.r.ID) {
+		cfg = grubCfgRhel
+	}
+	if err = os.WriteFile(filepath.Join(root, "etc", "default", "grub"), []byte(fmt.Sprintf(cfg, cmdline)), perm); err != nil {
 		return
+	}
+
+	// Write /etc/fstab so grub2-mkconfig detects separate /boot partition
+	if g.c.SplitBoot {
+		bootFS := "ext4"
+		if g.c.BootFS.IsFat() {
+			bootFS = "vfat"
+		}
+		fstab := fmt.Sprintf("LABEL=rootfs / ext4 defaults 0 0\nLABEL=boot /boot %s defaults 0 0\n", bootFS)
+		if err = os.WriteFile(filepath.Join(root, "etc", "fstab"), []byte(fstab), perm); err != nil {
+			return
+		}
 	}
 	if err = os.MkdirAll(filepath.Join(root, "boot", g.name), os.ModePerm); err != nil {
 		return
