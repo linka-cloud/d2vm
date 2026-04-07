@@ -67,6 +67,15 @@ func (g *grubCommon) prepare(ctx context.Context, dev, root, cmdline string) (cl
 		return
 	}
 
+	// Trigger SELinux relabel on first boot for RHEL-family distros.
+	// The filesystem contexts from the Docker build don't match the
+	// policy loaded at boot, so a relabel is required.
+	if isRhelFamily(g.r.ID) {
+		if err = os.WriteFile(filepath.Join(root, ".autorelabel"), []byte{}, perm); err != nil {
+			return
+		}
+	}
+
 	if err = os.MkdirAll(filepath.Join(root, "boot", g.name), os.ModePerm); err != nil {
 		return
 	}
