@@ -83,13 +83,13 @@ func (r OSRelease) SupportsLUKS() bool {
 	case ReleaseKali:
 		// TODO: check version
 		return true
-	case ReleaseAlpine:
-		return true
 	case ReleaseCentOS:
 		return true
 	case ReleaseRocky:
 		return true
 	case ReleaseAlmaLinux:
+		return true
+	case ReleaseAlpine:
 		return true
 	case ReleaseRHEL:
 		return false
