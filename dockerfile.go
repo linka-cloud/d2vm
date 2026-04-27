@@ -36,15 +36,11 @@ var alpineDockerfile string
 //go:embed templates/centos.Dockerfile
 var centOSDockerfile string
 
-//go:embed templates/rocky.Dockerfile
-var rockyDockerfile string
-
 var (
 	ubuntuDockerfileTemplate = template.Must(template.New("ubuntu.Dockerfile").Funcs(tplFuncs).Parse(ubuntuDockerfile))
 	debianDockerfileTemplate = template.Must(template.New("debian.Dockerfile").Funcs(tplFuncs).Parse(debianDockerfile))
 	alpineDockerfileTemplate = template.Must(template.New("alpine.Dockerfile").Funcs(tplFuncs).Parse(alpineDockerfile))
 	centOSDockerfileTemplate = template.Must(template.New("centos.Dockerfile").Funcs(tplFuncs).Parse(centOSDockerfile))
-	rockyDockerfileTemplate  = template.Must(template.New("rocky.Dockerfile").Funcs(tplFuncs).Parse(rockyDockerfile))
 )
 
 type NetworkManager string
@@ -106,17 +102,11 @@ func NewDockerfile(release OSRelease, img, password string, networkManager Netwo
 		if networkManager == NetworkManagerNetplan {
 			return d, fmt.Errorf("netplan is not supported on alpine")
 		}
-	case ReleaseCentOS:
+	case ReleaseCentOS, ReleaseRocky, ReleaseAlmaLinux:
 		d.tmpl = centOSDockerfileTemplate
 		net = NetworkManagerNone
 		if networkManager != "" && networkManager != NetworkManagerNone {
 			return Dockerfile{}, fmt.Errorf("network manager is not supported on centos")
-		}
-	case ReleaseRocky, ReleaseAlmaLinux:
-		d.tmpl = rockyDockerfileTemplate
-		net = NetworkManagerNone
-		if networkManager != "" && networkManager != NetworkManagerNone {
-			return Dockerfile{}, fmt.Errorf("network manager is not supported on rocky/almalinux")
 		}
 	default:
 		return Dockerfile{}, fmt.Errorf("unsupported distribution: %s", release.ID)
