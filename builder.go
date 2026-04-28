@@ -445,6 +445,14 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 		return err
 	}
 
+	// Fix /boot/loader/entries/ files for split-boot: remove /boot prefix
+	// from paths since the boot partition (GRUB Root) is accessed as / initially.
+	if b.splitBoot {
+		if err := b.fixLoaderEntries(); err != nil {
+			return err
+		}
+	}
+
 	switch b.osRelease.ID {
 	case ReleaseAlpine:
 		by, err := os.ReadFile(b.chPath("/etc/inittab"))
@@ -479,6 +487,34 @@ func (b *builder) cmdline(_ context.Context) string {
 		// and https://cryptsetup-team.pages.debian.net/cryptsetup/README.initramfs.html
 		return b.config.Cmdline(b.osRelease, nil, "root=/dev/mapper/root", "cryptopts=target=root,source=UUID="+b.cryptUUID+",key=none,luks", b.cmdLineExtra)
 	}
+}
+
+func (b *builder) fixLoaderEntries() error {
+	entriesDir := b.chPath("/boot/loader/entries")
+	entries, err := os.ReadDir(entriesDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		path := filepath.Join(entriesDir, entry.Name())
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		fixed := strings.ReplaceAll(string(content), "/boot/", "/")
+		if fixed != string(content) {
+			if err := os.WriteFile(path, []byte(fixed), 0644); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (b *builder) installBootloader(ctx context.Context) error {
