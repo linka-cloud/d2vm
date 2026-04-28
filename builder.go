@@ -466,18 +466,18 @@ func (b *builder) setupRootFS(ctx context.Context) (err error) {
 
 func (b *builder) cmdline(_ context.Context) string {
 	if !b.isLuksEnabled() {
-		return b.config.Cmdline(RootUUID(b.rootUUID), b.cmdLineExtra)
+		return b.config.Cmdline(b.osRelease, RootUUID(b.rootUUID), b.cmdLineExtra)
 	}
 	switch b.osRelease.ID {
 	case ReleaseAlpine:
-		return b.config.Cmdline(RootUUID(b.rootUUID), "root=/dev/mapper/root", "cryptdm=root", "cryptroot=UUID="+b.cryptUUID, b.cmdLineExtra)
+		return b.config.Cmdline(b.osRelease, RootUUID(b.rootUUID), "root=/dev/mapper/root", "cryptdm=root", "cryptroot=UUID="+b.cryptUUID, b.cmdLineExtra)
 	case ReleaseCentOS, ReleaseRocky, ReleaseAlmaLinux:
-		return b.config.Cmdline(RootUUID(b.rootUUID), "rd.luks.name=UUID="+b.rootUUID+" rd.luks.uuid="+b.cryptUUID+" rd.luks.crypttab=0", b.cmdLineExtra)
+		return b.config.Cmdline(b.osRelease, RootUUID(b.rootUUID), "rd.luks.name=UUID="+b.rootUUID+" rd.luks.uuid="+b.cryptUUID+" rd.luks.crypttab=0", b.cmdLineExtra)
 	default:
 		// for some versions of debian, the cryptopts parameter MUST contain all the following: target,source,key,opts...
 		// see https://salsa.debian.org/cryptsetup-team/cryptsetup/-/blob/debian/buster/debian/functions
 		// and https://cryptsetup-team.pages.debian.net/cryptsetup/README.initramfs.html
-		return b.config.Cmdline(nil, "root=/dev/mapper/root", "cryptopts=target=root,source=UUID="+b.cryptUUID+",key=none,luks", b.cmdLineExtra)
+		return b.config.Cmdline(b.osRelease, nil, "root=/dev/mapper/root", "cryptopts=target=root,source=UUID="+b.cryptUUID+",key=none,luks", b.cmdLineExtra)
 	}
 }
 
