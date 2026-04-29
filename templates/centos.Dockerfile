@@ -36,10 +36,27 @@ RUN dracut --no-hostonly --regenerate-all --force
 
 {{ if .Password }}RUN echo "root:{{ .Password }}" | chpasswd {{ end }}
 
-{{- if not .Grub }}
+{{- if .Grub }}
+RUN set -e; \
+    for linux in /usr/lib/modules/*/vmlinuz; do \
+      [ -e "$linux" ] || continue; \
+      kver="$(basename "$(dirname "$linux")")"; \
+      cp "/usr/lib/modules/${kver}/vmlinuz" "/boot/vmlinuz-${kver}"; \
+    done
+RUN set -e; \
+    for linux in /boot/*/*/linux; do \
+      [ -e "$linux" ] || continue; \
+      dir="$(dirname "$linux")"; \
+      kver="$(basename "$dir")"; \
+      initrd="${dir}/initrd"; \
+      [ -e "$initrd" ] || continue; \
+      ln -sf "${linux#/boot/}" "/boot/vmlinuz-${kver}"; \
+      ln -sf "${initrd#/boot/}" "/boot/initramfs-${kver}.img"; \
+    done
+{{- else }}
 RUN cd /boot && \
-        mv $(find / -name 'vmlinuz*') /boot/vmlinuz && \
-        mv $(find . -name 'initramfs-*.img' -o -name initrd) /boot/initrd.img
+      mv $(find / -name 'vmlinuz*') /boot/vmlinuz && \
+      mv $(find . -name 'initramfs-*.img' -o -name initrd) /boot/initrd.img
 {{- end }}
 
 RUN yum clean all && \

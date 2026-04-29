@@ -32,6 +32,8 @@ GRUB_TIMEOUT=0
 GRUB_CMDLINE_LINUX_DEFAULT="%s"
 GRUB_CMDLINE_LINUX=""
 GRUB_TERMINAL=console
+GRUB_DISABLE_OS_PROBER=true
+GRUB_ENABLE_BLSCFG=false
 `
 
 type grubCommon struct {
@@ -44,7 +46,7 @@ type grubCommon struct {
 
 func newGrubCommon(c Config, r OSRelease) *grubCommon {
 	name := "grub"
-	if r.ID == "centos" {
+	if r.ID == ReleaseCentOS || r.ID == ReleaseAlmaLinux || r.ID == ReleaseRocky {
 		name = "grub2"
 	}
 	return &grubCommon{
