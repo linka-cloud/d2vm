@@ -56,7 +56,6 @@ var (
 		{name: "quay.io/centos/centos:stream10", luks: "Please enter passphrase for disk"},
 		{name: "almalinux:10", luks: "Please enter passphrase for disk"},
 		{name: "rockylinux:9", luks: "Please enter passphrase for disk"},             // Docker Inc's official Rocky image
-		{name: "rockylinux:10", luks: "Please enter passphrase for disk"},            // Docker Inc's official Rocky image
 		{name: "rockylinux/rockylinux:9", luks: "Please enter passphrase for disk"},  // Rocky Linux Project official image
 		{name: "rockylinux/rockylinux:10", luks: "Please enter passphrase for disk"}, // Rocky Linux Project official image
 	}
