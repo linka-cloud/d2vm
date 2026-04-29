@@ -41,7 +41,7 @@ func (g grub) Setup(ctx context.Context, dev, root string, cmdline string) error
 		return err
 	}
 	defer clean()
-	if err := g.install(ctx, "--target=x86_64-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy"); err != nil {
+	if err := g.install(ctx, "--target=x86_64-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy", "--force"); err != nil {
 		return err
 	}
 	if err := g.install(ctx, "--target=i386-pc", "--boot-directory=/boot", dev); err != nil {
@@ -61,8 +61,8 @@ func (g grubProvider) New(c Config, r OSRelease, arch string) (Bootloader, error
 	if arch != "x86_64" {
 		return nil, fmt.Errorf("grub is only supported for amd64")
 	}
-	if r.ID == ReleaseCentOS || r.ID == ReleaseRocky || r.ID == ReleaseAlmaLinux {
-		return nil, fmt.Errorf("grub (efi) is not supported for CentOS / Rocky / AlmaLinux, use grub-bios instead")
+	if err := checkGrubEFISupport(r); err != nil {
+		return nil, err
 	}
 	return grub{grubCommon: newGrubCommon(c, r)}, nil
 }

@@ -17,6 +17,8 @@ package d2vm
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -42,7 +44,7 @@ func (g grubEFI) Setup(ctx context.Context, dev, root string, cmdline string) er
 		return err
 	}
 	defer clean()
-	if err := g.install(ctx, "--target="+g.arch+"-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy"); err != nil {
+	if err := g.install(ctx, "--target="+g.arch+"-efi", "--efi-directory=/boot", "--no-nvram", "--removable", "--no-floppy", "--force"); err != nil {
 		return err
 	}
 	if err := g.mkconfig(ctx); err != nil {
@@ -56,14 +58,25 @@ type grubEFIProvider struct {
 }
 
 func (g grubEFIProvider) New(c Config, r OSRelease, arch string) (Bootloader, error) {
-	if r.ID == ReleaseCentOS || r.ID == ReleaseRocky || r.ID == ReleaseAlmaLinux {
-		return nil, fmt.Errorf("grub-efi is not supported for CentOS, use grub-bios instead")
+	if err := checkGrubEFISupport(r); err != nil {
+		return nil, err
 	}
 	return grubEFI{grubCommon: newGrubCommon(c, r), arch: arch}, nil
 }
 
 func (g grubEFIProvider) Name() string {
 	return "grub-efi"
+}
+
+func checkGrubEFISupport(r OSRelease) error {
+	if r.ID == ReleaseCentOS {
+		return fmt.Errorf("grub (efi) is not supported for CentOS, use grub-bios instead")
+	}
+	v, _ := strconv.Atoi(strings.Split(r.VersionID, ".")[0])
+	if (r.ID == ReleaseAlmaLinux || r.ID == ReleaseRocky) && v < 9 {
+		return fmt.Errorf("grub (efi) is not supported for %s (%s), use 9+ releases or grub-bios instead", r.ID, r.VersionID)
+	}
+	return nil
 }
 
 func init() {

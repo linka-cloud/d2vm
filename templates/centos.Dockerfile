@@ -50,8 +50,8 @@ RUN set -e; \
       kver="$(basename "$dir")"; \
       initrd="${dir}/initrd"; \
       [ -e "$initrd" ] || continue; \
-      ln -sf "${linux#/boot/}" "/boot/vmlinuz-${kver}"; \
-      ln -sf "${initrd#/boot/}" "/boot/initramfs-${kver}.img"; \
+      mv "${linux}" "/boot/vmlinuz-${kver}"; \
+      mv "${initrd}" "/boot/initramfs-${kver}.img"; \
     done
 {{- else }}
 RUN cd /boot && \

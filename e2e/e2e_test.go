@@ -135,7 +135,7 @@ imgs:
 						require.NoError(os.Remove(out))
 					}
 
-					require.NoError(docker.RunD2VM(ctx, d2vm.Image, d2vm.Version, dir, dir, "convert", append([]string{"-p", "root", "-o", "/out/" + filepath.Base(out), "-v", "--keep-cache", img.name}, tt.args...)...))
+					require.NoError(docker.RunD2VM(ctx, d2vm.Image, d2vm.Version, dir, dir, "convert", append([]string{"-p", "root", "-o", "/out/" + filepath.Base(out), "-v", "--keep-cache", "--boot-size=250", img.name}, tt.args...)...))
 
 					inr, inw := io.Pipe()
 					defer inr.Close()
