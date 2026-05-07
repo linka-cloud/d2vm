@@ -45,15 +45,13 @@ func (g grubBios) Setup(ctx context.Context, dev, root string, cmdline string) e
 	return nil
 }
 
-type grubBiosProvider struct {
-	config Config
-}
+type grubBiosProvider struct{}
 
-func (g grubBiosProvider) New(c Config, r OSRelease, arch string) (Bootloader, error) {
+func (g grubBiosProvider) New(_ Config, r OSRelease, arch string) (Bootloader, error) {
 	if arch != "x86_64" {
 		return nil, fmt.Errorf("grub-bios is only supported for amd64")
 	}
-	return grubBios{grubCommon: newGrubCommon(c, r)}, nil
+	return grubBios{grubCommon: newGrubCommon(r)}, nil
 }
 
 func (g grubBiosProvider) Name() string {

@@ -91,6 +91,10 @@ func (s syslinuxProvider) New(c Config, _ OSRelease, arch string) (Bootloader, e
 	}, nil
 }
 
+func (s syslinux) Static() bool {
+	return true
+}
+
 func (s syslinuxProvider) Name() string {
 	return "syslinux"
 }

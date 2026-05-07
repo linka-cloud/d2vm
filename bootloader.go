@@ -40,4 +40,5 @@ type BootloaderProvider interface {
 type Bootloader interface {
 	Validate(fs BootFS) error
 	Setup(ctx context.Context, dev, root, cmdline string) error
+	Static() bool
 }

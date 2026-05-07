@@ -57,14 +57,14 @@ type grubProvider struct {
 	config Config
 }
 
-func (g grubProvider) New(c Config, r OSRelease, arch string) (Bootloader, error) {
+func (g grubProvider) New(_ Config, r OSRelease, arch string) (Bootloader, error) {
 	if arch != "x86_64" {
 		return nil, fmt.Errorf("grub is only supported for amd64")
 	}
 	if err := checkGrubEFISupport(r); err != nil {
 		return nil, err
 	}
-	return grub{grubCommon: newGrubCommon(c, r)}, nil
+	return grub{grubCommon: newGrubCommon(r)}, nil
 }
 
 func (g grubProvider) Name() string {

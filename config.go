@@ -60,11 +60,21 @@ type Config struct {
 }
 
 func (c Config) Cmdline(root Root, args ...string) string {
-	var r string
-	if root != nil {
-		r = fmt.Sprintf("root=%s", root.String())
+	cmdline := "net.ifnames=0 rootfstype=ext4 console=tty0 console=ttyS0,115200n8"
+	if c.Kernel == "" && c.Initrd == "" {
+		return cmdline
 	}
-	return fmt.Sprintf("ro initrd=%s %s net.ifnames=0 rootfstype=ext4 console=tty0 console=ttyS0,115200n8 %s", c.Initrd, r, strings.Join(args, " "))
+	parts := []string{"ro"}
+	if root != nil {
+		parts = append(parts, fmt.Sprintf("root=%s", root.String()))
+	}
+	if c.Initrd != "" {
+		parts = append(parts, fmt.Sprintf("initrd=%s", c.Initrd))
+	}
+	if len(args) != 0 {
+		parts = append(parts, args...)
+	}
+	return strings.Join(append(parts, cmdline), " ")
 }
 
 func (r OSRelease) Config() (Config, error) {
