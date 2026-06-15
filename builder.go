@@ -165,6 +165,11 @@ func NewBuilder(ctx context.Context, workdir, imgTag, disk string, size uint64, 
 		return nil, err
 	}
 
+	if !bl.Static() {
+		config.Kernel = ""
+		config.Initrd = ""
+	}
+
 	if size == 0 {
 		size = 10 * uint64(datasize.GB)
 	}

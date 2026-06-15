@@ -38,20 +38,18 @@ GRUB_ENABLE_BLSCFG=false
 
 type grubCommon struct {
 	name string
-	c    Config
 	r    OSRelease
 	root string
 	dev  string
 }
 
-func newGrubCommon(c Config, r OSRelease) *grubCommon {
+func newGrubCommon(r OSRelease) *grubCommon {
 	name := "grub"
 	if r.ID == ReleaseCentOS || r.ID == ReleaseAlmaLinux || r.ID == ReleaseRocky {
 		name = "grub2"
 	}
 	return &grubCommon{
 		name: name,
-		c:    c,
 		r:    r,
 	}
 }
@@ -101,4 +99,8 @@ func (g *grubCommon) mkconfig(ctx context.Context) error {
 		return fmt.Errorf("grubCommon not prepared")
 	}
 	return exec.Run(ctx, "chroot", g.root, g.name+"-mkconfig", "-o", "/boot/"+g.name+"/grub.cfg")
+}
+
+func (g *grubCommon) Static() bool {
+	return false
 }
