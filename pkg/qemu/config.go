@@ -51,6 +51,7 @@ type config struct {
 	qemuImgPath    string
 	publishedPorts []PublishedPort
 	netdevConfig   string
+	mac            string
 
 	stdin  io.Reader
 	stdout io.Writer
@@ -126,6 +127,12 @@ func WithQemuImgPath(path string) Option {
 func WithPublishedPorts(ports ...PublishedPort) Option {
 	return func(c *config) {
 		c.publishedPorts = ports
+	}
+}
+
+func WithMAC(mac string) Option {
+	return func(c *config) {
+		c.mac = mac
 	}
 }
 

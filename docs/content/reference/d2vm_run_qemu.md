@@ -17,6 +17,7 @@ d2vm run qemu [options] [image-path] [flags]
       --disk disk               Disk config, may be repeated. [file=]path[,size=1G][,format=qcow2] (default [])
       --gui                     Set qemu to use video output instead of stdio
   -h, --help                    help for qemu
+      --mac string              MAC address for the virtual machine
       --mem uint                Amount of memory in MB (default 1024)
       --networking string       Networking mode. Valid options are 'default', 'user', 'bridge[,name]', tap[,name] and 'none'. 'user' uses QEMUs userspace networking. 'bridge' connects to a preexisting bridge. 'tap' uses a prexisting tap device. 'none' disables networking.` (default "user")
       --publish multiple-flag   Publish a vm's port(s) to the host (default []) (default A multiple flag is a type of flag that can be repeated any number of times)

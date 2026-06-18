@@ -135,6 +135,14 @@ func Run(ctx context.Context, path string, opts ...Option) error {
 		return fmt.Errorf("Invalid networking mode: %s", netMode[0])
 	}
 
+	if config.mac != "" {
+		if _, err := net.ParseMAC(config.mac); err != nil {
+			return fmt.Errorf("Invalid MAC address: %s", config.mac)
+		}
+	} else {
+		config.mac = generateMAC().String()
+	}
+
 	if err := config.discoverBinaries(); err != nil {
 		log.Fatal(err)
 	}
@@ -286,11 +294,10 @@ func (c *config) buildQemuCmdline() ([]string, error) {
 	}
 
 	if c.netdevConfig != "" {
-		mac := generateMAC()
 		if c.arch == "s390x" {
-			qemuArgs = append(qemuArgs, "-device", "virtio-net-ccw,netdev=t0,mac="+mac.String())
+			qemuArgs = append(qemuArgs, "-device", "virtio-net-ccw,netdev=t0,mac="+c.mac)
 		} else {
-			qemuArgs = append(qemuArgs, "-device", "virtio-net-pci,netdev=t0,mac="+mac.String())
+			qemuArgs = append(qemuArgs, "-device", "virtio-net-pci,netdev=t0,mac="+c.mac)
 		}
 		forwardings, err := buildQemuForwardings(c.publishedPorts)
 		if err != nil {

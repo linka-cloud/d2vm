@@ -32,6 +32,7 @@ var (
 	qemuCmd      string
 	qemuDetached bool
 	networking   string
+	mac          string
 	publishFlags MultipleFlag
 
 	QemuCmd = &cobra.Command{
@@ -80,6 +81,7 @@ func init() {
 
 	// Networking
 	flags.StringVar(&networking, "networking", qemuNetworkingDefault, "Networking mode. Valid options are 'default', 'user', 'bridge[,name]', tap[,name] and 'none'. 'user' uses QEMUs userspace networking. 'bridge' connects to a preexisting bridge. 'tap' uses a prexisting tap device. 'none' disables networking.`")
+	flags.StringVar(&mac, "mac", "", "MAC address for the virtual machine")
 
 	flags.Var(&publishFlags, "publish", "Publish a vm's port(s) to the host (default [])")
 }
@@ -105,6 +107,7 @@ func Qemu(cmd *cobra.Command, args []string) {
 		qemu.WithCPUs(cpus),
 		qemu.WithMemory(mem),
 		qemu.WithNetworking(networking),
+		qemu.WithMAC(mac),
 		qemu.WithStdin(os.Stdin),
 		qemu.WithStdout(os.Stdout),
 		qemu.WithStderr(os.Stderr),
