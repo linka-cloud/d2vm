@@ -45,7 +45,7 @@ func Convert(ctx context.Context, img string, opts ...ConvertOption) error {
 	if err != nil {
 		return err
 	}
-
+	ctx = context.WithValue(ctx, "release", r)
 	if o.luksPassword != "" && !r.SupportsLUKS() {
 		return fmt.Errorf("luks is not supported for %s %s", r.Name, r.Version)
 	}
